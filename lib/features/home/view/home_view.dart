@@ -42,7 +42,7 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  Widget _buildBody() {
+   Widget _buildBody() {
     return AppScaffold(
       appBar: _buildHomeAppBarWidget(),
       body: Container(
@@ -151,14 +151,10 @@ class _HomeViewState extends State<HomeView> {
   Widget buildBusinessCard(Business item) {
     return InkWell(
       onTap: () {
-        AppDialog.showFullScreenDialog(
-          Item(
-            id: item.id,
-            image: item.businessImage,
-            name: item.businessName,
-            address: item.businessArea,
-            role: item.roleId == 2 ? "Business" : "Creator",
-          ),
+        Navigator.pushNamed(
+          context,
+          RoutesName.businessDescriptionView,
+          arguments: item.id,
         );
       },
       child: Container(
@@ -180,7 +176,7 @@ class _HomeViewState extends State<HomeView> {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: AppImageWidget(
-                height: 100.h,
+                height: 110.h, // Reduced height for the image
                 width: double.infinity,
                 imageUrl: item.businessImage!,
               ),
@@ -197,63 +193,71 @@ class _HomeViewState extends State<HomeView> {
             SizedBox(
               height: 6.h,
             ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: AppColor.mangoYellow,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.mangoYellow.withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+            Row( // This new Row will hold both discount and address
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Separates discount and address
+              children: [
+                Container( // Discount with yellow background
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: AppColor.mangoYellow,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.mangoYellow.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.local_offer,
-                    size: 12.sp,
-                    color: Colors.white,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.local_offer,
+                        size: 12.sp,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 4.w),
+                      AppTextWidget(
+                        text: '20% OFF',
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 4.w),
-                  AppTextWidget(
-                    text: '20% OFF',
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 6.h,
-            ),
-            if (item.businessArea != null)
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    height: 12.h,
-                    width: 12.h,
-                    AppIcon.location,
-                  ),
-                  SizedBox(width: 4),
-                  Container(
-                    width: 120.w,
-                    child: AppTextWidget(
-                      text: '${item.businessArea}',
-                      maxLines: 1,
-                      softWrap: true,
-                      textOverflow: TextOverflow.ellipsis,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF666666),
+                ),
+                if (item.businessArea != null) // Address without yellow background, to the right
+                  Expanded( // Use Expanded to give it available space
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end, // Align address to the right
+                      children: [
+                        SvgPicture.asset(
+                          height: 12.h,
+                          width: 12.h,
+                          AppIcon.location,
+                          color: Color(0xFF666666), // Use original address color for icon
+                        ),
+                        SizedBox(width: 4),
+                        Expanded( // Wrap AppTextWidget in Expanded to prevent overflow
+                          child: AppTextWidget(
+                            text: '${item.businessArea}',
+                            maxLines: 1,
+                            softWrap: true,
+                            textOverflow: TextOverflow.ellipsis,
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF666666),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+              ],
+            ),
+            // SizedBox(
+            //   height: 6.h,
+            // ),
           ],
         ),
       ),
@@ -505,7 +509,7 @@ class _HomeViewState extends State<HomeView> {
     return Column(
       children: [
         Container(
-          height: 270.h,
+          height: 220.h, // Adjusted height for the section containing business cards
           width: SizeConfig.screenWidth,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +531,10 @@ class _HomeViewState extends State<HomeView> {
                       padding: EdgeInsets.only(
                         right: Utils.getValueBasedOnIndex(index, data.length),
                       ),
-                      child: buildBusinessCard(data[index]),
+                      child: SizedBox(
+                        height: 160.h, // Constrain the height of each business card item
+                        child: buildBusinessCard(data[index]),
+                      ),
                     );
                   },
                 ),
