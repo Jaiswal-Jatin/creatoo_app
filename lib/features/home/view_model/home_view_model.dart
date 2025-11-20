@@ -1,0 +1,208 @@
+import 'package:creatoo/core.dart';
+import 'package:creatoo/features/bill_payment/view_model/bill_payment_view_model.dart';
+import 'package:creatoo/features/home/model/home_screen_response_model.dart';
+import 'package:creatoo/features/home/repository/home_repository.dart';
+import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
+
+import '../../settings/view_model/settings_view_model.dart';
+
+class HomeViewModel with ChangeNotifier {
+  final HomeRepository _myRepo = HomeRepository();
+  final UrlLauncherService _urlLauncherService = UrlLauncherService();
+  final SharedPreferencesService prefs = SharedPreferencesService();
+  late UserData? user = UserData();
+  bool isTrue = true;
+  CarouselSliderController controller = CarouselSliderController();
+  int position = 0;
+  int count = 0;
+  int _selectedIndex = 0;
+  bool _creatooView = false;
+  bool? isLogout;
+
+  int get selectedIndex => _selectedIndex;
+  bool get creatooView => _creatooView;
+
+  void changeIndex(int index, bool creatooView) {
+    _selectedIndex = index;
+    _creatooView = creatooView;
+    notifyListeners();
+  }
+
+  ApiResponse<HomeDataResponse> homeResponse = ApiResponse.loading();
+
+  setResponse(ApiResponse<HomeDataResponse> response) {
+    homeResponse = response;
+  }
+
+  init() async {
+    // await FirebaseMessagingService.initialise();
+    if (isLogout == null || isLogout == false) {
+      await getHomeData();
+      await getProfile();
+    }
+  }
+
+  void launchBannerUrl(String url) async {
+    await _urlLauncherService.launchAppUrl(url);
+  }
+
+  double roundToTwoDecimalPlaces(double value) {
+    return (value * 100).round() / 100;
+  }
+
+  updateBannerIndex(index) {
+    position = index;
+    notifyListeners();
+  }
+
+  Future<void> getHomeData() async {
+    setResponse(ApiResponse.loading());
+    var response = await _myRepo.getHomeDataApi();
+    response.fold(
+      (l) {
+        setResponse(ApiResponse.error(l.message));
+        Utils.toastMessage(l.message.toString());
+      },
+      (r) async {
+        setResponse(ApiResponse.completed(r));
+        if (roleId == Constants.creatorUser) {
+          if (r.data?.isPendingReviewFlag != null) {
+            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.feedbackScreen, arguments: {
+              'businessName': r.data?.isPendingReviewFlag?.businessName ?? "Unknown",
+              'businessId': r.data?.isPendingReviewFlag?.businessId ?? 125,
+              'orderId': r.data?.isPendingReviewFlag?.orderId ?? "order_Q9TCU7fsYEF5XA",
+            });
+          }
+          if (r.data?.orderId != null && r.data!.orderId!.isNotEmpty) {
+            BillPaymentViewModel billPaymentViewModel = Provider.of<BillPaymentViewModel>(navigatorKey.currentContext!, listen: false);
+            billPaymentViewModel.init();
+            await billPaymentViewModel.checkTransactionStatusApiCall(
+                orderId: r.data!.orderId!,
+                onSuccess: () async {
+                  await getHomeData();
+                });
+          }
+        } else if (r.data?.roleSpecificData?.profileCompletionStatus != null) {
+          // BillPaymentViewModel billPaymentViewModel = Provider.of<BillPaymentViewModel>(navigatorKey.currentContext!, listen: false);
+          // billPaymentViewModel.init();
+          // await billPaymentViewModel.checkTransactionStatus('MT6805f3c480');
+          if (r.data?.roleSpecificData?.profileCompletionStatus == 0) {
+            await AppDialog.showBusinessInfoIncompleteDialog(
+                title: "Complete Your Basic Registration!",
+                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                mandatoryFields: "Business Name, Mobile, Area & Address",
+                buttonLabel: "Proceed To Finish",
+                onClicked: () async {
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Navigator.of(navigatorKey.currentContext!).pop(true);
+                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Details");
+                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                });
+          } else if (r.data?.roleSpecificData?.profileCompletionStatus == 1) {
+            await AppDialog.showBusinessInfoIncompleteDialog(
+                title: "Complete Your Business Description!",
+                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                mandatoryFields: "Business Images 4, Opening Time & Closing Time",
+                buttonLabel: "Proceed To Finish",
+                onClicked: () async {
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Navigator.of(navigatorKey.currentContext!).pop(true);
+                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Details");
+                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                });
+          } else if (r.data?.roleSpecificData?.profileCompletionStatus == 2) {
+            await AppDialog.showBusinessInfoIncompleteDialog(
+                title: "Complete Your Registration!",
+                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                mandatoryFields: "Discount Fields, Min order Value & Points Expiry Date",
+                buttonLabel: "Proceed To Finish",
+                onClicked: () async {
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Navigator.of(navigatorKey.currentContext!).pop(true);
+                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Set Discount");
+                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                });
+          }
+        }
+      },
+    );
+    notifyListeners();
+  }
+
+  Future<void> fetchCreatorProfile() async {
+    var data = {"id": userId, "role_id": roleId};
+    var response = await _myRepo.fetchCreatorProfileApi(data);
+    response.fold(
+      (l) {},
+      (r) async {
+        // isTrue = true;
+
+        user?.name = r.data!.name;
+        user?.image = r.data!.userImage;
+        user?.email = r.data!.email;
+        user?.mobile = r.data!.mobile;
+        user?.instagramVerificationStatus = r.data!.instagramVerificationStatus!;
+        // if (r.data!.instagramVerificationStatus == InstagramStatus.initial.index ||
+        //     r.data!.instagramVerificationStatus == InstagramStatus.rejected.index) {
+        //   log("API COUNT : ${count}");
+        //   if (count == 0) {
+        //     ++count;
+        //     notifyListeners();
+        //     bool? confirm = await AppDialog.showConfirmationDialog(
+        //         title: "Verify Instagram Account", content: "Please Verify Your Account to Access the Creatoo App", confirm: "Go");
+        //     if (confirm!) {
+        //       await Navigator.pushNamed(
+        //         navigatorKey.currentContext!,
+        //         RoutesName.creatorProfileDetailView,
+        //         arguments: userId,
+        //       );
+        //     }
+        //   }
+        // }
+      },
+    );
+    notifyListeners();
+  }
+
+  Future<void> fetchBusinessProfile() async {
+    var data = {"id": userId, "role_id": roleId};
+    var response = await _myRepo.fetchBusinessProfileApi(data);
+    response.fold(
+      (l) {},
+      (r) async {
+        user?.name = r.data!.businessName;
+        user?.image = r.data!.businessImage;
+        user?.email = r.data!.businessEmail;
+        user?.mobile = r.data!.businessMobile;
+
+        // if (r.data!.instagramVerificationStatus == InstagramStatus.initial.index ||
+        //     r.data!.instagramVerificationStatus == InstagramStatus.rejected.index) {
+        //   log("API COUNT : ${count}");
+        //   if (count == 0) {
+        //     ++count;
+        //     notifyListeners();
+        //     bool? confirm = await AppDialog.showConfirmationDialog(
+        //         title: "Verify Instagram Account", content: "Please Verify Your Account to Access the Creatoo App", confirm: "Go");
+        //     if (confirm!) {
+        //       await Navigator.pushNamed(
+        //         navigatorKey.currentContext!,
+        //         RoutesName.creatorProfileDetailView,
+        //         arguments: userId,
+        //       );
+        //     }
+        //   }
+        // }
+      },
+    );
+
+    notifyListeners();
+  }
+
+  getProfile() async {
+    if (roleId == Constants.businessUser) {
+      await fetchBusinessProfile();
+    } else {
+      await fetchCreatorProfile();
+    }
+  }
+}

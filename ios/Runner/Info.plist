@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.creatoo.creatooapp</string>
+    </array>
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Creatoo</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.creatoo.creatooapp</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Creatoo</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    <key>FirebaseAppDelegateProxyEnabled</key>
+    <string>NO</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>This app requires access to your Apple Music library to provide personalized music recommendations.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your photo library so you can select and upload photos for your profile or posts.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>We need permission to save photos and videos to your library for your convenience.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need permission to access your photo library to view and select your photos and videos.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We need access to your camera to scan QR codes.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need access to your microphone for scanning purposes.</string>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>processing</string>
+        <string>remote-notification</string>
+    </array>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    <key>UIStatusBarHidden</key>
+    <false/>
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleDefault</string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>tez</string>
+        <string>phonepe</string>
+        <string>paytmmp</string>
+        <string>credpay</string>
+        <string>mobikwik</string>
+        <string>freecharge</string>
+        <string>in.fampay.app</string>
+        <string>bhim</string>
+        <string>amazonpay</string>
+        <string>navi</string>
+        <string>kiwi</string>
+        <string>payzapp</string>
+        <string>jupiter</string>
+        <string>omnicard</string>
+        <string>icici</string>
+        <string>popclubapp</string>
+        <string>sbiyono</string>
+        <string>myjio</string>
+        <string>slice-upi</string>
+        <string>bobupi</string>
+        <string>shriramone</string>
+        <string>indusmobile</string>
+        <string>whatsapp</string>
+    </array>
+</dict>
+</plist>

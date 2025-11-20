@@ -1,0 +1,31 @@
+class AppIcon {
+  static const String basePath = "assets/icons";
+  static const String person = "$basePath/person.svg";
+  static const String indiaFlag = "$basePath/india-flag.svg";
+  static const String otpBg = "$basePath/otpBg.svg";
+  static const String edit = "$basePath/edit.svg";
+  static const String editOutlined = "$basePath/edit_outlined.svg";
+  static const String home = "$basePath/home.svg";
+  static const String search = "$basePath/search.svg";
+  static const String wallet = "$basePath/wallet.svg";
+  static const String category = "$basePath/category_icon.svg";
+  static const String profile = "$basePath/profile.svg";
+  static const String add = "$basePath/add.svg";
+  static const String location = "$basePath/location.svg";
+  static const String calender = "$basePath/calender.svg";
+  static const String info = "$basePath/info.svg";
+  static const String arrowLeft = "$basePath/arrow_left.svg";
+  static const String profileBg = "$basePath/profile_bg.svg";
+  static const String profileBgShort = "$basePath/profile_bg_short.svg";
+  static const String mic = "$basePath/mic.svg";
+  static const String walletBg = "$basePath/wallet_bg.svg";
+  static const String auth = "$basePath/auth.svg";
+  static const String otp = "$basePath/otp.svg";
+  static const String userRole = "$basePath/user_role.svg";
+  static const String creatooPoints = "$basePath/creatoo_points.svg";
+  static const String folder = "$basePath/folder.svg";
+  static const String suitcase = "$basePath/suitcase.svg";
+  static const String upDownArrow = "$basePath/up_down_arrow_icon.svg";
+  static const String successfullyDone = "$basePath/successfully-done.json";
+  static const String comingSoon = "$basePath/coming_soon.svg";
+}

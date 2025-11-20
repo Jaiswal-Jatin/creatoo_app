@@ -1,0 +1,2 @@
+/Users/macbook/Desktop/creatoo-app/android/app/.cxx/Debug/2e4l602z/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/macbook/Desktop/creatoo-app/android/app/.cxx/Debug/2e4l602z/armeabi-v7a/CMakeFiles/rebuild_cache.dir

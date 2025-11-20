@@ -1,0 +1,1 @@
+/Users/macbook/Desktop/creatoo-app/build/app/intermediates/cxx/RelWithDebInfo/6r23275j/obj/arm64-v8a

@@ -1,0 +1,135 @@
+import 'dart:convert';
+
+class SearchBusinessResponse {
+  bool? status;
+  String? message;
+  List<BusinessSearchData>? data;
+  Pagination? pagination;
+
+  SearchBusinessResponse({
+    this.status,
+    this.message,
+    this.data,
+    this.pagination,
+  });
+
+  factory SearchBusinessResponse.fromRawJson(String str) => SearchBusinessResponse.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory SearchBusinessResponse.fromJson(Map<String, dynamic> json) => SearchBusinessResponse(
+        status: json["status"],
+        message: json["message"],
+        data: json["data"] == null ? [] : List<BusinessSearchData>.from(json["data"]!.map((x) => BusinessSearchData.fromJson(x))),
+        pagination: json["pagination"] == null ? null : Pagination.fromJson(json["pagination"]),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "status": status,
+        "message": message,
+        "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
+        "pagination": pagination?.toJson(),
+      };
+}
+
+class BusinessSearchData {
+  int? id;
+  String? businessFullname;
+  String? businessName;
+  String? businessEmail;
+  String? businessMobile;
+  String? businessArea;
+  String? businessSiteUrl;
+  String? businessImage;
+  int? isActive;
+  int? roleId;
+  String? pricingRangeText;
+  String? avgExperience;
+  int? set_first_time_discount;
+  int? set_regular_discount;
+
+  BusinessSearchData(
+      {this.id,
+      this.businessFullname,
+      this.businessName,
+      this.businessEmail,
+      this.businessMobile,
+      this.businessArea,
+      this.businessSiteUrl,
+      this.businessImage,
+      this.isActive,
+      this.roleId,
+      this.pricingRangeText,
+      this.avgExperience,
+      this.set_first_time_discount,
+      this.set_regular_discount});
+
+  factory BusinessSearchData.fromRawJson(String str) => BusinessSearchData.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory BusinessSearchData.fromJson(Map<String, dynamic> json) => BusinessSearchData(
+      id: json["id"],
+      businessFullname: json["business_fullname"],
+      businessName: json["business_name"],
+      businessEmail: json["business_email"],
+      businessMobile: json["business_mobile"],
+      businessArea: json["business_area"],
+      businessSiteUrl: json["business_site_url"],
+      businessImage: json["business_image"],
+      isActive: json["is_active"],
+      roleId: json["role_id"],
+      pricingRangeText: json["pricing_range_text"],
+      avgExperience: json["avg_experience"],
+      set_first_time_discount: json["set_first_time_discount"],
+      set_regular_discount: json["set_regular_discount"]);
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "business_fullname": businessFullname,
+        "business_name": businessName,
+        "business_email": businessEmail,
+        "business_mobile": businessMobile,
+        "business_area": businessArea,
+        "business_site_url": businessSiteUrl,
+        "business_image": businessImage,
+        "is_active": isActive,
+        "role_id": roleId,
+        "pricing_range_text": pricingRangeText,
+        "avg_experience": avgExperience,
+        "set_first_time_discount": set_first_time_discount,
+        "set_regular_discount": set_regular_discount
+      };
+}
+
+class Pagination {
+  int? currentPage;
+  int? lastPage;
+  int? perPage;
+  int? total;
+
+  Pagination({
+    this.currentPage,
+    this.lastPage,
+    this.perPage,
+    this.total,
+  });
+
+  factory Pagination.fromRawJson(String str) => Pagination.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory Pagination.fromJson(Map<String, dynamic> json) => Pagination(
+        currentPage: json["current_page"],
+        lastPage: json["last_page"],
+        perPage: json["per_page"],
+        total: json["total"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "current_page": currentPage,
+        "last_page": lastPage,
+        "per_page": perPage,
+        "total": total,
+      };
+}

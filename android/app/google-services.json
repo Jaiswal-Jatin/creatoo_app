@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352792412991",
+    "project_id": "creatoo-2b4b1",
+    "storage_bucket": "creatoo-2b4b1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352792412991:android:a368356d188ff34930c98a",
+        "android_client_info": {
+          "package_name": "com.creatoo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaS0ZrqQdQgv8DonaOTEuhJ8V2PPwM33I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
