@@ -209,35 +209,34 @@ class _HomeViewState extends State<HomeView> {
             Row( // This new Row will hold both discount and address
               mainAxisAlignment: MainAxisAlignment.spaceBetween, // Separates discount and address
               children: [
-                Container( // Discount with yellow background
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                Container( // Discount with gradient background
                   decoration: BoxDecoration(
-                    color: AppColor.mangoYellow,
+                    gradient: LinearGradient(
+                      colors: [AppColor.kPrimary, AppColor.primaryLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColor.mangoYellow.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.local_offer,
-                        size: 12.sp,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 4.w),
-                      AppTextWidget(
-                        text: '20% OFF',
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.local_offer,
+                          size: 12.sp,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 4.w),
+                        AppTextWidget(
+                          text: '20% OFF',
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 if (item.businessArea != null) // Address without yellow background, to the right

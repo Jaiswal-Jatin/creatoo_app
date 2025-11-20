@@ -20,7 +20,8 @@ class _SearchViewState extends State<SearchView> {
     viewModel.init(Constants.businessUser);
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         viewModel.loadMoreBusinessUsers();
       }
     });
@@ -34,7 +35,8 @@ class _SearchViewState extends State<SearchView> {
       case Status.loading:
         return AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.searchResponse.message.toString());
+        return AppErrorWidget(
+            message: viewModel.searchResponse.message.toString());
       case Status.completed:
         return _buildBody();
       default:
@@ -61,31 +63,47 @@ class _SearchViewState extends State<SearchView> {
             ),
           ),
           Expanded(
-            child: (viewModel.businessSearchList == null || viewModel.businessSearchList!.isEmpty)
+            child: (viewModel.businessSearchList == null ||
+                    viewModel.businessSearchList!.isEmpty)
                 ? Center(child: AppTextWidget(text: "No Businesses to show"))
                 : ListView.builder(
                     controller: _scrollController,
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                    itemCount: viewModel.businessSearchList!.length + (viewModel.hasMoreData ? 1 : 0),
+                    itemCount: viewModel.businessSearchList!.length +
+                        (viewModel.hasMoreData ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == viewModel.businessSearchList!.length) {
                         return viewModel.isLoadingMore
                             ? Center(
                                 child: Container(
                                   padding: const EdgeInsets.all(10.0),
-                                  child: CircularProgressIndicator(color: AppColor.primary),
+                                  child: CircularProgressIndicator(
+                                      color: AppColor.primary),
                                 ),
                               )
-                            : SizedBox.shrink(); // Prevents unnecessary widget rendering
+                            : SizedBox
+                                .shrink(); // Prevents unnecessary widget rendering
                       }
                       return _buildBusinessDetailsCard(
-                          businessId: viewModel.businessSearchList?[index].id ?? 0,
-                          businessName: viewModel.businessSearchList?[index].businessName ?? '',
-                          imageUrl: viewModel.businessSearchList?[index].businessImage ?? '',
-                          address: viewModel.businessSearchList?[index].businessArea ?? '',
-                          ratings: viewModel.businessSearchList?[index].avgExperience,
-                          priceRange: viewModel.businessSearchList?[index].pricingRangeText ?? '',
-                          discount: (viewModel.businessSearchList?[index].set_first_time_discount as num?)?.toInt());
+                          businessId:
+                              viewModel.businessSearchList?[index].id ?? 0,
+                          businessName: viewModel
+                                  .businessSearchList?[index].businessName ??
+                              '',
+                          imageUrl: viewModel
+                                  .businessSearchList?[index].businessImage ??
+                              '',
+                          address: viewModel
+                                  .businessSearchList?[index].businessArea ??
+                              '',
+                          ratings: viewModel
+                              .businessSearchList?[index].avgExperience,
+                          priceRange: viewModel.businessSearchList?[index]
+                                  .pricingRangeText ??
+                              '',
+                          discount: (viewModel.businessSearchList?[index]
+                                  .set_first_time_discount as num?)
+                              ?.toInt());
                     },
                   ),
           ),
@@ -149,7 +167,8 @@ class _SearchViewState extends State<SearchView> {
   }) {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, RoutesName.businessDescriptionView, arguments: businessId);
+        Navigator.pushNamed(context, RoutesName.businessDescriptionView,
+            arguments: businessId);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 8),
@@ -173,7 +192,8 @@ class _SearchViewState extends State<SearchView> {
             ),
             Positioned.fill(
               child: Align(
-                alignment: Alignment.bottomCenter,
+                alignment: Alignment
+                    .bottomCenter, // Dark gradient remains centered horizontally
                 child: Container(
                   height: 120, // Adjust height of the gradient as needed
                   decoration: BoxDecoration(
@@ -207,11 +227,49 @@ class _SearchViewState extends State<SearchView> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300), // Added border here
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (discount != null &&
+                          discount > 0) // Discount section moved here
+                        Container(
+                          height: 40, // Reduced height
+                          width: double
+                              .maxFinite, // Span full width within parent padding
+                          margin: EdgeInsets.only(
+                              bottom: 8), // Spacing below discount
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 5), // Adjusted padding
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                AppColor.kPrimary,
+                                AppColor.kPrimary,
+                                Colors.transparent,
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AppTextWidget(
+                                // Only one text widget now
+                                text: "Flat ${discount}% OFF + 3 more",
+                                fontSize: 14,
+                                color: AppColor.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ],
+                          ),
+                        ),
                       Container(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,11 +292,15 @@ class _SearchViewState extends State<SearchView> {
                               Container(
                                 width: 50,
                                 height: 25,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColor.rating),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: AppColor.rating),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 6),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
                                     children: [
                                       AppTextWidget(
                                         text: ratings,
@@ -263,17 +325,21 @@ class _SearchViewState extends State<SearchView> {
                           ],
                         ),
                       ),
-                      if ((priceRange != null && priceRange.isNotEmpty) || (address != null && address.isNotEmpty))
+                      if ((priceRange != null && priceRange.isNotEmpty) ||
+                          (address != null && address.isNotEmpty))
                         Column(
                           children: [
                             SizedBox(height: 6),
                             Container(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
                                     constraints: BoxConstraints(
-                                      maxWidth: MediaQuery.sizeOf(context).width * 0.5,
+                                      maxWidth:
+                                          MediaQuery.sizeOf(context).width *
+                                              0.5,
                                     ),
                                     child: AppTextWidget(
                                       text: address,
@@ -288,18 +354,6 @@ class _SearchViewState extends State<SearchView> {
                                   )
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                      if (discount != null && discount > 0)
-                        Column(
-                          children: [
-                            SizedBox(
-                              height: 6,
-                            ),
-                            AppTextWidget(
-                              text: 'Get ${discount}% Off',
-                              fontSize: 15,
                             ),
                           ],
                         ),
