@@ -1,6 +1,8 @@
 import 'package:creatoo/features/notification/view_model/notification_view_model.dart';
 import 'package:creatoo/widgets/app_text_widget.dart';
 
+import 'package:creatoo/resources/color.dart';
+
 import '../../../core.dart';
 import '../../home/view_model/home_view_model.dart';
 import '../../wallet/view/business_wallet_view.dart';
@@ -89,9 +91,14 @@ class _NotificationViewState extends State<NotificationView> {
 
               final notification = viewModel.notifications[index];
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10.0),
-                child: GestureDetector(
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 10.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: AppColor.moreLighterDd, width: 1), // Added border here
+                ),
+                child: InkWell(
                   onTap: () {
                     if (roleId == Constants.businessUser) {
                       Navigator.pop(context);
@@ -99,55 +106,63 @@ class _NotificationViewState extends State<NotificationView> {
                       businessWalletKey.currentState?.changeIndex(0);
                     }
                   },
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColor.moreLighterDd),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (roleId == Constants.creatorUser)
-                                  AppTextWidget(
-                                    text: notification.notificationSubject ?? "Feedback Review",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                SizedBox(height: 3.h),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.notifications,
+                          color: AppColor.kPrimary,
+                          size: 24,
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (roleId == Constants.creatorUser)
                                 AppTextWidget(
-                                  text: notification.notificationText ?? " ",
-                                  fontSize: 12,
+                                  text: notification.notificationSubject ?? "Feedback Review",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              SizedBox(height: 4.h),
+                              AppTextWidget(
+                                text: notification.notificationText ?? " ",
+                                fontSize: 13,
+                                color: AppColor.darkGrey,
+                              ),
+                              if (notification.createdAt != null) ...[
+                                SizedBox(height: 6.h),
+                                AppTextWidget(
+                                  text: "Received: ${notification.createdAt}", // Assuming createdAt exists
+                                  fontSize: 10,
+                                  color: AppColor.grey,
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                          if (roleId == Constants.creatorUser) ...[
-                            SizedBox(width: 10),
-                            if (notification.isRedeemed == "0")
-                              SizedBox(
-                                width: 80,
-                                height: 30,
-                                child: AppRoundButton(
-                                  title: 'Complete',
-                                  onPress: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RoutesName.completeFeedback,
-                                    );
-                                  },
-                                ),
+                        ),
+                        if (roleId == Constants.creatorUser) ...[
+                          SizedBox(width: 10.w),
+                          if (notification.isRedeemed == "0")
+                            SizedBox(
+                              width: 80,
+                              height: 30,
+                              child: AppRoundButton(
+                                title: 'Complete',
+                                onPress: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RoutesName.completeFeedback,
+                                  );
+                                },
                               ),
-                          ],
+                            ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                 ),

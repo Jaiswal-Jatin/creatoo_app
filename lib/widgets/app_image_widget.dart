@@ -21,31 +21,37 @@ class AppImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: CachedNetworkImage(
-        alignment: Alignment.center,
-        height: height,
-        width: width,
-        imageUrl: "$baseUrl$imageUrl",
-        fit: BoxFit.cover,
-        placeholder: ImagePlaceholderWidget,
-        errorWidget: isProfile
-            ? (ctx, url, error) => SizedBox(
-                  width: width,
-                  height: height,
-                  child: ClipOval(
-                    child: Container(
-                      color: Colors.grey.shade200,
-                      child: Icon(
-                        Icons.person,
-                        size: iconSize,
-                        color: Colors.grey,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: Colors.grey.shade300), // Added border to the image
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: CachedNetworkImage(
+          alignment: Alignment.center,
+          height: height,
+          width: width,
+          imageUrl: "$baseUrl$imageUrl",
+          fit: BoxFit.cover,
+          placeholder: ImagePlaceholderWidget,
+          errorWidget: isProfile
+              ? (ctx, url, error) => SizedBox(
+                    width: width,
+                    height: height,
+                    child: ClipOval(
+                      child: Container(
+                        color: Colors.grey.shade200,
+                        child: Icon(
+                          Icons.person,
+                          size: iconSize,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
-                  ),
-                )
-            : ImageErrorWidget,
+                  )
+              : ImageErrorWidget,
+        ),
       ),
     );
   }

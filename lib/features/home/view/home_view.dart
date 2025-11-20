@@ -97,6 +97,19 @@ class _HomeViewState extends State<HomeView> {
                               ),
                             ),
                           ),
+                          // New Button
+                          Expanded(
+                            child: Container(
+                              margin: EdgeInsets.symmetric(horizontal: 6.w),
+                              child: _buildCustomCard(
+                                icon: isBusiness ? Icons.store_mall_directory : Icons.credit_card,
+                                title: isBusiness ? "Visit" : "Card",
+                                onPressed: () {
+                                  // TODO: Implement functionality for "Visit" or "Card" button
+                                },
+                              ),
+                            ),
+                          ),
                           // Second Button
                           Expanded(
                             child: Container(

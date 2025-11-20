@@ -158,12 +158,40 @@ class _SearchViewState extends State<SearchView> {
         ),
         child: Stack(
           children: [
-            AppImageWidget(
-              imageUrl: imageUrl ?? '',
-              height: 260,
-              width: double.maxFinite,
-              borderRadius: 16,
-              fit: BoxFit.cover,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white, // White background for the image area
+              ),
+              child: AppImageWidget(
+                imageUrl: imageUrl ?? '',
+                height: 300, // Increased height as requested
+                width: double.maxFinite,
+                borderRadius: 16,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: 120, // Adjust height of the gradient as needed
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.8), // Dark black shadow
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
             Positioned(
               bottom: 10,
