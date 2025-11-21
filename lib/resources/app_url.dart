@@ -3,17 +3,35 @@ String baseUrl = "${AppUrl.host}/storage/app/";
 class AppUrl {
   //TODO: Change Url before Deploying
 
+//old - will be removed later
   // static const String host = 'https://staging.creatoo.co.in';
   // static const String host = 'http://192.168.0.36:8000';
+
   static const String host = 'https://portal.creatoo.co.in';
+  // static const String host = 'https://api.tapbill.in/api'; 
+
+
+
   static const String baseUrl = '$host/api';
   static const String razorpayOrderId = 'https://api.razorpay.com/v1/orders';
+
+// // New api endpoints
+//   static const String creatorLogin = '$baseUrl/auth/creatorLogin';
+//   static const String resendCreatorOtp = '$baseUrl/auth/resendCreatorOtp';
+//   static const String businessLogin = '$baseUrl/auth/businessLogin';
+//   static const String resendBusinessOtp = '$baseUrl/auth/resendBusinessOtp';
+//   static const String registerBusiness = '$baseUrl/auth/businessRegister';
+//   static const String registerCreator = '$baseUrl/auth/creatorRegister';
+
+// old api endpoints 
   static const String creatorLogin = '$baseUrl/creatorLogin';
   static const String resendCreatorOtp = '$baseUrl/resendCreatorOtp';
   static const String businessLogin = '$baseUrl/businessLogin';
   static const String resendBusinessOtp = '$baseUrl/resendBusinessOtp';
   static const String registerBusiness = '$baseUrl/businessRegister';
   static const String registerCreator = '$baseUrl/creatorRegister';
+
+
   static const String fetchInstaUser = '$baseUrl/fetchInstaUser';
   static const String homeData = '$baseUrl/getHomeData';
   static const String searchUser = '$baseUrl/searchUser';
