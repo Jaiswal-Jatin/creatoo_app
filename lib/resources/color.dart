@@ -38,4 +38,9 @@ class AppColor {
   static const Color referralCard = Color(0xFF42BF42);
   static const Color buttonPay = Color(0xFF5D059C);
   static const Color payCard = Color.fromARGB(255, 251, 232, 255);
+
+  // Tier Colors
+  static const Color gold = Color(0xFFFFD700); // Gold color
+  static const Color silver = Color(0xFFC0C0C0); // Silver color
+  static const Color bronze = Color(0xFFCD7F32); // Bronze color
 }

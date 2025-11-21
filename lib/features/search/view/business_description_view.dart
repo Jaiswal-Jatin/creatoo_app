@@ -24,7 +24,61 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   final PageController _businessPageController = PageController();
   final PageController _menuPageController = PageController();
 
-  int _currentPage = 0;
+  final PageController _goldTierPageController = PageController();
+  final PageController _silverTierPageController = PageController();
+  final PageController _bronzeTierPageController = PageController();
+
+  Timer? _goldCarouselTimer;
+  Timer? _silverCarouselTimer;
+  Timer? _bronzeCarouselTimer;
+
+
+  int _currentBusinessPage = 0;
+  int _currentGoldPage = 0;
+  int _currentSilverPage = 0;
+  int _currentBronzePage = 0;
+
+  // Placeholder images - replace with actual premium images
+  final List<String> goldTierImages = [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Restaurant interior
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Chef's special dish
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Fine dining setup
+  ];
+
+  final List<String> silverTierImages = [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Appetizers
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Main course
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Desserts
+  ];
+
+  final List<String> bronzeTierImages = [
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Drinks
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Snacks
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Combo offers
+  ];
+  
+  // Offer images with different categories
+  final List<Map<String, String>> offerImages = [
+    {
+      'url': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
+      'title': 'Weekend Special',
+      'description': '20% OFF on all main course items'
+    },
+    {
+      'url': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
+      'title': 'Happy Hours',
+      'description': 'Buy 1 Get 1 Free on all drinks'
+    },
+    {
+      'url': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
+      'title': 'Family Combo',
+      'description': 'Special discount for family of 4'
+    },
+  ];
+  
+  Timer? _goldSliderTimer;
+  Timer? _silverSliderTimer;
+  Timer? _bronzeSliderTimer;
 
   @override
   void initState() {
@@ -32,14 +86,61 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     viewModel = Provider.of<SearchViewModel>(context, listen: false);
     viewModel.getBusinessDetailsApi(id: widget.businessId);
     _startAutoScroll();
+    // Start auto-slide for all tier sliders
+    _startTierSlidersAutoSlide();
   }
 
   @override
   void dispose() {
     _carouselTimer?.cancel();
+    _stopTierSlidersAutoSlide();
     _businessPageController.dispose();
     _menuPageController.dispose();
+    _goldTierPageController.dispose();
+    _silverTierPageController.dispose();
+    _bronzeTierPageController.dispose();
     super.dispose();
+  }
+  
+  void _startTierSlidersAutoSlide() {
+    _goldSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+      if (_goldTierPageController.hasClients) {
+        final nextPage = (_goldTierPageController.page!.toInt() + 1) % goldTierImages.length;
+        _goldTierPageController.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+    
+    _silverSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+      if (_silverTierPageController.hasClients) {
+        final nextPage = (_silverTierPageController.page!.toInt() + 1) % silverTierImages.length;
+        _silverTierPageController.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+    
+    _bronzeSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+      if (_bronzeTierPageController.hasClients) {
+        final nextPage = (_bronzeTierPageController.page!.toInt() + 1) % bronzeTierImages.length;
+        _bronzeTierPageController.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+  
+  void _stopTierSlidersAutoSlide() {
+    _goldSliderTimer?.cancel();
+    _silverSliderTimer?.cancel();
+    _bronzeSliderTimer?.cancel();
   }
 
   List<String> get businessImages {
@@ -56,6 +157,24 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     }
 
     return images;
+  }
+
+  Timer _startTierAutoScroll(PageController controller, List<String> images) {
+    return Timer.periodic(Duration(seconds: 4), (timer) {
+      if (controller.hasClients && images.isNotEmpty) {
+        int nextPage = controller.page!.round() + 1;
+
+        if (nextPage >= images.length) {
+          controller.jumpToPage(0);
+        } else {
+          controller.animateToPage(
+            nextPage,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
   }
 
   void _startAutoScroll() {
@@ -220,7 +339,7 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
             itemCount: businessImages.length,
             onPageChanged: (index) {
               setState(() {
-                _currentPage = index;
+                _currentBusinessPage = index;
               });
             },
             itemBuilder: (context, index) {
@@ -287,8 +406,8 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 3.w),
                 child: CircleAvatar(
-                  radius: _currentPage == index ? 5.h : 3.h,
-                  backgroundColor: _currentPage == index ? AppColor.primary : Colors.grey,
+                  radius: _currentBusinessPage == index ? 5.h : 3.h,
+                  backgroundColor: _currentBusinessPage == index ? AppColor.primary : Colors.grey,
                 ),
               ),
             );
@@ -450,6 +569,7 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                 ],
               ),
             _buildMenuCarousel(),
+            _buildTierFeatureSection(),
             if (viewModel.businessDescription?.totalReviews != null && viewModel.businessDescription!.totalReviews! > 0)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,10 +577,22 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                   SizedBox(
                     height: 30.h,
                   ),
-                  AppTextWidget(
-                    text: "Reviews",
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppTextWidget(
+                        text: "Reviews",
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.black,
+                      ),
+                      SizedBox(height: 4.h),
+                      Container(
+                        height: 2,
+                        width: 80,
+                        color: AppColor.primary,
+                      ),
+                    ],
                   ),
                   SizedBox(
                     height: 25.h,
@@ -498,38 +630,81 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
         SizedBox(height: 30.h),
         Align(
           alignment: Alignment.centerLeft,
-          child: AppTextWidget(
-            text: "Menu",
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextWidget(
+                text: "Menu",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.black,
+              ),
+              SizedBox(height: 4.h),
+              Container(
+                height: 2,
+                width: 60,
+                color: AppColor.primary,
+              ),
+            ],
           ),
         ),
         SizedBox(height: 15.h),
         Container(
-          width: double.infinity,
-          height: 200,
-          child: PageView.builder(
-            controller: _menuPageController,
-            itemCount: menuImages.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FullScreenImageCarouselView(
-                        imageUrls: menuImages,
-                        initialIndex: index,
-                      ),
-                    ),
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: AppImageWidget(
-                    imageUrl: menuImages[index],
-                    fit: BoxFit.cover,
+          height: 250,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.zero,
+            itemCount: (menuImages.length / 2).ceil(),
+            itemBuilder: (context, rowIndex) {
+              return Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: GridView.builder(
+                  padding: EdgeInsets.zero,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.85,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 250,
                   ),
+                  itemCount: (rowIndex * 2 + 2 <= menuImages.length) ? 2 : 1,
+                  itemBuilder: (context, colIndex) {
+                    final index = rowIndex * 2 + colIndex;
+                    if (index >= menuImages.length) return Container();
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FullScreenImageCarouselView(
+                              imageUrls: menuImages,
+                              initialIndex: index,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: EdgeInsets.zero,
+                        padding: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.grey.shade400,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0), // Slightly smaller to account for border
+                          child: AppImageWidget(
+                            imageUrl: menuImages[index],
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
@@ -648,6 +823,12 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
         //         fontSize: 16,
         //       ),
         //       const SizedBox(height: 10),
+        //       Container(
+        //         height: 2,
+        //         width: 80,
+        //         color: AppColor.primary,
+        //       ),
+        //       SizedBox(height: 10),
         //       ...viewModel.businessDescription!.reviewText!.map(
         //         (review) => Container(
         //           margin: const EdgeInsets.only(bottom: 8),
@@ -700,6 +881,218 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
           return const Icon(Icons.star_border, color: AppColor.moreLighterDd, size: 20);
         }
       }),
+    );
+  }
+
+  Widget _buildTierFeatureSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 30.h),
+        // Main Section Title matching other section headers
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 0.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextWidget(
+                text: "Exclusive Tiers",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.black,
+              ),
+              SizedBox(height: 4.h),
+              Container(
+                height: 2,
+                width: 140,
+                color: AppColor.primary,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 15.h),
+
+        // Gold Tier Card
+        _buildTierCard(
+          title: "Gold Tier",
+          color: AppColor.gold,
+          controller: _goldTierPageController,
+          images: goldTierImages,
+          currentPage: _currentGoldPage,
+          onPageChanged: (index) {
+            setState(() {
+              _currentGoldPage = index;
+            });
+          },
+        ),
+        SizedBox(height: 6.h),
+
+        // Silver Tier Card
+        _buildTierCard(
+          title: "Silver Tier",
+          color: AppColor.silver,
+          controller: _silverTierPageController,
+          images: silverTierImages,
+          currentPage: _currentSilverPage,
+          onPageChanged: (index) {
+            setState(() {
+              _currentSilverPage = index;
+            });
+          },
+        ),
+        SizedBox(height: 6.h),
+
+        // Bronze Tier Card
+        _buildTierCard(
+          title: "Bronze Tier",
+          color: AppColor.bronze,
+          controller: _bronzeTierPageController,
+          images: bronzeTierImages,
+          currentPage: _currentBronzePage,
+          onPageChanged: (index) {
+            setState(() {
+              _currentBronzePage = index;
+            });
+          },
+        ),
+        SizedBox(height: 30.h),
+      ],
+    );
+  }
+
+  Widget _buildTierCard({
+    required String title,
+    required Color color,
+    required PageController controller,
+    required List<String> images,
+    required int currentPage,
+    required Function(int) onPageChanged,
+  }) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tier Header
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(Icons.star, color: color, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Image Slider
+          if (images.isNotEmpty) _buildTierImageSlider(controller, images, color, onPageChanged, currentPage),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTierImageSlider(PageController controller, List<String> images, Color color, Function(int) onPageChanged, int currentPage) {
+    return Container(
+      height: 160,
+      margin: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: controller,
+              itemCount: images.length,
+              onPageChanged: (index) {
+                onPageChanged(index);
+                // Reset timer when user manually swipes
+                _stopTierSlidersAutoSlide();
+                _startTierSlidersAutoSlide();
+              },
+              itemBuilder: (context, index) {
+                return CachedNetworkImage(
+                  imageUrl: '${images[index]}',
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: color.withOpacity(0.1),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: color.withOpacity(0.1),
+                    child: Center(
+                      child: Icon(Icons.image_not_supported, color: color.withOpacity(0.5), size: 40),
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Page indicator
+            if (images.length > 1)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 10),
+                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      images.length,
+                      (index) => Container(
+                        width: 8,
+                        height: 8,
+                        margin: EdgeInsets.symmetric(horizontal: 3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: currentPage == index 
+                              ? Colors.white // White for active dot
+                              : Colors.white.withOpacity(0.5), // Semi-transparent white for inactive dots
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

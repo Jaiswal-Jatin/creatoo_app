@@ -77,7 +77,8 @@ class _HomeViewState extends State<HomeView> {
                             child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 6.w),
                               child: _buildCustomCard(
-                                icon: Icons.qr_code_scanner,
+                                icon: isBusiness ? 'assets/icons/qr-code.png' : 'assets/icons/qr-code.png',
+                                isImage: true,
                                 title: isBusiness ? "Show QR" : "Scan",
                                 onPressed: () async {
                                   if (isBusiness) {
@@ -102,7 +103,8 @@ class _HomeViewState extends State<HomeView> {
                             child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 6.w),
                               child: _buildCustomCard(
-                                icon: isBusiness ? Icons.store_mall_directory : Icons.credit_card,
+                                icon: isBusiness ? Icons.storefront_rounded : 'assets/icons/credit-card.png',
+                                isImage: !isBusiness,
                                 title: isBusiness ? "Visit" : "Card",
                                 onPressed: () {
                                   // TODO: Implement functionality for "Visit" or "Card" button
@@ -115,7 +117,8 @@ class _HomeViewState extends State<HomeView> {
                             child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 6.w),
                               child: _buildCustomCard(
-                                icon: Icons.redeem,
+                                icon: isBusiness ? 'assets/icons/wallet.png' : 'assets/icons/wallet.png',
+                                isImage: true,
                                 title: isBusiness ? "Today's Settlement" : "Balance",
                                 balance: isBusiness
                                     ? "${viewModel.roundToTwoDecimalPlaces(viewModel.homeResponse.data?.data?.roleSpecificData?.todayWalletPoints?.toDouble() ?? 0.0).toCommaSeparated()}"
@@ -175,7 +178,7 @@ class _HomeViewState extends State<HomeView> {
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: AppColor.bgLightPurple.withOpacity(0.2),
+          color: AppColor.moreLighterDd.withOpacity(0.3),
           border: Border.all(
             color: AppColor.moreLighterDd,
             width: 1,
@@ -211,11 +214,12 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 Container( // Discount with gradient background
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColor.kPrimary, AppColor.primaryLight],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    // gradient: LinearGradient(
+                    //   colors: [AppColor.kPrimary, AppColor.primaryLight],
+                    //   begin: Alignment.topLeft,
+                    //   end: Alignment.bottomRight,
+                    // ),
+                    color: AppColor.black,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Padding(
@@ -599,6 +603,7 @@ class _HomeViewState extends State<HomeView> {
                 softWrap: true,
                 textAlign: TextAlign.center,
                 textOverflow: TextOverflow.ellipsis,
+                fontWeight: FontWeight.w800,
                 fontSize: 12.sp,
               ),
             ),
@@ -610,7 +615,7 @@ class _HomeViewState extends State<HomeView> {
                 softWrap: true,
                 textAlign: TextAlign.center,
                 textOverflow: TextOverflow.ellipsis,
-                fontSize: 12.sp,
+                fontSize: 10.sp,
               ),
             ),
           ],
@@ -670,10 +675,11 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildCustomCard({
-    required IconData icon,
+    required dynamic icon,
     required String title,
     required VoidCallback onPressed,
     String? balance,
+    bool isImage = false,
   }) {
     return GestureDetector(
       onTap: onPressed,
@@ -681,7 +687,7 @@ class _HomeViewState extends State<HomeView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Container for Icon
+          // Container for Icon/Image
           Container(
             padding: EdgeInsets.all(10.h),
             decoration: BoxDecoration(
@@ -689,11 +695,18 @@ class _HomeViewState extends State<HomeView> {
               borderRadius: BorderRadius.circular(10.sp),
               // border: Border.all(color: AppColor.primary),
             ),
-            child: Icon(
-              icon,
-              size: 25,
-              color: AppColor.white,
-            ),
+            child: isImage 
+              ? Image.asset(
+                  icon,
+                  width: 35,
+                  height: 35,
+                  color: Colors.white,
+                )
+              : Icon(
+                  icon,
+                  size: 35,
+                  color: AppColor.white,
+                ),
           ),
           SizedBox(height: 8.h),
           // Title
