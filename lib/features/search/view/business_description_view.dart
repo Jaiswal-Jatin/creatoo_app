@@ -588,8 +588,8 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                       ),
                       SizedBox(height: 4.h),
                       Container(
-                        height: 2,
-                        width: 80,
+                        height: 3,
+                        width: 40,
                         color: AppColor.primary,
                       ),
                     ],
@@ -641,8 +641,8 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
               ),
               SizedBox(height: 4.h),
               Container(
-                height: 2,
-                width: 60,
+                height: 3,
+                width: 40,
                 color: AppColor.primary,
               ),
             ],
@@ -884,215 +884,241 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     );
   }
 
-  Widget _buildTierFeatureSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 30.h),
-        // Main Section Title matching other section headers
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 0.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppTextWidget(
-                text: "Exclusive Tiers",
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColor.black,
-              ),
-              SizedBox(height: 4.h),
-              Container(
-                height: 2,
-                width: 140,
-                color: AppColor.primary,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 15.h),
-
-        // Gold Tier Card
-        _buildTierCard(
-          title: "Gold Tier",
-          color: AppColor.gold,
-          controller: _goldTierPageController,
-          images: goldTierImages,
-          currentPage: _currentGoldPage,
-          onPageChanged: (index) {
-            setState(() {
-              _currentGoldPage = index;
-            });
-          },
-        ),
-        SizedBox(height: 6.h),
-
-        // Silver Tier Card
-        _buildTierCard(
-          title: "Silver Tier",
-          color: AppColor.silver,
-          controller: _silverTierPageController,
-          images: silverTierImages,
-          currentPage: _currentSilverPage,
-          onPageChanged: (index) {
-            setState(() {
-              _currentSilverPage = index;
-            });
-          },
-        ),
-        SizedBox(height: 6.h),
-
-        // Bronze Tier Card
-        _buildTierCard(
-          title: "Bronze Tier",
-          color: AppColor.bronze,
-          controller: _bronzeTierPageController,
-          images: bronzeTierImages,
-          currentPage: _currentBronzePage,
-          onPageChanged: (index) {
-            setState(() {
-              _currentBronzePage = index;
-            });
-          },
-        ),
-        SizedBox(height: 30.h),
-      ],
-    );
-  }
-
-  Widget _buildTierCard({
-    required String title,
-    required Color color,
-    required PageController controller,
-    required List<String> images,
-    required int currentPage,
-    required Function(int) onPageChanged,
-  }) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tier Header
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
+Widget _buildTierFeatureSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Modern Section Header
+      Padding(
+        padding: EdgeInsets.fromLTRB(0.w, 24.h, 16.w, 16.h),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Container(
+            //   padding: EdgeInsets.all(8.w),
+            //   decoration: BoxDecoration(
+            //     color: AppColor.primary.withOpacity(0.1),
+            //     borderRadius: BorderRadius.circular(12),
+            //   ),
+            //   child: Icon(
+            //     Icons.workspace_premium_rounded,
+            //     color: AppColor.primary,
+            //     size: 24.sp,
+            //   ),
+            // ),
+            // SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.star, color: color, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColor.black,
+                AppTextWidget(
+                  text: "Exclusive Offers",
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.black,
+                ),
+                SizedBox(height: 4.h),
+                Container(
+                  height: 3,
+                  width: 40.w,
+                  decoration: BoxDecoration(
+                    color: AppColor.primary,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+      
+      // Tiers List with consistent spacing
+      ListView(
+        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        children: [
+          _buildTierItem(
+            title: "Gold Tier",
+            gradientColors: AppColor.goldGradient,
+            controller: _goldTierPageController,
+            images: goldTierImages,
+            currentPage: _currentGoldPage,
+            onPageChanged: (index) => setState(() => _currentGoldPage = index),
+            iconPath: 'assets/icons/insurance.png',
           ),
-          
-          // Image Slider
-          if (images.isNotEmpty) _buildTierImageSlider(controller, images, color, onPageChanged, currentPage),
+          SizedBox(height: 10.h),
+          _buildTierItem(
+            title: "Silver Tier",
+            gradientColors: AppColor.silverGradient,
+            controller: _silverTierPageController,
+            images: silverTierImages,
+            currentPage: _currentSilverPage,
+            onPageChanged: (index) => setState(() => _currentSilverPage = index),
+            iconPath: 'assets/icons/insurance.png',
+          ),
+          SizedBox(height: 10.h),
+          _buildTierItem(
+            title: "Bronze Tier",
+            gradientColors: AppColor.bronzeGradient,
+            controller: _bronzeTierPageController,
+            images: bronzeTierImages,
+            currentPage: _currentBronzePage,
+            onPageChanged: (index) => setState(() => _currentBronzePage = index),
+            iconPath: 'assets/icons/insurance.png',
+          ),
+          SizedBox(height: 10.h),
         ],
       ),
-    );
-  }
+    ],
+  );
+}
 
-  Widget _buildTierImageSlider(PageController controller, List<String> images, Color color, Function(int) onPageChanged, int currentPage) {
-    return Container(
-      height: 160,
-      margin: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: Offset(0, 3),
+Widget _buildTierItem({
+  required String title,
+  required List<Color> gradientColors,
+  required PageController controller,
+  required List<String> images,
+  required int currentPage,
+  required Function(int) onPageChanged,
+  required String iconPath,
+}) {
+  if (images.isEmpty) return SizedBox.shrink();
+
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 15,
+          offset: Offset(0, 8),
+          spreadRadius: 0,
+        ),
+      ],
+    ),
+    child: Stack(
+      children: [
+        // Image Slider with Overlay Badge
+        Container(
+          height: 150.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          children: [
-            PageView.builder(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: PageView.builder(
               controller: controller,
               itemCount: images.length,
               onPageChanged: (index) {
                 onPageChanged(index);
-                // Reset timer when user manually swipes
                 _stopTierSlidersAutoSlide();
                 _startTierSlidersAutoSlide();
               },
               itemBuilder: (context, index) {
                 return CachedNetworkImage(
-                  imageUrl: '${images[index]}',
+                  imageUrl: images[index],
                   fit: BoxFit.cover,
                   width: double.infinity,
                   placeholder: (context, url) => Container(
-                    color: color.withOpacity(0.1),
+                    color: Colors.grey[100],
                     child: Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(gradientColors.first),
                       ),
                     ),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: color.withOpacity(0.1),
-                    child: Center(
-                      child: Icon(Icons.image_not_supported, color: color.withOpacity(0.5), size: 40),
-                    ),
+                    color: Colors.grey[100],
+                    child: Icon(Icons.broken_image_rounded, color: Colors.grey),
                   ),
                 );
               },
             ),
-            // Page indicator
-            if (images.length > 1)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  margin: EdgeInsets.only(bottom: 10),
-                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        
+        // Floating Gradient Badge (Top Left)
+        Positioned(
+          top: 16.h,
+          left: 16.w,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: gradientColors.last.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  iconPath,
+                  width: 18.w,
+                  height: 18.w,
+                  color: Colors.black,
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                    letterSpacing: 0.5,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(
-                      images.length,
-                      (index) => Container(
-                        width: 8,
-                        height: 8,
-                        margin: EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: currentPage == index 
-                              ? Colors.white // White for active dot
-                              : Colors.white.withOpacity(0.5), // Semi-transparent white for inactive dots
-                        ),
-                      ),
-                    ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Page Indicators (Bottom Center inside image)
+        if (images.length > 1)
+          Positioned(
+            bottom: 12.h,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  width: currentPage == index ? 20.w : 6.w,
+                  height: 6.h,
+                  margin: EdgeInsets.symmetric(horizontal: 3.w),
+                  decoration: BoxDecoration(
+                    color: currentPage == index 
+                        ? Colors.white 
+                        : Colors.white.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      if (currentPage == index)
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        )
+                    ],
                   ),
                 ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
+            ),
+          ),
+      ],
+    ),
+  );
+}
 }

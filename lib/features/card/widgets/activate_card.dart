@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:creatoo/core.dart';
+import 'package:creatoo/widgets/app_button.dart';
+import 'package:creatoo/widgets/app_textfield.dart';
 
 class ActivateCardModal extends StatelessWidget {
   const ActivateCardModal({super.key});
@@ -38,40 +40,42 @@ class ActivateCardModal extends StatelessWidget {
               ),
             ),
             SizedBox(height: 25.h),
-            TextFormField(
-              style: const TextStyle(color: AppColor.black),
-              decoration: _buildInputDecoration('Name', Icons.person_outline),
+            AppTextField(
+              hintText: 'Name',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 10),
+                child: Icon(Icons.person_outline, color: AppColor.black.withOpacity(0.7)),
+              ),
+              disableBorder: false,
+              borderColor: AppColor.black.withOpacity(0.5),
+              textColor: AppColor.black,
+              contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
+              textAlign: TextAlign.start,
             ),
             SizedBox(height: 15.h),
-            TextFormField(
-              style: const TextStyle(color: AppColor.black),
-              decoration:
-                  _buildInputDecoration('Card Code', Icons.credit_card),
+            AppTextField(
+              hintText: 'Card Code',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 10),
+                child: Icon(Icons.credit_card, color: AppColor.black.withOpacity(0.7)),
+              ),
+              disableBorder: false,
+              borderColor: AppColor.black.withOpacity(0.5),
+              textColor: AppColor.black,
+              contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
+              textInputType: TextInputType.number,
+              textAlign: TextAlign.start,
             ),
             SizedBox(height: 25.h),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement card activation logic
-                  Navigator.pop(context); // Close modal
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                ),
-                child: Text(
-                  'Activate Card',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: AppColor.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            AppButton(
+              text: 'Activate Card',
+              onTap: () {
+                // TODO: Implement card activation logic
+                Navigator.pop(context); // Close modal
+              },
+              buttonColor: AppColor.primary,
+              height: 50,
+              isIconEnabled: false,
             ),
           ],
         ),
@@ -79,22 +83,4 @@ class ActivateCardModal extends StatelessWidget {
     );
   }
 
-  InputDecoration _buildInputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: AppColor.black.withOpacity(0.7)),
-      prefixIcon: Icon(
-        icon,
-        color: AppColor.black.withOpacity(0.7),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide(color: AppColor.black.withOpacity(0.5)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: const BorderSide(color: AppColor.black),
-      ),
-    );
-  }
 }

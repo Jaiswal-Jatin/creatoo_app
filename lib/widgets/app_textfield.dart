@@ -56,7 +56,7 @@ class AppTextField extends StatefulWidget {
     this.minLines,
     this.onTap,
     this.readOnly = false,
-    this.borderRadius = 30,
+    this.borderRadius = 15,
     this.disallowZero = false,
     this.textSize,
     this.backgroundColor,

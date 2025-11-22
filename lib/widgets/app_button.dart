@@ -36,7 +36,7 @@ class AppButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
                 color: (isLoading || isDisabled) ? AppColor.primaryDisabled : buttonColor,
-                borderRadius: BorderRadius.circular(50),
+                borderRadius: BorderRadius.circular(15),
                 border: enableBorder ? Border.all(color: AppColor.lightGrey) : null),
             child: Center(
               child: isLoading
