@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core.dart';
-import '../widgets/activate_card_modal.dart';
+import 'activate_card.dart';
+import 'particle_animation.dart';
 
 class PremiumGlassCard extends StatelessWidget {
   const PremiumGlassCard({super.key});
@@ -15,24 +16,16 @@ class PremiumGlassCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
+          colors: AppColor.premiumCardGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2D2D2D),
-           
-            Color(0xFF1A1A1A),
-             const Color.fromARGB(255, 43, 41, 41).withOpacity(0.3),
-            Color(0xFF2D2D2D),
-              
-            Color(0xFF2D2D2D),
-          ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: AppColor.black.withOpacity(0.25),
             blurRadius: 20,
             spreadRadius: 1,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -40,15 +33,18 @@ class PremiumGlassCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
+            // Particle Animation
+            const ParticleAnimation(),
+
             // Glassmorphism Effect
             BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: AppColor.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColor.white.withOpacity(0.2),
                     width: 1.5,
                   ),
                 ),
@@ -69,12 +65,12 @@ class PremiumGlassCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColor.white,
                         ),
                       ),
                       Icon(
                         Icons.verified,
-                        color: Colors.white,
+                        color: AppColor.white,
                         size: 28.sp,
                       ),
                     ],
@@ -85,7 +81,7 @@ class PremiumGlassCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.9),
+                      color: AppColor.white.withOpacity(0.9),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -95,7 +91,7 @@ class PremiumGlassCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColor.white,
                       letterSpacing: 2,
                     ),
                   ),
@@ -110,10 +106,10 @@ class PremiumGlassCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _showActivateCardModal(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColor.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(5),
+                    // side: BorderSide(color: AppColor.black, width: 2),
                   ),
                   padding: EdgeInsets.symmetric(
                     horizontal: 20.w,
@@ -123,7 +119,7 @@ class PremiumGlassCard extends StatelessWidget {
                 child: Text(
                   'Activate',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: AppColor.black,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                   ),
@@ -137,12 +133,29 @@ class PremiumGlassCard extends StatelessWidget {
   }
 
   void _showActivateCardModal(BuildContext context) {
-    showModalBottomSheet(
+    showGeneralDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColor.transparent,
-      builder: (context) {
-        return ActivateCardModal();
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: AppColor.transparent,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Material(
+          color: AppColor.black.withOpacity(0.5),
+          child: ScaleTransition(
+            scale: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            ),
+            child: FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+              child: const ActivateCardModal(),
+            ),
+          ),
+        );
       },
     );
   }
