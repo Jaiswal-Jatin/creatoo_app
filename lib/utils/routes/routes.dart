@@ -32,6 +32,7 @@ import 'package:creatoo/features/verify_otp/view/verify_otp_view.dart';
 import 'package:creatoo/features/wallet/view/business_wallet_view.dart';
 import 'package:creatoo/features/wallet/view/wallet_view.dart';
 import 'package:creatoo/widgets/app_success_widget.dart';
+import 'package:creatoo/features/card/view/card_screen.dart';
 
 import '../../features/add_post/model/add_post_model.dart';
 import '../../features/auth/view/auth_view.dart';
@@ -250,6 +251,9 @@ class Routes {
               creatorId: settings.arguments as int? ?? 0,
               business_id: settings.arguments as int,
             ));
+
+      case RoutesName.cardView:
+        return _buildRoute(settings, const CardScreen());
 
       default:
         return _buildRoute(

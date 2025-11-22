@@ -43,4 +43,13 @@ class AppGradient {
       Color(0xFFAC1AF0), // Light yellow
     ],
   );
+
+  static LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      AppColor.primary,
+      AppColor.primaryLight,
+    ],
+  );
 }

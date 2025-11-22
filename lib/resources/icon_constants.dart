@@ -28,4 +28,5 @@ class AppIcon {
   static const String upDownArrow = "$basePath/up_down_arrow_icon.svg";
   static const String successfullyDone = "$basePath/successfully-done.json";
   static const String comingSoon = "$basePath/coming_soon.svg";
+  static const String creditCard = "$basePath/credit-card.png";
 }

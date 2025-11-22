@@ -1,6 +1,7 @@
 import 'package:upgrader/upgrader.dart';
 
 import '../../../core.dart';
+import '../../card/view/card_screen.dart';
 import '../../creator_wallet/view/creator_wallet_view.dart';
 import '../../search/view/search_view.dart';
 import '../../settings/view/settings_view.dart';
@@ -35,13 +36,14 @@ class _HomePageState extends State<HomePage> {
     List<Widget> _widgetOptions = roleId == Constants.businessUser
         ? [
             const HomeView(),
+            const CardScreen(), // Added CardScreen
             WalletView(),
             SettingsView(),
           ]
         : [
             const HomeView(),
             const SearchView(),
-            // CategoryView(),
+            const CardScreen(), // Added CardScreen
             CreatorWalletView(
               key: creatorWalletKey,
               index: viewModel.creatooView ? 1 : 0,
@@ -88,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     height: 2,
                     margin: const EdgeInsets.only(bottom: 70),
-                    width: roleId == Constants.businessUser ? SizeConfig.screenWidth / 3 : SizeConfig.screenWidth / 4,
+                    width: roleId == Constants.businessUser ? SizeConfig.screenWidth / 5 : SizeConfig.screenWidth / 5, // Adjusted width
                     decoration: BoxDecoration(
                       color: AppColor.primary,
                       borderRadius: BorderRadius.circular(10),
@@ -98,17 +100,17 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    buildGestureDetector(context, 0, AppIcon.home, "Home"),
-                    if (roleId == Constants.creatorUser) buildGestureDetector(context, 1, AppIcon.search, "Search"),
-                    // if (roleId == Constants.creatorUser) buildGestureDetector(context, 2, AppIcon.category, "Category"),
+                    Expanded(child: buildGestureDetector(context, 0, AppIcon.home, "Home", isSvg: true)),
+                    if (roleId == Constants.creatorUser) Expanded(child: buildGestureDetector(context, 1, AppIcon.search, "Search", isSvg: true)),
+                    Expanded(child: buildGestureDetector(context, roleId == Constants.creatorUser ? 2 : 1, AppIcon.creditCard, "Card", isSvg: false)),
                     if (roleId == Constants.creatorUser)
-                      buildGestureDetector(context, 2, AppIcon.wallet, "Wallet")
+                      Expanded(child: buildGestureDetector(context, 3, AppIcon.wallet, "Wallet", isSvg: true))
                     else
-                      buildGestureDetector(context, 1, AppIcon.wallet, "Wallet"),
+                      Expanded(child: buildGestureDetector(context, 2, AppIcon.wallet, "Wallet", isSvg: true)),
                     if (roleId == Constants.creatorUser)
-                      buildGestureDetector(context, 3, AppIcon.profile, "Profile")
+                      Expanded(child: buildGestureDetector(context, 4, AppIcon.profile, "Profile", isSvg: true))
                     else
-                      buildGestureDetector(context, 2, AppIcon.profile, "Profile"),
+                      Expanded(child: buildGestureDetector(context, 3, AppIcon.profile, "Profile", isSvg: true)),
                   ],
                 ),
               ],
@@ -120,27 +122,43 @@ class _HomePageState extends State<HomePage> {
   }
 
   Alignment _getAlignment(int selectedIndex) {
-    if (selectedIndex == 0) return Alignment(-1, 0);
-    if (selectedIndex == 1) return roleId == Constants.creatorUser ? Alignment(-0.3, 0) : Alignment(0, 0);
-    if (selectedIndex == 2) return roleId == Constants.creatorUser ? Alignment(0.3, 0) : Alignment(1, 0);
-    if (roleId == Constants.creatorUser && selectedIndex == 3) return Alignment(1, 0);
-    return Alignment(1, 0);
+    if (roleId == Constants.businessUser) {
+      if (selectedIndex == 0) return Alignment(-1, 0); // Home
+      if (selectedIndex == 1) return Alignment(-0.3, 0); // Card (new center for business)
+      if (selectedIndex == 2) return Alignment(0.3, 0); // Wallet
+      if (selectedIndex == 3) return Alignment(1, 0); // Profile
+    } else {
+      // Creator user with 5 items
+      if (selectedIndex == 0) return Alignment(-1, 0); // Home
+      if (selectedIndex == 1) return Alignment(-0.6, 0); // Search
+      if (selectedIndex == 2) return Alignment(-0.0, 0); // Card (new center for creator)
+      if (selectedIndex == 3) return Alignment(0.6, 0); // Wallet
+      if (selectedIndex == 4) return Alignment(1, 0); // Profile
+    }
+    return Alignment(1, 0); // Default, should not be reached with proper indices
   }
 
-  InkWell buildGestureDetector(BuildContext context, int index, String iconPath, String name) {
+  InkWell buildGestureDetector(BuildContext context, int index, String iconPath, String name, {bool isSvg = true}) {
     final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
     return InkWell(
-      onTap: () => homeViewModel.changeIndex(index, index == 2),
+      onTap: () => homeViewModel.changeIndex(index, index == (roleId == Constants.creatorUser ? 3 : 2)), // Adjust index for wallet
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 1),
-        width: (roleId == Constants.creatorUser) ? 60.w : 80.w,
+        // Removed fixed width, Expanded will handle it
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SvgPicture.asset(
-              iconPath,
-              color: homeViewModel.selectedIndex == index ? AppColor.primary : AppColor.black,
-            ),
+            isSvg
+                ? SvgPicture.asset(
+                    iconPath,
+                    color: homeViewModel.selectedIndex == index ? AppColor.primary : AppColor.black,
+                  )
+                : Image.asset(
+                    iconPath,
+                    height: 24.h, // Assuming a reasonable height for images
+                    width: 24.w,  // Assuming a reasonable width for images
+                    color: homeViewModel.selectedIndex == index ? AppColor.primary : AppColor.black,
+                  ),
             Text(
               name,
               style: TextStyle(

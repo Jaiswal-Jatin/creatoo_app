@@ -46,4 +46,5 @@ class RoutesName {
   static const String feedbackScreen = 'feedback';
   static const String reviewView = 'reviewsView';
   static const String paymentSuccessView = 'paymentSuccessView';
+  static const String cardView = 'cardView';
 }

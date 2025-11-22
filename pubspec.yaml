@@ -52,6 +52,7 @@ dependencies:
   crypto: ^3.0.6
   confetti: ^0.7.0
   upgrader: ^11.4.0
+  animated_button: ^0.2.0
 
 dev_dependencies:
   flutter_test:
@@ -116,5 +117,3 @@ flutter:
          style: italic
        - asset: assets/fonts/SFUIText/SFUIText-ItalicG3.otf
          style: italic
-
-

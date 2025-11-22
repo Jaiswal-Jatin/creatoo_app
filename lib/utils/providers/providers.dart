@@ -10,6 +10,7 @@ import 'package:provider/single_child_widget.dart';
 
 import '../../core.dart';
 import '../../features/add_post/view_model/add_post_view_model.dart';
+import '../../features/card/view_model/card_view_model.dart'; // Import CardViewModel
 import '../../features/add_post_payment_summary/view_model/add_post_payment_summary_view_model.dart';
 import '../../features/auth/view_model/auth_view_model.dart';
 import '../../features/business_profile/view_model/business_profile_view_model.dart';
@@ -132,7 +133,8 @@ class Providers {
         create: (BuildContext context) => FeedbackViewModel(),
       ),
       ChangeNotifierProvider(create: (BuildContext context) => ReviewsViewModel()),
-      ChangeNotifierProvider(create: (BuildContext context) => CreatorWalletViewModel())
+      ChangeNotifierProvider(create: (BuildContext context) => CreatorWalletViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => CardViewModel()), // Add CardViewModel
     ];
     return providers;
   }
