@@ -72,90 +72,179 @@ class _ScannerViewState extends State<ScannerView> {
 
   Widget buildMobileBody() {
     return AppScaffold(
-      appBar: AppBarWidget(),
-      body: Form(
-        key: viewModel.formKey,
-        child: Container(
-          width: SizeConfig.screenWidth,
-          margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        title: Text(
+          'QR Code',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Color(0xFFF8F9FF)],
+          ),
+        ),
+        child: Form(
+          key: viewModel.formKey,
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                buildQrCodeSection(),
-                //TODO: Remove TextField section after confirmation
-
-                // SizedBox(height: 10.h),
-                // Divider(color: AppColor.darkGrey, thickness: 0.5),
-                // SizedBox(height: 10.h),
-                // buildSettingsSection(),
-                // SizedBox(height: 100.h),
-              ],
+            physics: BouncingScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  Card(
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: buildQrCodeSection(),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Uncomment and update if you want to include settings section
+                  // Card(
+                  //   elevation: 8,
+                  //   shape: RoundedRectangleBorder(
+                  //     borderRadius: BorderRadius.circular(20),
+                  //   ),
+                  //   child: Padding(
+                  //     padding: EdgeInsets.all(20.0),
+                  //     child: buildSettingsSection(),
+                  //   ),
+                  // ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // floatingActionButton: buildSaveButton(),
     );
   }
 
   Widget buildQrCodeSection() {
-    return Center(
-      child: Column(
-        children: [
-          Text(
-            widget.businessName ?? '',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Business Name
+        Text(
+          widget.businessName?.toUpperCase() ?? 'YOUR BUSINESS',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: AppColor.kPrimary,
+            letterSpacing: 1.2,
           ),
-          SizedBox(height: 15.h),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              double size = constraints.maxWidth * 0.8;
-              size = size > 350 ? 350 : size;
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w),
-                  child: AppImageWidget(
-                    height: size,
-                    width: size,
-                    imageUrl: qrImageUrl ?? '',
-                    fit: BoxFit.contain,
-                    borderRadius: 5,
-                  ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Scan to Get Rewards',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 24),
+        
+        // QR Code Container
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 15,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // QR Code
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColor.kPrimary.withOpacity(0.2), width: 1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              );
-            },
-          ),
-          SizedBox(height: 20.h),
-          (viewModel.isDownloading)
-              ? AppLoadingWidget(
-                  isApi: true,
-                )
-              : GestureDetector(
-                  onTap: () async {
-                    File? file = await viewModel.getImage();
-                    if (file != null) {
-                      print('Image saved to :${file.path}');
-                      Utils.snackBar('QR code downloaded', result: Result.success);
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.download, size: 25.sp, color: AppColor.kPrimary),
-                      SizedBox(width: 5.w),
-                      Text(
-                        'Download QR',
-                        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                child: AppImageWidget(
+                  height: 200,
+                  width: 200,
+                  imageUrl: qrImageUrl ?? '',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              
+              SizedBox(height: 20),
+              
+              // Download Button
+              if (viewModel.isDownloading)
+                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColor.kPrimary))
+              else
+                Container(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      File? file = await viewModel.getImage();
+                      if (file != null) {
+                        print('Image saved to :${file.path}');
+                        Utils.snackBar('QR code downloaded successfully!', result: Result.success);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.kPrimary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                      elevation: 2,
+                      shadowColor: AppColor.kPrimary.withOpacity(0.3),
+                    ),
+                    icon: Icon(Icons.download_rounded, size: 22),
+                    label: Text(
+                      'Download QR Code',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
                 ),
-        ],
-      ),
+            ],
+          ),
+        ),
+        
+        // Info Text
+        Padding(
+          padding: EdgeInsets.only(top: 24, left: 16, right: 16),
+          child: Text(
+            'Display this QR code at your business location. Customers can scan it to earn and redeem points.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 13.sp,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -180,170 +269,232 @@ class _ScannerViewState extends State<ScannerView> {
   }
 
   Widget buildSettingField(String label, TextEditingController controller, TextInputFormatter formatter) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: Text(label, style: TextStyle(fontSize: 16))),
-        Expanded(
-          child: AppTextField(
-            onChanged: (value) {
-              viewModel.checkIfModified();
-
-              if (label == 'Set Discount %') {
-                final parsedValue = int.tryParse(value);
-                if (parsedValue != null && (parsedValue > 100 || parsedValue < 1)) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Invalid Value'),
-                      content: Text('Value should be between 1 to 100.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  controller.text = '';
-                  controller.selection = TextSelection.fromPosition(
-                    TextPosition(offset: controller.text.length),
-                  );
-                }
-              }
-
-              if (label == 'Min Order Value') {
-                final parsedValue = int.tryParse(value);
-                if (parsedValue != null && parsedValue <= 0) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Invalid Value'),
-                      content: Text('Min Order Value must be greater than 0.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  // Reset the value to 1
-                  controller.text = '';
-                  controller.selection = TextSelection.fromPosition(
-                    TextPosition(offset: controller.text.length),
-                  );
-                }
-              }
-            },
-            controller: controller,
-            textInputType: TextInputType.number,
-            disableBorder: false,
-            borderRadius: 10,
-            inputFormatters: [formatter],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                if (label == "Set Discount %")
-                  return 'Enter Discount';
-                else if (label == "Min Order Value")
-                  return 'Enter Min Order Value';
-                else
-                  return '$value';
-              }
-
-              if (label == 'Set Discount %') {
-                final parsedValue = int.tryParse(value);
-                if (parsedValue == null || parsedValue < 1 || parsedValue > 100) {
-                  return 'Value must be between 1 and 100';
-                }
-              }
-
-              if (label == 'Min Order Value') {
-                final parsedValue = int.tryParse(value);
-                if (parsedValue == null || parsedValue <= 0) {
-                  return 'Min Order Value must be greater than 0.';
-                }
-              }
-
-              return null;
-            },
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[800],
           ),
         ),
+        SizedBox(height: 8),
+        AppTextField(
+          onChanged: (value) {
+            viewModel.checkIfModified();
+
+            if (label == 'Set Discount %') {
+              final parsedValue = int.tryParse(value);
+              if (parsedValue != null && (parsedValue > 100 || parsedValue < 1)) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Invalid Value'),
+                    content: Text('Value should be between 1 to 100.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('OK', style: TextStyle(color: AppColor.kPrimary)),
+                      ),
+                    ],
+                  ),
+                );
+
+                controller.text = '';
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.text.length),
+                );
+              }
+            }
+
+            if (label == 'Min Order Value') {
+              final parsedValue = int.tryParse(value);
+              if (parsedValue != null && parsedValue <= 0) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Invalid Value'),
+                    content: Text('Min Order Value must be greater than 0.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('OK', style: TextStyle(color: AppColor.kPrimary)),
+                      ),
+                    ],
+                  ),
+                );
+
+                controller.text = '';
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.text.length),
+                );
+              }
+            }
+          },
+          controller: controller,
+          textInputType: TextInputType.number,
+          disableBorder: false,
+          borderRadius: 12,
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          backgroundColor: Colors.grey[50],
+          borderColor: Colors.grey[300]!,
+          focusedBorderColor: AppColor.kPrimary,
+          textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          inputFormatters: [formatter],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              if (label == "Set Discount %") {
+                return 'Please enter a discount percentage';
+              } else if (label == "Min Order Value") {
+                return 'Please enter minimum order value';
+              } else {
+                return 'This field is required';
+              }
+            }
+
+            if (label == 'Set Discount %') {
+              final parsedValue = int.tryParse(value);
+              if (parsedValue == null || parsedValue < 1 || parsedValue > 100) {
+                return 'Must be between 1 and 100';
+              }
+            }
+
+            if (label == 'Min Order Value') {
+              final parsedValue = int.tryParse(value);
+              if (parsedValue == null || parsedValue <= 0) {
+                return 'Must be greater than 0';
+              }
+            }
+
+            return null;
+          },
+        ),
+        SizedBox(height: 16),
       ],
     );
   }
 
   Widget buildDropdownField() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text('Points Expiry (In Days)', style: TextStyle(fontSize: 16)),
+        Text(
+          'Points Expiry (In Days)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[800],
+          ),
         ),
-        Expanded(
+        SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: DropdownButtonFormField<String>(
+            isExpanded: true,
             decoration: InputDecoration(
-              fillColor: Colors.white,
-              filled: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Color(0xFFDADADA)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Color(0xFFDADADA)),
-              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColor.kPrimary, width: 2),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.red, width: 1.5),
               ),
             ),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[600]),
             value: viewModel.selectedValue,
             items: [
-              DropdownMenuItem(value: "15", child: AppTextWidget(text: "15")),
-              DropdownMenuItem(value: "30", child: AppTextWidget(text: "30")),
-              DropdownMenuItem(value: "360", child: AppTextWidget(text: "360")),
-              DropdownMenuItem(value: "Custom", child: AppTextWidget(text: "Custom")),
+              DropdownMenuItem(
+                value: "15",
+                child: Text("15 days", style: TextStyle(fontSize: 15)),
+              ),
+              DropdownMenuItem(
+                value: "30",
+                child: Text("30 days (1 month)", style: TextStyle(fontSize: 15)),
+              ),
+              DropdownMenuItem(
+                value: "360",
+                child: Text("360 days (1 year)", style: TextStyle(fontSize: 15)),
+              ),
+              DropdownMenuItem(
+                value: "Custom",
+                child: Text("Custom days", style: TextStyle(fontSize: 15)),
+              ),
             ],
             onChanged: (value) {
               viewModel.showTextField = false;
               viewModel.onDropdownChangeExpiry(value!);
               viewModel.notify();
             },
-            validator: (value) => value == null || value.isEmpty ? 'Required Days' : null,
+            validator: (value) => value == null || value.isEmpty ? 'Please select expiry days' : null,
           ),
         ),
+        SizedBox(height: 16),
       ],
     );
   }
 
   Widget buildExpiryDateTextField() {
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: AppTextField(
-        onChanged: (v) => viewModel.checkIfModified(),
-        controller: viewModel.expDateController,
-        textInputType: TextInputType.number,
-        disableBorder: false,
-        disallowZero: true,
-        borderRadius: 10,
-        hintText: 'Enter Points Expiry(In Days)',
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        validator: (value) {
-          if (value == null || value.isEmpty) return 'Enter Days';
-          if (int.tryParse(value) == null) return 'Enter Valid Days';
-          if (int.parse(value) == 0) return 'Value cannot be 0';
-          return null;
-        },
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Custom Expiry Days',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+          ),
+          SizedBox(height: 8),
+          AppTextField(
+            onChanged: (v) => viewModel.checkIfModified(),
+            controller: viewModel.expDateController,
+            textInputType: TextInputType.number,
+            disableBorder: false,
+            disallowZero: true,
+            borderRadius: 12,
+            contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            backgroundColor: Colors.grey[50],
+            borderColor: Colors.grey[300]!,
+            focusedBorderColor: AppColor.kPrimary,
+            hintText: 'Enter number of days',
+            hintStyle: TextStyle(color: Colors.grey[500]),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Please enter number of days';
+              if (int.tryParse(value) == null) return 'Please enter a valid number';
+              if (int.parse(value) <= 0) return 'Must be greater than 0';
+              return null;
+            },
+          ),
+        ],
       ),
     );
   }
@@ -352,15 +503,37 @@ class _ScannerViewState extends State<ScannerView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Note', style: TextStyle(fontSize: 16)),
-        SizedBox(height: 5),
-        AppTextField(
-          onChanged: (v) => viewModel.checkIfModified(),
-          maxLines: 5,
-          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          controller: viewModel.noteController,
-          disableBorder: false,
-          borderRadius: 10,
+        Text(
+          'Additional Notes',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[800],
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: TextFormField(
+            onChanged: (v) => viewModel.checkIfModified(),
+            controller: viewModel.noteController,
+            maxLines: 4,
+            style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+            decoration: InputDecoration(
+              hintText: 'Enter any additional notes here...',
+              hintStyle: TextStyle(color: Colors.grey[500]),
+              contentPadding: EdgeInsets.all(16),
+              border: InputBorder.none,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColor.kPrimary, width: 2),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -368,24 +541,70 @@ class _ScannerViewState extends State<ScannerView> {
 
   Widget buildSaveButton() {
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-      child: AppButton(
-        text: "Save",
-        isLoading: false,
-        onTap: () async {
-          if (!viewModel.isModified) {
-            Navigator.pop(context);
-          } else if (viewModel.formKey.currentState?.validate() ?? false) {
-            await viewModel.updateBusinessSetting();
-            Navigator.pop(context);
-            // Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => HomePage(),
-            //   ),
-            // );
-          }
-        },
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(color: Colors.grey[300]!),
+              ),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () async {
+                if (!viewModel.isModified) {
+                  Navigator.pop(context);
+                } else if (viewModel.formKey.currentState?.validate() ?? false) {
+                  await viewModel.updateBusinessSetting();
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.kPrimary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+                shadowColor: AppColor.kPrimary.withOpacity(0.3),
+              ),
+              child: Text(
+                'Save Changes',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

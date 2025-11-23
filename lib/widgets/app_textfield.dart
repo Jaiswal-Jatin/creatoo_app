@@ -32,6 +32,9 @@ class AppTextField extends StatefulWidget {
   final Color? textColor;
   final Color? cursorColor;
   final Color? borderColor;
+  final Color? focusedBorderColor;
+  final TextStyle? hintStyle;
+  final TextStyle? textStyle;
 
   AppTextField({
     super.key,
@@ -64,6 +67,9 @@ class AppTextField extends StatefulWidget {
     this.textColor,
     this.cursorColor,
     this.borderColor = AppColor.moreLighterDd,
+    this.focusedBorderColor,
+    this.hintStyle,
+    this.textStyle,
   });
 
   @override
@@ -89,8 +95,8 @@ class _AppTextFieldState extends State<AppTextField> {
       onChanged: widget.onChanged,
       textCapitalization: widget.capitaliseText,
       cursorColor: widget.cursorColor ?? widget.textColor ?? Colors.black,
-      style: TextStyle(
-        fontSize: widget.textSize, // Apply optional text size
+      style: widget.textStyle ?? TextStyle(
+        fontSize: widget.textSize,
         fontWeight: widget.fontWeight,
         color: widget.textColor ?? Colors.black,
       ),
@@ -104,7 +110,7 @@ class _AppTextFieldState extends State<AppTextField> {
         counterText: '',
         prefixIconConstraints: BoxConstraints.tightForFinite(width: 120, height: 20),
         suffixIconConstraints: BoxConstraints.tightForFinite(width: 60, height: 20),
-        hintStyle: GoogleFonts.montserrat(
+        hintStyle: widget.hintStyle ?? GoogleFonts.montserrat(
           fontWeight: FontWeight.w500,
           fontSize: 14.sp,
           color: Colors.black.withOpacity(0.5),
@@ -117,7 +123,16 @@ class _AppTextFieldState extends State<AppTextField> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          borderSide: widget.disableBorder ? BorderSide.none : BorderSide(color: widget.borderColor!), // ✅ Set border color
+          borderSide: widget.disableBorder 
+              ? BorderSide.none 
+              : BorderSide(color: widget.borderColor!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          borderSide: BorderSide(
+            color: widget.focusedBorderColor ?? widget.borderColor ?? AppColor.kPrimary,
+            width: 1.5,
+          ),
         ),
       ),
       inputFormatters: widget.inputFormatters ??
