@@ -1,3 +1,4 @@
+import 'package:lottie/lottie.dart';
 import '../../../core.dart';
 import '../../../widgets/app_text_widget.dart';
 import '../../creator_wallet/view_model/creator_wallet_view_model.dart';
@@ -43,6 +44,8 @@ class _HomeViewState extends State<HomeView> {
   }
 
    Widget _buildBody() {
+    final isBusiness = (roleId == Constants.businessUser);
+    
     return AppScaffold(
       appBar: _buildHomeAppBarWidget(),
       body: Container(
@@ -54,6 +57,7 @@ class _HomeViewState extends State<HomeView> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+          
               (viewModel.homeResponse.data?.data?.banners == null || viewModel.homeResponse.data!.data!.banners!.isEmpty)
                   ? SizedBox.shrink()
                   : buildCarouselSlider(viewModel),
@@ -103,12 +107,12 @@ class _HomeViewState extends State<HomeView> {
                             child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 6.w),
                               child: _buildCustomCard(
-                                icon: isBusiness ? Icons.storefront_rounded : 'assets/icons/credit-card.png',
+                                icon: isBusiness ? Icons.location_on : 'assets/icons/credit-card.png',
                                 isImage: !isBusiness,
                                 title: isBusiness ? "Visit" : "Card",
                                 onPressed: () {
-                                  // TODO: Implement functionality for "Visit" or "Card" button
-                                },
+                                _showVisitDialog();
+                              },
                               ),
                             ),
                           ),
@@ -147,15 +151,29 @@ class _HomeViewState extends State<HomeView> {
               viewModel.homeResponse.data!.data!.topReviewers!.isEmpty
                   ? const SizedBox.shrink()
                   : buildReviewers(name: "Top Reviewers", data: viewModel.homeResponse.data!.data!.topReviewers!),
-              viewModel.homeResponse.data!.data!.topBusiness!.isEmpty
-                  ? const SizedBox.shrink()
-                  : buildBusiness(name: "Top Businesses", data: viewModel.homeResponse.data!.data!.topBusiness!),
+              
+              // Show Lottie animation for business users where Top Businesses section was
+              (roleId == Constants.businessUser) 
+                  ? Container(
+                      height: 200.h,
+                      width: double.infinity,
+                      margin: EdgeInsets.only(bottom: 20.h, top: 10.h),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.transparent,
+                      ),
+                      child: Lottie.asset(
+                        'assets/lottie/Main menu.json',
+                        fit: BoxFit.cover,
+                        repeat: true,
+                        animate: true,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+                  
               viewModel.homeResponse.data!.data!.newCreator!.isEmpty
                   ? const SizedBox.shrink()
                   : buildUser(name: "Recently Joined", data: viewModel.homeResponse.data!.data!.newCreator!),
-              viewModel.homeResponse.data!.data!.newBusiness!.isEmpty
-                  ? const SizedBox.shrink()
-                  : buildBusiness(name: "New Businesses", data: viewModel.homeResponse.data!.data!.newBusiness!),
               SizedBox(height: 30.h),
             ],
           ),
@@ -730,6 +748,444 @@ class _HomeViewState extends State<HomeView> {
           ],
         ],
       ),
+    );
+  }
+
+  // Helper method to get month name from month number
+  String _getMonthName(int month) {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return monthNames[month - 1];
+  }
+
+  void _showVerificationSuccessDialog() {
+    final now = DateTime.now();
+    final formattedDate = '${now.day} ${_getMonthName(now.month)}, ${now.year}';
+    final formattedTime = '${now.hour}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 8,
+          backgroundColor: Colors.white,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topRight,
+            children: [
+              // Close Button (X)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      size: 20,
+                      color: AppColor.darkGrey,
+                    ),
+                  ),
+                ),
+              ),
+              
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Lottie Animation
+                    Container(
+                      width: 150.w,
+                      height: 150.w,
+                      child: Lottie.asset(
+                        'assets/lottie/success confetti.json',
+                        fit: BoxFit.contain,
+                        repeat: false,
+                      ),
+                    ),
+                    
+                    SizedBox(height: 16.h),
+                    
+                    // Success Message
+                    Text(
+                      'Visit Verified!',
+                      style: TextStyle(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.black,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 4.h),
+                    
+                    // Subtitle
+                    Text(
+                      'Customer details',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: AppColor.darkGrey,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 24.h),
+                    
+                    // User Details Card with Date & Time
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey[200]!,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // User Avatar and Name
+                          Row(
+                            children: [
+                              // User Avatar
+                              Container(
+                                width: 50.w,
+                                height: 50.w,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColor.kPrimary.withOpacity(0.2),
+                                    width: 1.5,
+                                  ),
+                                  image: DecorationImage(
+                                    image: AssetImage('assets/images/default_user.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              
+                              SizedBox(width: 12.w),
+                              
+                              // User Name and Tier
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'John Doe',
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColor.black,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0xFFFFD700), // Gold
+                                            Color(0xFFFFC000), // Darker Gold
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        'Golden Tier',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 11.sp,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          Divider(height: 24.h, color: Colors.grey[200]),
+                          
+                          // Date and Time Section
+                          Row(
+                            children: [
+                              // Date
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: AppColor.darkGrey,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      formattedDate,
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColor.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Vertical Divider
+                              Container(
+                                width: 1,
+                                height: 40,
+                                color: Colors.grey[200],
+                                margin: EdgeInsets.symmetric(horizontal: 8.w),
+                              ),
+                              
+                              // Time
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Time',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: AppColor.darkGrey,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      formattedTime,
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColor.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(height: 24.h),
+                    
+                    // Done Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48.h,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.kPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showVisitDialog() {
+    final TextEditingController _codeController = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+    final double dialogPadding = 24.0;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Add Customer Code',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          elevation: 8,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: EdgeInsets.all(24.w),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Add Customer Code',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.black,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 24.h),
+                  
+                  // Form content
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Enter the customer code below',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: AppColor.darkGrey,
+                          height: 1.4,
+                        ),
+                      ),
+                      
+                      SizedBox(height: 16.h),
+                      
+                      // Text Field
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColor.lightGrey.withOpacity(0.5)),
+                        ),
+                        child: AppTextField(
+                          controller: _codeController,
+                          hintText: 'Enter customer code',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          textSize: 14,
+                          textColor: AppColor.black,
+                          backgroundColor: Colors.transparent,
+                          borderRadius: 12,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a valid customer code';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      
+                      SizedBox(height: 24.h),
+                      
+                      // Verify Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
+                        child: AppButton(
+                          onTap: () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              Navigator.of(context).pop();
+                              // Show success dialog after a short delay for better UX
+                              Future.delayed(Duration(milliseconds: 300), () {
+                                _showVerificationSuccessDialog();
+                              });
+                            }
+                          },
+                          text: 'Verify Code',
+                          buttonColor: AppColor.kPrimary,
+                          textColor: Colors.white,
+                          height: 48.h,
+                        ),
+                      ),
+                      
+                      SizedBox(height: 8.h),
+                      
+                      // Help Text
+                      Center(
+                        child: Text(
+                          'Ask the customer for their unique code',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColor.lighterDd,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return Transform.scale(
+          scale: anim1.value,
+          child: Opacity(
+            opacity: anim1.value,
+            child: child,
+          ),
+        );
+      },
     );
   }
 

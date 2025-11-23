@@ -5,6 +5,7 @@ import '../../card/view/card_screen.dart';
 import '../../creator_wallet/view/creator_wallet_view.dart';
 import '../../search/view/search_view.dart';
 import '../../settings/view/settings_view.dart';
+import '../../visits/view/visits_screen.dart';
 import '../../wallet/view/wallet_view.dart';
 import '../view_model/home_view_model.dart';
 import 'home_view.dart';
@@ -36,14 +37,14 @@ class _HomePageState extends State<HomePage> {
     List<Widget> _widgetOptions = roleId == Constants.businessUser
         ? [
             const HomeView(),
-            const CardScreen(), // Added CardScreen
+            const VisitsScreen(), // Replaced CardScreen with VisitsScreen
             WalletView(),
             SettingsView(),
           ]
         : [
             const HomeView(),
             const SearchView(),
-            const CardScreen(), // Added CardScreen
+            const CardScreen(),
             CreatorWalletView(
               key: creatorWalletKey,
               index: viewModel.creatooView ? 1 : 0,
@@ -90,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     height: 2,
                     margin: const EdgeInsets.only(bottom: 70),
-                    width: roleId == Constants.businessUser ? SizeConfig.screenWidth / 5 : SizeConfig.screenWidth / 5, // Adjusted width
+                    width: roleId == Constants.businessUser ? SizeConfig.screenWidth / 4 : SizeConfig.screenWidth / 5, // Adjusted width for business user tabs
                     decoration: BoxDecoration(
                       color: AppColor.primary,
                       borderRadius: BorderRadius.circular(10),
@@ -100,17 +101,36 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
+                    // Home button
                     Expanded(child: buildGestureDetector(context, 0, AppIcon.home, "Home", isSvg: true)),
-                    if (roleId == Constants.creatorUser) Expanded(child: buildGestureDetector(context, 1, AppIcon.search, "Search", isSvg: true)),
-                    Expanded(child: buildGestureDetector(context, roleId == Constants.creatorUser ? 2 : 1, AppIcon.creditCard, "Card", isSvg: false)),
-                    if (roleId == Constants.creatorUser)
-                      Expanded(child: buildGestureDetector(context, 3, AppIcon.wallet, "Wallet", isSvg: true))
+                    
+                    // For Creator: Search, For Business: Visits
+                    if (roleId == Constants.creatorUser) 
+                      Expanded(child: buildGestureDetector(context, 1, AppIcon.search, "Search", isSvg: true))
                     else
-                      Expanded(child: buildGestureDetector(context, 2, AppIcon.wallet, "Wallet", isSvg: true)),
+                      Expanded(child: buildGestureDetector(context, 1, AppIcon.calender, "Visits", isSvg: true)),
+                    
+                    // Card button (only for creator)
                     if (roleId == Constants.creatorUser)
-                      Expanded(child: buildGestureDetector(context, 4, AppIcon.profile, "Profile", isSvg: true))
-                    else
-                      Expanded(child: buildGestureDetector(context, 3, AppIcon.profile, "Profile", isSvg: true)),
+                      Expanded(child: buildGestureDetector(context, 2, AppIcon.creditCard, "Card", isSvg: false)),
+                    
+                    // Wallet button
+                    Expanded(child: buildGestureDetector(
+                      context, 
+                      roleId == Constants.creatorUser ? 3 : 2, 
+                      AppIcon.wallet, 
+                      "Wallet", 
+                      isSvg: true
+                    )),
+                    
+                    // Profile button
+                    Expanded(child: buildGestureDetector(
+                      context, 
+                      roleId == Constants.creatorUser ? 4 : 3, 
+                      AppIcon.profile, 
+                      "Profile", 
+                      isSvg: true
+                    )),
                   ],
                 ),
               ],
@@ -123,15 +143,16 @@ class _HomePageState extends State<HomePage> {
 
   Alignment _getAlignment(int selectedIndex) {
     if (roleId == Constants.businessUser) {
+      // Business user with 4 items: Home, Visits, Wallet, Profile
       if (selectedIndex == 0) return Alignment(-1, 0); // Home
-      if (selectedIndex == 1) return Alignment(-0.3, 0); // Card (new center for business)
+      if (selectedIndex == 1) return Alignment(-0.3, 0); // Visits
       if (selectedIndex == 2) return Alignment(0.3, 0); // Wallet
       if (selectedIndex == 3) return Alignment(1, 0); // Profile
     } else {
-      // Creator user with 5 items
+      // Creator user with 5 items: Home, Search, Card, Wallet, Profile
       if (selectedIndex == 0) return Alignment(-1, 0); // Home
       if (selectedIndex == 1) return Alignment(-0.6, 0); // Search
-      if (selectedIndex == 2) return Alignment(-0.0, 0); // Card (new center for creator)
+      if (selectedIndex == 2) return Alignment(-0.0, 0); // Card
       if (selectedIndex == 3) return Alignment(0.6, 0); // Wallet
       if (selectedIndex == 4) return Alignment(1, 0); // Profile
     }
@@ -151,12 +172,14 @@ class _HomePageState extends State<HomePage> {
             isSvg
                 ? SvgPicture.asset(
                     iconPath,
+                    height: 24.h, // Match the height of image icons
+                    width: 24.w,  // Match the width of image icons
                     color: homeViewModel.selectedIndex == index ? AppColor.primary : AppColor.black,
                   )
                 : Image.asset(
                     iconPath,
-                    height: 24.h, // Assuming a reasonable height for images
-                    width: 24.w,  // Assuming a reasonable width for images
+                    height: 24.h, // Match the height of SVG icons
+                    width: 24.w,  // Match the width of SVG icons
                     color: homeViewModel.selectedIndex == index ? AppColor.primary : AppColor.black,
                   ),
             Text(

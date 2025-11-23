@@ -60,7 +60,18 @@ class AppColor {
   static const Color silver = Color(0xFFC0C0C0);
   static const Color bronze = Color(0xFFCD7F32);
 
+
+
+  // Medal Gradients
+  static const List<Color> goldGradient = [Color(0xFFF4D98A), Color(0xFFEBCB71)];
+  static const List<Color> silverGradient = [Color(0xFFE9E9EC), Color(0xFFC9C9CE)];
+  static const List<Color> bronzeGradient = [Color(0xFFE9A171), Color(0xFFC67C4E)];
+
+
+
+
   // Gradients
+  
   // static List<Color> get premiumCardGradient => [
   //   const Color(0xFF2D2D2D),
   //   const Color(0xFF1A1A1A),
@@ -69,36 +80,25 @@ class AppColor {
   //   const Color(0xFF2D2D2D),
   // ];
 
-  // Medal Gradients
-  static const List<Color> goldGradient = [Color(0xFFF4D98A), Color(0xFFEBCB71)];
-  static const List<Color> silverGradient = [Color(0xFFE9E9EC), Color(0xFFC9C9CE)];
-  static const List<Color> bronzeGradient = [Color(0xFFE9A171), Color(0xFFC67C4E)];
-
-  static List<Color> premiumCardGradient = [
-    Color(0xFF2E005C), // Very Dark Purple
-    Color(0xFF4A0B8A), // Deep Violet
-    Color(0xFF7C2BC6), // Vivid Purple
-    Color(0xFF9B47E0), // Medium Lavender
-    Color(0xFFC27BFF), // Soft Light Purple
-  ];
 
 
-// static List<Color> premiumCardGradient = [
-//   Color(0xFF3A0070), // Dark Violet
-//   Color(0xFF5A0FA3), // Royal Purple
-//   Color(0xFF8B33C9), // Bright Purple
-//   Color(0xFFBF6BFF), // Pinkish Light Purple
-//   Color(0xFFF1D7FF), // Very Light Highlight
-// ];
+  // static List<Color> premiumCardGradient = [
+  //   Color(0xFF2E005C), // Very Dark Purple
+  //   Color(0xFF4A0B8A), // Deep Violet
+  //   Color(0xFF7C2BC6), // Vivid Purple
+  //   Color(0xFF9B47E0), // Medium Lavender
+  //   Color(0xFFC27BFF), // Soft Light Purple
+  // ];
 
 
-// static List<Color> premiumCardGradient = [
-//   Color(0xFF1F013A), // Dark Plum
-//   Color(0xFF4B0371), // Purple
-//   Color(0xFF7B1FA2), // Brighter Purple
-//   Color(0xFFB84EDC), // Soft Magenta
-//   Color(0xFFE3B3FF), // Light Pastel Glow
-// ];
+static List<Color> premiumCardGradient = [
+  Color(0xFF3A0070), // Dark Violet
+  Color(0xFF5A0FA3), // Royal Purple
+  Color(0xFF8B33C9), // Bright Purple
+  Color(0xFFBF6BFF), // Pinkish Light Purple
+  Color(0xFFF1D7FF), // Very Light Highlight
+];
+
 
 
   // Alternative premium gradient with deeper primary shades
