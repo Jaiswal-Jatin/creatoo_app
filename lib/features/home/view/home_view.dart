@@ -111,8 +111,13 @@ class _HomeViewState extends State<HomeView> {
                                 isImage: !isBusiness,
                                 title: isBusiness ? "Visit" : "Card",
                                 onPressed: () {
-                                _showVisitDialog();
-                              },
+                                  if (isBusiness) {
+                                    _showVisitDialog();
+                                  } else {
+                                    // Navigate to cards screen in bottom nav
+                                    Provider.of<HomeViewModel>(context, listen: false).changeIndex(2, false);
+                                  }
+                                },
                               ),
                             ),
                           ),
@@ -152,8 +157,8 @@ class _HomeViewState extends State<HomeView> {
                   ? const SizedBox.shrink()
                   : buildReviewers(name: "Top Reviewers", data: viewModel.homeResponse.data!.data!.topReviewers!),
               
-              // Show Lottie animation for business users where Top Businesses section was
-              (roleId == Constants.businessUser) 
+              // Show Top Businesses for regular users, Lottie animation for business users
+              (roleId == Constants.businessUser)
                   ? Container(
                       height: 200.h,
                       width: double.infinity,
@@ -169,8 +174,21 @@ class _HomeViewState extends State<HomeView> {
                         animate: true,
                       ),
                     )
-                  : const SizedBox.shrink(),
+                  : Column(
+                      children: [
+                        // Show Top Businesses for regular users
+                        (viewModel.homeResponse.data!.data!.topBusiness == null || viewModel.homeResponse.data!.data!.topBusiness!.isEmpty)
+                            ? const SizedBox.shrink()
+                            : buildBusiness(name: "Top Businesses", data: viewModel.homeResponse.data!.data!.topBusiness!),
+                        
+                        // Show New Businesses for regular users
+                        (viewModel.homeResponse.data!.data!.newBusiness == null || viewModel.homeResponse.data!.data!.newBusiness!.isEmpty)
+                            ? const SizedBox.shrink()
+                            : buildBusiness(name: "New Businesses", data: viewModel.homeResponse.data!.data!.newBusiness!),
+                      ],
+                    ),
                   
+              // Show Recently Joined users
               viewModel.homeResponse.data!.data!.newCreator!.isEmpty
                   ? const SizedBox.shrink()
                   : buildUser(name: "Recently Joined", data: viewModel.homeResponse.data!.data!.newCreator!),
