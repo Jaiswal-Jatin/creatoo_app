@@ -3,7 +3,7 @@ import 'dart:convert';
 class AuthBusinessRequestModel {
   String? businessMobile;
   int? isVerified;
-  int? otp;
+  String? otp;
   String? rememberToken;
   String? deviceId;
 
@@ -22,16 +22,16 @@ class AuthBusinessRequestModel {
   factory AuthBusinessRequestModel.fromJson(Map<String, dynamic> json) => AuthBusinessRequestModel(
         businessMobile: json["business_mobile"],
         isVerified: json["is_verified"],
-        otp: json["otp"] ?? 0,
-        rememberToken: json["remember_token"] ?? "",
-        deviceId: json["device_id"] ?? "",
+        otp: json["otp"]?.toString(),
+        rememberToken: json["remember_token"]?.toString() ?? "",
+        deviceId: json["device_id"]?.toString() ?? "",
       );
 
   Map<String, dynamic> toJson() => {
-        "business_mobile": businessMobile,
+        "business_mobile": businessMobile?.toString(),
         "is_verified": isVerified,
-        "otp": otp,
-        "remember_token": rememberToken,
-        "device_id": deviceId,
+        "otp": otp?.toString(),
+        "remember_token": rememberToken?.toString(),
+        "device_id": deviceId?.toString(),
       };
 }

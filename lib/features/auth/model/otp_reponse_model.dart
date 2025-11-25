@@ -29,7 +29,7 @@ class OtpResponse {
 }
 
 class Data {
-  int? otp;
+  String? otp;
 
   Data({
     this.otp,
@@ -40,7 +40,7 @@ class Data {
   String toRawJson() => json.encode(toJson());
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-    otp: json["otp"],
+    otp: json["otp"] == null ? null : json["otp"].toString(),
   );
 
   Map<String, dynamic> toJson() => {

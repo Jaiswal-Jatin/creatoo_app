@@ -15,7 +15,7 @@ class VerifyOtpViewModel with ChangeNotifier {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TimerHelper _timerService = TimerHelper();
   String phone = "";
-  int otp = 0;
+  String otp = "";
   int timerDuration = 0;
   late bool timerActive = false;
   bool forceValidation = false;
@@ -66,25 +66,46 @@ class VerifyOtpViewModel with ChangeNotifier {
   }
 
   Future<void> verifyOtpFromServer(dynamic data) async {
+    print('=== VERIFY OTP BUTTON CLICKED ===');
+    print('Payload Data: $data');
+    print('Phone: $phone');
+    print('OTP: $otp');
+    print('Device ID: $deviceId');
+    print('Pin Controller Value: ${pinController.text}');
+    
     setVerifyOtpResponse(ApiResponse.loading());
     notifyListeners();
     var response = await _myRepo.verifyOtp(data);
+    
+    print('Response Received: $response');
+    
     response.fold(
       (l) {
+        print('ERROR Response: ${l.message}');
+        print('Error Details: $l');
         setVerifyOtpResponse(ApiResponse.error(l.message));
         Utils.toastMessage(l.message.toString());
         notifyListeners();
       },
       (r) async {
+        print('SUCCESS Response: ${r.message}');
+        print('Response Data: ${r.data}');
+        print('Is Registered: ${r.data!.isRegistered}');
+        print('User Data: ${r.data}');
+        
         setVerifyOtpResponse(ApiResponse.completed(r));
         stopTimer();
         if (r.data!.isRegistered == 0) {
+          print('User Not Registered - Redirecting to Registration Screen');
           if (roleId == Constants.businessUser) {
+            print('Redirecting to Business Registration');
             Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerBusinessView, arguments: phone);
           } else if (roleId == Constants.creatorUser) {
+            print('Redirecting to Creator Registration');
             Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerCreatorView, arguments: phone);
           }
         } else {
+          print('User Already Registered - Navigating to Home');
           await saveUserData(r.data!);
           Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, RoutesName.homePage, (route) => false);
         }
@@ -107,7 +128,7 @@ class VerifyOtpViewModel with ChangeNotifier {
       (r) async {
         setResendOtpResponse(ApiResponse.completed(r));
         // Utils.toastMessage("OTP is: ${r.data!.otp}");
-        otp = r.data!.otp!;
+        otp = r.data!.otp ?? '';
         print(otp);
         startTimer();
       },

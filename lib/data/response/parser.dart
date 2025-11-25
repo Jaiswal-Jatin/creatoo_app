@@ -69,12 +69,32 @@ class Parser {
       }
 
       switch (response.statusCode) {
-        case HttpStatus.ok || HttpStatus.created:
+        case HttpStatus.ok:
+        case HttpStatus.created:
           {
             dynamic result = await compute(callback, response.body.toString());
-            if (result.status == false) {
-              return Left(Error(message: result.message));
+            print('✅ PARSED RESULT: $result');
+            print('📋 Result Type: ${result.runtimeType}');
+            if (result != null) {
+              print('🔍 Result Status: ${result.status}');
+              print('🔍 Result Message: ${result.message}');
+              // Safe check for data property
+              try {
+                if (result.data != null) {
+                  print('📦 Result Data: ${result.data}');
+                }
+              } catch (e) {
+                print('📦 Result Data: N/A (No data property)');
+              }
             }
+            // If the API returns an object with status flag, surface its message
+            try {
+              if (result != null && result.status == false) {
+                final msg = result.message ?? "";
+                print('❌ PARSE ERROR - Status False: $msg');
+                return Left(Error(message: msg));
+              }
+            } catch (_) {}
             return Right(result as Q);
           }
         case HttpStatus.badRequest:
@@ -110,6 +130,7 @@ class Parser {
       }
     } catch (e) {
       log(e.toString());
+      print('❌ PARSER EXCEPTION: $e');
       return Left(UnknownError());
     }
   }

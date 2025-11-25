@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
@@ -15,9 +16,9 @@ class NetworkApiService extends BaseApiServices {
       log('headers : ${jsonEncode(headers)}');
       await checkForValidSession(disableTokenValidityCheck);
       http.Response response = await http.get(Uri.parse(apiURL), headers: headers).timeout(apiTimeOut);
-      if (response != null) {
-        return Parser.parseResponse(response, callback);
-      }
+      log('statusCode : ${response.statusCode}');
+      log('response body : ${response.body}');
+      return Parser.parseResponse(response, callback);
     } on SocketException {
       return Left(NoInternetError());
     } on TimeoutException {
@@ -27,7 +28,6 @@ class NetworkApiService extends BaseApiServices {
     } on SessionExpiry {
       return Left(SessionExpiry());
     }
-    return Left(UnknownError());
   }
 
   @override
@@ -35,14 +35,19 @@ class NetworkApiService extends BaseApiServices {
       {body, disableTokenValidityCheck = false}) async {
     try {
       var requestBody = jsonEncode(body);
+      // Ensure Content-Type explicitly includes charset and send raw JSON body
+      headers['Content-Type'] = headers['Content-Type'] ?? 'application/json; charset=utf-8';
+      if (!headers['Content-Type']!.contains('charset')) {
+        headers['Content-Type'] = '${headers['Content-Type']}; charset=utf-8';
+      }
       log('apiURL : $apiURL');
       log('headers : ${jsonEncode(headers)}');
-      log('body : $requestBody');
+      log('request JSON : $requestBody');
       await checkForValidSession(disableTokenValidityCheck);
-      http.Response response = await http.post(Uri.parse(apiURL), body: requestBody, headers: headers).timeout(apiTimeOut);
-      if (response != null) {
-        return Parser.parseResponse(response, callback);
-      }
+      http.Response response = await http.post(Uri.parse(apiURL), body: requestBody, headers: headers, encoding: Encoding.getByName('utf-8')).timeout(apiTimeOut);
+      log('statusCode : ${response.statusCode}');
+      log('response body : ${response.body}');
+      return Parser.parseResponse(response, callback);
     } on SocketException {
       return Left(NoInternetError());
     } on TimeoutException {
@@ -52,7 +57,6 @@ class NetworkApiService extends BaseApiServices {
     } on SessionExpiry {
       return Left(SessionExpiry());
     }
-    return Left(UnknownError());
   }
 
   @override
@@ -79,6 +83,8 @@ class NetworkApiService extends BaseApiServices {
         });
       }
       var response = await http.Response.fromStream(await request.send());
+      log('statusCode : ${response.statusCode}');
+      log('response body : ${response.body}');
 
       return Parser.parseResponse(response, callback);
     } on SocketException {
@@ -155,6 +161,8 @@ class NetworkApiService extends BaseApiServices {
       }
 
       var response = await http.Response.fromStream(await request.send());
+      log('statusCode : ${response.statusCode}');
+      log('response body : ${response.body}');
       return Parser.parseResponse(response, callback);
     } on SocketException {
       return Left(NoInternetError());

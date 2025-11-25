@@ -2,13 +2,12 @@ import 'package:creatoo/features/verify_otp/view_model/verify_otp_view_model.dar
 import 'package:flutter/services.dart';
 
 import '../../../core.dart';
-import '../../auth/model/auth_business_request_model.dart';
-import '../../auth/model/auth_creator_request_model.dart';
+// using direct maps for payloads; models not required in this view
 import '../../home/view_model/home_view_model.dart';
 
 class VerifyOtpView extends StatefulWidget {
   final String phone;
-  final int otp;
+  final String otp;
 
   const VerifyOtpView({super.key, required this.phone, required this.otp});
 
@@ -190,14 +189,10 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                           ),
                           child: TextButton(
                             onPressed: () async {
-                              AuthCreatorRequestModel creatorData = AuthCreatorRequestModel(
-                                mobile: viewModel.phone,
-                              );
-                              AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
-                                businessMobile: viewModel.phone,
-                              );
-                              await viewModel
-                                  .resendOtpFromServer(roleId == Constants.creatorUser ? creatorData.toJson() : businessData.toJson());
+                              final creatorPayload = {"mobile": viewModel.phone};
+                              final businessPayload = {"business_mobile": viewModel.phone};
+                              await viewModel.resendOtpFromServer(
+                                  roleId == Constants.creatorUser ? creatorPayload : businessPayload);
                             },
                             child: Text(
                               "Resend",
@@ -214,22 +209,18 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                             Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).isLogout = false;
                             if (viewModel.formKey.currentState!.validate()) {
                               viewModel.updateValidation(false);
-                              AuthCreatorRequestModel creatorData = AuthCreatorRequestModel(
-                                mobile: viewModel.phone,
-                                isVerified: 1,
-                                otp: int.parse(viewModel.pinController.text),
-                                rememberToken: fcmToken,
-                                deviceId: viewModel.deviceId,
-                              );
-                              AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
-                                businessMobile: viewModel.phone,
-                                isVerified: 1,
-                                otp: int.parse(viewModel.pinController.text),
-                                rememberToken: fcmToken,
-                                deviceId: viewModel.deviceId,
-                              );
+                              final creatorVerifyPayload = {
+                                "mobile": viewModel.phone,
+                                "otp": viewModel.pinController.text,
+                                "device_id": viewModel.deviceId,
+                              };
+                              final businessVerifyPayload = {
+                                "business_mobile": viewModel.phone,
+                                "otp": viewModel.pinController.text,
+                                "device_id": viewModel.deviceId,
+                              };
                               await viewModel.verifyOtpFromServer(
-                                roleId == Constants.creatorUser ? creatorData.toJson() : businessData.toJson(),
+                                roleId == Constants.creatorUser ? creatorVerifyPayload : businessVerifyPayload,
                               );
                             } else {
                               viewModel.updateValidation(true);

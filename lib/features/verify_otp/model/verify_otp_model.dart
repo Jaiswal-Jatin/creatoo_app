@@ -59,6 +59,15 @@ class UserData {
     this.instagramVerificationStatus,
   });
 
+  // Helper method to convert bool/int to int
+  static int? _toInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is bool) return value ? 1 : 0;
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
   factory UserData.fromRawJson(String str) =>
       UserData.fromJson(json.decode(str));
 
@@ -83,8 +92,8 @@ class UserData {
         address: json["role_id"] == Constants.creatorUser
             ? json["address"]
             : json["business_address"],
-        isActive: json["is_active"],
-        isRegistered: json["is_registered"],
+        isActive: _toInt(json["is_active"]),
+        isRegistered: _toInt(json["is_registered"]),
       );
 
   factory UserData.fromCreatorJson(Map<String, dynamic> json) => UserData(
@@ -94,8 +103,8 @@ class UserData {
         email: json["email"],
         mobile: json["mobile"],
         address: json["address"],
-        isActive: json["is_active"],
-        isRegistered: json["is_registered"],
+        isActive: _toInt(json["is_active"]),
+        isRegistered: _toInt(json["is_registered"]),
         roleId: json["role_id"],
       );
 
@@ -106,8 +115,8 @@ class UserData {
         email: json["business_email"],
         mobile: json["business_mobile"],
         address: json["business_address"],
-        isActive: json["is_active"],
-        isRegistered: json["is_registered"],
+        isActive: _toInt(json["is_active"]),
+        isRegistered: _toInt(json["is_registered"]),
         roleId: json["role_id"],
       );
 

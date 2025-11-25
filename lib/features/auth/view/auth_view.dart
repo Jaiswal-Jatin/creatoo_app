@@ -1,5 +1,5 @@
 import 'package:creatoo/core.dart';
-import 'package:creatoo/features/auth/model/auth_creator_request_model.dart';
+// creator request model not required here after minimal payload change
 import 'package:creatoo/features/auth/view_model/auth_view_model.dart';
 import 'package:flutter/services.dart';
 
@@ -160,16 +160,17 @@ class _AuthViewState extends State<AuthView> {
                           isLoading: viewModel.otp.status == Status.loading,
                           onTap: () async {
                             if (viewModel.formKey.currentState!.validate()) {
-                              AuthCreatorRequestModel creatorData = AuthCreatorRequestModel(
-                                mobile: "${viewModel.phoneController.text}",
-                                rememberToken: fcmToken,
-                              );
+                              // Send minimal payloads: creator -> only mobile, business -> businessMobile + remember token
+                              final Map<String, dynamic> creatorPayload = {
+                                "mobile": viewModel.phoneController.text,
+                                "is_verified": 0,
+                              };
                               AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
                                 businessMobile: "${viewModel.phoneController.text}",
                                 rememberToken: fcmToken,
                               );
                               await viewModel.getOtpFromServer(
-                                roleId == Constants.creatorUser ? creatorData.toJson() : businessData.toJson(),
+                                roleId == Constants.creatorUser ? creatorPayload : businessData.toJson(),
                               );
                             }
                           },
