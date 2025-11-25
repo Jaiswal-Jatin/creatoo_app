@@ -1,4 +1,14 @@
 import 'dart:convert';
+import '../../../utils/helper/type_converter.dart';
+
+// Helper function to convert bool/int to int
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
 
 class HomeDataResponse {
   bool? status;
@@ -206,7 +216,7 @@ class Baner {
         id: json["id"],
         image: json["image"],
         link: json["link"],
-        isActive: json["is_active"],
+        isActive: _toInt(json["is_active"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -257,8 +267,8 @@ class Business {
         businessArea: json["business_area"],
         businessSiteUrl: json["business_site_url"],
         businessImage: json["business_image"],
-        isActive: json["is_active"],
-        isTop: json["is_top"],
+        isActive: _toInt(json["is_active"]),
+        isTop: _toInt(json["is_top"]),
         roleId: json["role_id"],
       );
 
@@ -316,8 +326,8 @@ class Creator {
         instagramLink: json["instagram_link"],
         instagramUsername: json["instagram_username"],
         userImage: json["user_image"],
-        isActive: json["is_active"],
-        isTop: json["is_top"],
+        isActive: _toInt(json["is_active"]),
+        isTop: _toInt(json["is_top"]),
         roleId: json["role_id"],
         address: json["address"],
       );

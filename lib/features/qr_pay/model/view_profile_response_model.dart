@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class ViewProfileResponseModel {
   bool? status;
   String? message;
@@ -72,7 +80,7 @@ class BusinessData {
         businessImage: json["business_image"],
         gstNumber: json["gst_number"],
         businessDesignation: json["business_designation"],
-        isActive: json["is_active"],
+        isActive: _toInt(json["is_active"]),
         roleId: json["role_id"],
       );
 

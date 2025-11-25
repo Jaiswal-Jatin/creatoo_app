@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class RegisterCreatorResponse {
   bool? status;
   String? message;
@@ -39,7 +47,7 @@ class Data {
   String? bio;
   String? instagramLink;
   String? instagramUsername;
-  String? isActive;
+  int? isActive;
   int? roleId;
 
   Data({
@@ -72,7 +80,7 @@ class Data {
     bio: json["bio"],
     instagramLink: json["instagram_link"],
     instagramUsername: json["instagram_username"],
-    isActive: json["is_active"],
+    isActive: _toInt(json["is_active"]),
     roleId: json["role_id"],
   );
 

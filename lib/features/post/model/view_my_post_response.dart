@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class ViewMyPostResponse {
   bool status;
   String message;
@@ -44,7 +52,7 @@ class Datum {
   String totalAmount;
   String status;
   String isReported;
-  int isActive;
+  int? isActive;
   int counts;
   String postStatus;
   DateTime createdAt;
@@ -68,13 +76,13 @@ class Datum {
     required this.totalAmount,
     required this.status,
     required this.isReported,
-    required this.isActive,
+    this.isActive,
     required this.counts,
     required this.postStatus,
     required this.createdAt,
     required this.postExpiryDate,
     required this.updatedAt,
-    required this.postInterestCount,
+    this.postInterestCount,
   });
 
   factory Datum.fromRawJson(String str) => Datum.fromJson(json.decode(str));
@@ -97,7 +105,7 @@ class Datum {
     totalAmount: json["total_amount"],
     status: json["status"],
     isReported: json["is_reported"],
-    isActive: json["is_active"],
+    isActive: _toInt(json["is_active"]),
     counts: json["counts"],
     postStatus: json["post_status"],
     createdAt: DateTime.parse(json["created_at"]),

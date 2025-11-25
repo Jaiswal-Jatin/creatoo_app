@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class PaymentResponse {
   bool? status;
   String? message;
@@ -102,7 +110,7 @@ class Data {
     totalAmount: json["total_amount"],
     status: json["status"],
     isReported: json["is_reported"],
-    isActive: json["is_active"],
+    isActive: _toInt(json["is_active"]),
     counts: json["counts"],
     createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
     postExpiryDate: json["post_expiry_date"],

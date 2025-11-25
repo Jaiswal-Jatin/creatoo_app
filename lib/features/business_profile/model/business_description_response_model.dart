@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class BusinessDescriptionResponseModel {
   bool? status;
   String? message;
@@ -192,7 +200,7 @@ class Data {
         instagramLink: json["instagram_link"],
         bio: json["bio"],
         otp: json["otp"],
-        isActive: json["is_active"],
+        isActive: _toInt(json["is_active"]),
         emailVerifiedAt: json["email_verified_at"],
         timeFrom: json["time_from"],
         timeTo: json["time_to"],
@@ -210,7 +218,7 @@ class Data {
         createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
         updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
         businessMobile: json["business_mobile"],
-        isTop: json["is_top"],
+        isTop: _toInt(json["is_top"]),
         address: json["address"],
         userImage: json["user_image"],
         businessImage: json["business_image"],

@@ -1,5 +1,13 @@
 import 'dart:convert';
 
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 class SearchBusinessResponse {
   bool? status;
   String? message;
@@ -77,7 +85,7 @@ class BusinessSearchData {
       businessArea: json["business_area"],
       businessSiteUrl: json["business_site_url"],
       businessImage: json["business_image"],
-      isActive: json["is_active"],
+      isActive: _toInt(json["is_active"]),
       roleId: json["role_id"],
       pricingRangeText: json["pricing_range_text"],
       avgExperience: json["avg_experience"],
