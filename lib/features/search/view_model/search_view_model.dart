@@ -47,36 +47,22 @@ class SearchViewModel with ChangeNotifier {
   init(role) async {
     userRole = role;
     searchController = TextEditingController();
-    searchController.addListener(() {
-      onSearchTextChanged(searchController.text);
-    });
+    // Removed searchController.addListener to prevent API calls on text change
     currentPage = 0;
     totalPages = 1;
     businessSearchList?.clear();
-    await searchBusinessUser();
+    await searchBusinessUser(); // Initial load of businesses
   }
 
-  void onSearchTextChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      if (query.trim().isEmpty) {
-        restoreOriginalList();
-      } else {
-        searchUser(searchQuery: query);
-      }
-    });
-  }
-
-  void restoreOriginalList() {
+  void restoreOriginalList() async { // Made async to await searchBusinessUser
     searchController.clear();
-    businessSearchList = List.from(_originalBusinessList ?? []);
+    await searchBusinessUser(); // Reload all businesses
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    // _debounce?.cancel(); // Removed _debounce cancellation
     searchController.dispose();
     super.dispose();
   }
@@ -84,7 +70,9 @@ class SearchViewModel with ChangeNotifier {
   bool get hasMoreData => currentPage == 0 || currentPage < totalPages;
 
   Future<void> searchUser({String searchQuery = ""}) async {
-    if (userRole == Constants.businessUser) {
+    if (searchQuery.trim().isEmpty) { // If search query is empty, load all businesses
+      await searchBusinessUser();
+    } else if (userRole == Constants.businessUser) {
       await searchBusinessUserByNameApi(searchQuery: searchQuery);
     } else {
       // await searchCreatorUserByNameApi(searchQuery: searchQuery);
@@ -95,15 +83,22 @@ class SearchViewModel with ChangeNotifier {
     if (!hasMoreData) return;
 
     setBusinessResponse(ApiResponse.loading());
-    var data = {"role_id": userRole, "page": currentPage + 1};
+    // Change to use the new API for fetching business list
+    var data = {
+      "role_id": userRole,
+      "per_page": 10,
+      "page": currentPage + 1,
+    };
     var response = await _myRepo.searchBusinessUserApi(data);
 
     response.fold(
       (l) {
+        print("SearchViewModel: searchBusinessUser error: ${l.message}");
         setBusinessResponse(ApiResponse.error(l.message));
         Utils.toastMessage(l.message.toString());
       },
       (r) {
+        print("SearchViewModel: searchBusinessUser completed");
         setBusinessResponse(ApiResponse.completed(r));
 
         if (currentPage == 0) {
@@ -126,16 +121,22 @@ class SearchViewModel with ChangeNotifier {
     isLoadingMore = true;
     notifyListeners();
 
-    var data = {"role_id": userRole, "page": currentPage + 1};
+    var data = {
+      "role_id": userRole,
+      "per_page": 10,
+      "page": currentPage + 1,
+    };
     var response = await _myRepo.searchBusinessUserApi(data);
 
     response.fold(
       (l) {
+        print("SearchViewModel: loadMoreBusinessUsers error: ${l.message}");
         isLoadingMore = false;
         Utils.toastMessage(l.message.toString());
         notifyListeners();
       },
       (r) {
+        print("SearchViewModel: loadMoreBusinessUsers completed");
         if (r.data != null && r.data!.isNotEmpty) {
           businessSearchList?.addAll(r.data ?? []);
           currentPage++;
@@ -149,23 +150,37 @@ class SearchViewModel with ChangeNotifier {
   }
 
   Future<void> searchBusinessUserByNameApi({String searchQuery = ""}) async {
-    var data = {"key": "$searchQuery", "role_id": userRole};
-    // setBusinessResponse(ApiResponse.loading());
-    // notifyListeners();
-    var response = await _myRepo.searchBusinessUserByNameApi(data);
+    var data = {
+      "role_id": userRole,
+      "per_page": 10,
+      "page": 1,
+      "key": searchQuery, // Corrected typo from "k,ey" to "key"
+    };
+
+    // Log the API URL for debugging purposes
+    log("Calling API: ${AppUrl.searchBusinessAndCreator} with body: $data"); // Corrected AppUrl
+
+    setBusinessResponse(ApiResponse.loading()); // Uncommented and activated
+    notifyListeners(); // Notify listeners to show loading state
+    var response = await _myRepo.searchBusinessUserByNameApi(data); // Changed to use correct repository method
     response.fold((l) {
+      print("SearchViewModel: searchBusinessUserByNameApi error: ${l.message}");
       setBusinessResponse(ApiResponse.error(l.message));
       Utils.toastMessage(l.message);
     }, (r) {
-      //setBusinessResponse(ApiResponse.completed(r));
-      businessSearchList = r.data;
+      print("SearchViewModel: searchBusinessUserByNameApi completed");
+      setBusinessResponse(ApiResponse.completed(r)); // Set completed status
+      businessSearchList = r.data; // Update businessSearchList with search results
+      _originalBusinessList = List.from(r.data ?? []); // Update original list
+      currentPage = 1; // Reset current page for search results
+      totalPages = r.pagination?.lastPage ?? 1; // Update total pages
     });
-    notifyListeners();
+    notifyListeners(); // Notify listeners for state update
   }
 
   Future<void> getBusinessDetailsApi({required int id}) async {
     setBusinessDetailsResponse(ApiResponse.loading());
-    var data = {"role_id": Constants.businessUser, "id": id, "token": token};
+    var data = {"role_id": Constants.businessUser, "id": id}; // Removed "token": token
     var response = await _myRepo.getBusinessDetails(data);
     response.fold(
       (l) {

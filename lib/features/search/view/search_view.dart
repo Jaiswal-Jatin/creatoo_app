@@ -16,6 +16,7 @@ class _SearchViewState extends State<SearchView> {
   @override
   void initState() {
     super.initState();
+    print("SearchView: initState called");
     viewModel = Provider.of<SearchViewModel>(context, listen: false);
     viewModel.init(Constants.businessUser);
 
@@ -30,16 +31,21 @@ class _SearchViewState extends State<SearchView> {
   @override
   Widget build(BuildContext context) {
     viewModel = Provider.of<SearchViewModel>(context);
+    print("SearchView: build called, status: ${viewModel.searchResponse.status}");
 
     switch (viewModel.searchResponse.status) {
       case Status.loading:
+        print("SearchView: Status.loading");
         return AppLoadingWidget();
       case Status.error:
+        print("SearchView: Status.error, message: ${viewModel.searchResponse.message}");
         return AppErrorWidget(
             message: viewModel.searchResponse.message.toString());
       case Status.completed:
+        print("SearchView: Status.completed");
         return _buildBody();
       default:
+        print("SearchView: Status.default (AppNoDataWidget)");
         return AppNoDataWidget();
     }
   }
@@ -117,8 +123,8 @@ class _SearchViewState extends State<SearchView> {
       height: 50.h,
       child: TextFormField(
         controller: viewModel.searchController,
-        onChanged: (value) {
-          viewModel.onSearchTextChanged(value);
+        onFieldSubmitted: (value) { // Call searchUser only when submitted
+          viewModel.searchUser(searchQuery: value);
         },
         decoration: InputDecoration(
           fillColor: AppColor.white,
@@ -138,8 +144,7 @@ class _SearchViewState extends State<SearchView> {
               ? IconButton(
                   icon: Icon(Icons.clear, color: AppColor.grey),
                   onPressed: () {
-                    viewModel.searchController.clear();
-                    viewModel.onSearchTextChanged("");
+                    viewModel.restoreOriginalList(); // Call restoreOriginalList on clear
                   },
                 )
               : null,

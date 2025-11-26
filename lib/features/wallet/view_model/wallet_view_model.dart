@@ -38,7 +38,7 @@ class WalletViewModel with ChangeNotifier {
         Utils.toastMessage(l.message.toString());
       },
       (r) async {
-        walletBalance = (r.data!.businessWallet! > 0) ? r.data!.businessWallet.toString() : "0";
+        walletBalance = (r.data?.businessWallet ?? 0) > 0 ? (r.data?.businessWallet.toString() ?? "0") : "0";
         setResponse(ApiResponse.completed(r));
         // Utils.toastMessage(r.message.toString());
       },

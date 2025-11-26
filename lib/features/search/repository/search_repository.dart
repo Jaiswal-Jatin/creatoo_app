@@ -51,4 +51,13 @@ class SearchRepository {
       body: body,
     );
   }
+
+  Future<Either<AppException, SearchBusinessResponse>> fetchBusinessListApi(body) async {
+    return await _apiServices.callPostAPI(
+      AppUrl.getBusinessListApi,
+      {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      Parser.parseSearchBusinessResponse, // Assuming it returns a similar structure
+      body: body,
+    );
+  }
 }

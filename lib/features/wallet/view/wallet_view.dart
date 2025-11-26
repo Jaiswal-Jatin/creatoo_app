@@ -186,7 +186,7 @@ class _WalletViewState extends State<WalletView> {
                   ),
                   SizedBox(height: 10.h),
                   Visibility(
-                    visible: walletViewModel.walletResponse.data!.data!.transactions!.isNotEmpty,
+                    visible: walletViewModel.walletResponse.data?.data?.transactions?.isNotEmpty ?? false,
                     replacement: Container(
                       height: SizeConfig.screenHeight / 5,
                       width: SizeConfig.screenWidth,
@@ -194,14 +194,17 @@ class _WalletViewState extends State<WalletView> {
                       child: Text('No Transaction data!'),
                     ),
                     child: ListView.separated(
-                      itemCount: walletViewModel.walletResponse.data!.data!.transactions!.length,
+                      itemCount: walletViewModel.walletResponse.data?.data?.transactions?.length ?? 0,
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
                       separatorBuilder: (context, index) {
                         return Divider();
                       },
                       itemBuilder: (context, index) {
-                        var item = walletViewModel.walletResponse.data!.data!.transactions![index];
+                        var item = walletViewModel.walletResponse.data?.data?.transactions?[index];
+                        if (item == null) {
+                          return SizedBox.shrink(); // Handle null item gracefully
+                        }
                         return AppTransactionTileWidget(
                           item: TransactionDetails(
                             receivedFrom: item.receivedFrom,

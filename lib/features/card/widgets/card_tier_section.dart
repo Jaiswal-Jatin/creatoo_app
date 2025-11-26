@@ -14,7 +14,7 @@ class _CardTierSectionState extends State<CardTierSection> {
 
   final List<Map<String, dynamic>> _tiers = [
     {
-      'name': 'Golden Tier',
+      'name': 'Premium Tier',
       'visits': 15,
       'gradient': const LinearGradient(
           colors: AppColor.goldGradient,

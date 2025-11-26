@@ -8,6 +8,11 @@ int? _toInt(dynamic value) {
   return null;
 }
 
+String? _toString(dynamic value) {
+  if (value == null) return null;
+  return value.toString();
+}
+
 class BusinessDetailsResponseModel {
   bool? status;
   String? message;
@@ -204,11 +209,11 @@ class AverageRatings {
   String toRawJson() => json.encode(toJson());
 
   factory AverageRatings.fromJson(Map<String, dynamic> json) => AverageRatings(
-        avgExperience: json["avg_experience"],
-        avgExpectation: json["avg_expectation"],
-        avgInteraction: json["avg_interaction"],
-        avgRecommend: json["avg_recommend"],
-        avgFairMoney: json["avg_fair_money"],
+        avgExperience: _toString(json["avg_experience"]),
+        avgExpectation: _toString(json["avg_expectation"]),
+        avgInteraction: _toString(json["avg_interaction"]),
+        avgRecommend: _toString(json["avg_recommend"]),
+        avgFairMoney: _toString(json["avg_fair_money"]),
       );
 
   Map<String, dynamic> toJson() => {

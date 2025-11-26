@@ -44,9 +44,12 @@ class _NotificationViewState extends State<NotificationView> {
       case Status.error:
         return _buildEmptyNotificationWidget(viewModel.notificationResponse.message.toString());
       case Status.completed:
+        if (viewModel.noNotificationMessage != null || viewModel.notifications.isEmpty) {
+          return _buildEmptyNotificationWidget(viewModel.noNotificationMessage ?? "No Notification received yet");
+        }
         return _buildBody();
       default:
-        return AppNoDataWidget();
+        return AppLoadingWidget(); // Default to loading or handle other unexpected states
     }
   }
 
@@ -60,11 +63,10 @@ class _NotificationViewState extends State<NotificationView> {
   }
 
   Widget _buildBody() {
-    final notifications = viewModel.notificationResponse.data?.data?.data ?? [];
-
-    if (notifications.isEmpty) {
-      return AppNoDataWidget();
-    }
+    // The check for empty notifications is now handled in the build method.
+    // This method will only be called if there are notifications to display.
+    // final notifications = viewModel.notificationResponse.data?.data?.data ?? [];
+    final notifications = viewModel.notifications;
 
     return AppScaffold(
       appBar: AppBarWidget(title: "Notification"),

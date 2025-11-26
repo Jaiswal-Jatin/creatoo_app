@@ -134,10 +134,10 @@ class _HomeViewState extends State<HomeView> {
                                     : "${viewModel.roundToTwoDecimalPlaces(viewModel.homeResponse.data?.data?.roleSpecificData?.userCreatooPoints?.toDouble() ?? 0.0).toCommaSeparated()}",
                                 onPressed: () {
                                   if (isBusiness) {
-                                    Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(1, false);
+                                    Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, false);
                                     businessWalletKey.currentState?.changeIndex(1);
                                   } else {
-                                    Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                                    Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(3, true);
                                     Provider.of<CreatorWalletViewModel>(context, listen: false).changeIndex(1);
                                   }
                                 },
@@ -936,7 +936,7 @@ class _HomeViewState extends State<HomeView> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        'Golden Tier',
+                                        'Premium Tier',
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 11.sp,

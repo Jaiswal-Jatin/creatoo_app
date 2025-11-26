@@ -27,7 +27,7 @@ class SearchBusinessResponse {
 
   factory SearchBusinessResponse.fromJson(Map<String, dynamic> json) => SearchBusinessResponse(
         status: json["status"],
-        message: json["message"],
+        message: json["message"]?.toString(), // Ensure message is a String
         data: json["data"] == null ? [] : List<BusinessSearchData>.from(json["data"]!.map((x) => BusinessSearchData.fromJson(x))),
         pagination: json["pagination"] == null ? null : Pagination.fromJson(json["pagination"]),
       );
@@ -78,17 +78,17 @@ class BusinessSearchData {
 
   factory BusinessSearchData.fromJson(Map<String, dynamic> json) => BusinessSearchData(
       id: json["id"],
-      businessFullname: json["business_fullname"],
-      businessName: json["business_name"],
-      businessEmail: json["business_email"],
-      businessMobile: json["business_mobile"],
-      businessArea: json["business_area"],
-      businessSiteUrl: json["business_site_url"],
-      businessImage: json["business_image"],
+      businessFullname: json["business_fullname"]?.toString(),
+      businessName: json["business_name"]?.toString(),
+      businessEmail: json["business_email"]?.toString(),
+      businessMobile: json["business_mobile"]?.toString(),
+      businessArea: json["business_area"]?.toString(),
+      businessSiteUrl: json["business_site_url"]?.toString(),
+      businessImage: json["business_image"]?.toString(),
       isActive: _toInt(json["is_active"]),
       roleId: json["role_id"],
-      pricingRangeText: json["pricing_range_text"],
-      avgExperience: json["avg_experience"],
+      pricingRangeText: json["pricing_range_text"]?.toString(),
+      avgExperience: json["avg_experience"]?.toString(),
       set_first_time_discount: json["set_first_time_discount"],
       set_regular_discount: json["set_regular_discount"]);
 

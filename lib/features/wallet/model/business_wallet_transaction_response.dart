@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 class BusinessWalletTransactionResponse {
   bool? status;
@@ -18,7 +19,7 @@ class BusinessWalletTransactionResponse {
   factory BusinessWalletTransactionResponse.fromJson(Map<String, dynamic> json) => BusinessWalletTransactionResponse(
         status: json["status"],
         message: json["message"],
-        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+        data: json["data"] is Map<String, dynamic> ? Data.fromJson(json["data"]) : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -43,7 +44,16 @@ class Data {
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
         businessWallet: _round(json["business_wallet"]),
-        transactions: json["transactions"] == null ? [] : List<Transaction>.from(json["transactions"]!.map((x) => Transaction.fromJson(x))),
+        transactions: json["transactions"] is List
+            ? List<Transaction>.from(json["transactions"].map((x) {
+                if (x is Map<String, dynamic>) {
+                  return Transaction.fromJson(x);
+                } else {
+                  log('Warning: Transaction item is not a Map: $x');
+                  return null;
+                }
+              }).whereType<Transaction>())
+            : [],
       );
 
   Map<String, dynamic> toJson() => {

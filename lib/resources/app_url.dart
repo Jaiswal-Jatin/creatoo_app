@@ -32,7 +32,7 @@ class AppUrl {
 
   // User Profile Endpoints
     static const String viewProfile = '$baseUrl/auth/viewProfile';                   //done
-    static const String editBusinessProfile = '$baseUrl/auth/editBusinessProfile';
+    static const String editBusinessProfile = '$baseUrl/auth/editBusinessProfile';   //done
     static const String editCreatorProfile ='$baseUrl/auth/editCreatorProfile';      //done
     static const String instaVerificationApi = '$baseUrl/submitInstaVerification';
     static const String fetchInstaUser = '$baseUrl/fetchInstaUser';
@@ -43,9 +43,9 @@ class AppUrl {
 
   // Home & Search Endpoints
   static const String homeData = '$baseUrl/home/getHomeData';                       //done
-  static const String creatorHomeApi = '$baseUrl/home/getCreatorHome';
-  static const String searchUser = '$baseUrl/users/search';
-  static const String searchBusinessAndCreator ='$baseUrl/users/searchBusinessAndCreator';
+  static const String creatorHomeApi = '$baseUrl/home/getCreatorHome';             //done
+  static const String searchUser = '$baseUrl/users/search';                        //done
+  static const String searchBusinessAndCreator ='$baseUrl/users/searchBusinessAndCreator';     //done
   static const String getBusinessListApi = '$baseUrl/business/getBusinessList';
   static const String getBusinessTypes ='$baseUrl/businessType/getBusinessTypes';     //done
 
@@ -66,7 +66,7 @@ class AppUrl {
   static const String businessWalletTransaction ='$baseUrl/walletTransaction/businessWalletTransaction';
   static const String creatorWalletTransaction ='$baseUrl/walletTransaction/creatorWalletTransaction'; //done
   static const String addBusinessWalletTransactionApi ='$baseUrl/walletTransaction/addBusinessWalletTransaction';
-  static const String creatorWithdrawRequestApi ='$baseUrl/creatorWithdrawRequest';      //not done not in postman
+  static const String creatorWithdrawRequestApi ='$baseUrl/WithdrawRequest/add';
   static const String paymentDetailsApi = '$baseUrl/payment/paymentDetails';
   static const String getPaymentDetailApi = '$baseUrl/payment/getPaymentDetail';
   static const String releasePaymentToCreatorApi ='$baseUrl/payment/paymentReleaseToCreator';
@@ -78,7 +78,7 @@ class AppUrl {
 
   // Creatoo Points Endpoints
   static const String creatooPointsTransactionApi ='$baseUrl/points/creatooPointsTransaction'; //done
-  static const String businessPointsTransaction ='$baseUrl/points/businessPointsTransaction';
+  static const String businessPointsTransaction ='$baseUrl/points/businessPointsTransaction';   //done
   static const String validatePointsApi ='$baseUrl/points/validateCreatooPoints';
   static const String transferPointsApi ='$baseUrl/points/transferCreatooPoints';
 
@@ -101,8 +101,8 @@ class AppUrl {
 
 
   // Order & Checkout Endpoints
-  static const String createOrderApi = '$baseUrl/createOrder';       // api not in postman
-  static const String applyOffers = '$baseUrl/applyOffers';          // api not in postman
+  static const String createOrderApi = '$baseUrl/web/createOrder';
+  static const String applyOffers = '$baseUrl/web/applyOffers';
   static const String processPayment = '$baseUrl/payment/processPayment';
   static const String checkTransactionStatus ='$baseUrl/walletTransaction/checkTransactionStatus';
 
@@ -115,12 +115,12 @@ class AppUrl {
 
 
   // Notification Endpoint
-  static const String getNotificationApi = '$baseUrl/NewNotificationList';    //api not in postman
+  static const String getNotificationApi = '$baseUrl/web/NewNotificationList';       //done
 
 
   // Other Endpoints
   static const String settingApi = '$baseUrl/setting/setting';
-  static const String creatooRequestApi = '$baseUrl/creatooRequest';          // api not in postman
+  static const String creatooRequestApi = '$baseUrl/creatooRequest';
 
 
 

@@ -13,6 +13,7 @@ class NotificationViewModel with ChangeNotifier {
   bool isLoading = false;
   int currentPage = 1;
   int totalPages = 1;
+  String? noNotificationMessage; // New property to hold "no notification" message
 
   ApiResponse<NotificationResponseModel> notificationResponse = ApiResponse.loading();
 
@@ -40,11 +41,18 @@ class NotificationViewModel with ChangeNotifier {
     response.fold(
       (l) {
         isLoading = false;
-        setResponse(ApiResponse.error(l.message));
+        if (l.message == "Empty Notification.") {
+          noNotificationMessage = "No new notifications.";
+          setResponse(ApiResponse.completed(null)); // Treat as a successful "no data" state
+        } else {
+          noNotificationMessage = null; // Clear if it was set previously
+          setResponse(ApiResponse.error(l.message));
+        }
         notifyListeners();
       },
       (r) {
-        if (r.data?.data != null) {
+        isLoading = false; // Set loading to false when response is received
+        if (r.data?.data != null && r.data!.data!.isNotEmpty) {
           if (isRefreshing) {
             notifications = List.from(r.data!.data!);
           } else {
@@ -52,14 +60,17 @@ class NotificationViewModel with ChangeNotifier {
           }
           totalPages = r.data!.lastPage ?? 1;
           currentPage++;
+          noNotificationMessage = null; // Clear message if notifications are found
+        } else {
+          // If data is null or empty, and no existing notifications, show "No new notifications"
+          if (notifications.isEmpty) {
+            noNotificationMessage = "No new notifications.";
+          }
+          setResponse(ApiResponse.completed(r)); // Still a completed response, just no data
         }
-
-        isLoading = false;
-        setResponse(ApiResponse.completed(r));
+        notifyListeners(); // Notify listeners after processing both branches
       },
     );
-
-    notifyListeners();
   }
 
   Future<void> loadMoreNotifications() async {

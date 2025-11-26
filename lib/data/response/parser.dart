@@ -62,9 +62,9 @@ class Parser {
       if (response.statusCode != HttpStatus.ok) {
         dynamic body = jsonDecode(response.body);
         if (body["status"] == HttpStatus.unauthorized) {
-          message = body["error"] ?? "";
+          message = (body["error"] ?? "").toString();
         } else {
-          message = body["message"] ?? "";
+          message = (body["message"] ?? "").toString();
         }
       }
 
@@ -91,7 +91,11 @@ class Parser {
             try {
               if (result != null && result.status == false) {
                 final msg = result.message ?? "";
-                print('❌ PARSE ERROR - Status False: $msg');
+                if (msg == "Empty Notification.") {
+                  print('✅ INFO: No new notifications found.'); // Log as info, not error
+                } else {
+                  print('❌ PARSE ERROR - Status False: $msg');
+                }
                 return Left(Error(message: msg));
               }
             } catch (_) {}
@@ -353,7 +357,17 @@ class Parser {
   }
 
   static Future<ReviewsResponseModel> parseReviewsResponse(String responseBody) async {
-    return ReviewsResponseModel.fromJson(json.decode(responseBody));
+    final decodedResponse = json.decode(responseBody);
+    if (decodedResponse is List) {
+      // If the response is a list, wrap it in a map under the 'data' key
+      return ReviewsResponseModel.fromJson({"data": decodedResponse});
+    } else if (decodedResponse is Map<String, dynamic>) {
+      // If the response is already a map, pass it directly
+      return ReviewsResponseModel.fromJson(decodedResponse);
+    } else {
+      // Handle unexpected types, perhaps throw an error or return a model indicating failure
+      throw FormatException("Unexpected JSON response type for ReviewsResponseModel");
+    }
   }
 
   static Future<ProcessPaymentStatusResponse> parseProcessPaymentStatusResponse(String responseBody) async {
