@@ -137,8 +137,9 @@ class _AppTextFieldState extends State<AppTextField> {
       ),
       inputFormatters: widget.inputFormatters ??
           [
-            if (widget.textInputType == TextInputType.number) FilteringTextInputFormatter.digitsOnly, // Allow only digits for number input
-            if (widget.disallowZero) FilteringTextInputFormatter.allow(RegExp(r'[^0]')), // Disallow "0" input
+            if (widget.textInputType == TextInputType.number) FilteringTextInputFormatter.digitsOnly,
+            if (widget.disallowZero) FilteringTextInputFormatter.allow(RegExp(r'[^0]')),
+            if (widget.maxLength != null) LengthLimitingTextInputFormatter(widget.maxLength),
           ],
     );
   }

@@ -51,6 +51,16 @@ class AppUrl {
 
 
 
+//card api
+static const String cardCheck = '$baseUrl/cards/check';
+static const String activeCard = '$baseUrl/cards/verify';
+
+static  const String visitCheck = '$baseUrl/visit?';            //done
+static const String Addvisit = '$baseUrl/visit';                //done
+static const String busineesHistory = '$baseUrl/visit/history';     //done
+
+
+
   // Post & Opportunities Endpoints
   static const String viewMyPost = '$baseUrl/post/myPost';
   static const String addPost = '$baseUrl/post/add';
@@ -63,7 +73,7 @@ class AppUrl {
 
 
   // Payment & Wallet Endpoints
-  static const String businessWalletTransaction ='$baseUrl/walletTransaction/businessWalletTransaction';
+  static const String businessWalletTransaction ='$baseUrl/walletTransaction/businessWalletTransaction';   //done
   static const String creatorWalletTransaction ='$baseUrl/walletTransaction/creatorWalletTransaction'; //done
   static const String addBusinessWalletTransactionApi ='$baseUrl/walletTransaction/addBusinessWalletTransaction';
   static const String creatorWithdrawRequestApi ='$baseUrl/WithdrawRequest/add';

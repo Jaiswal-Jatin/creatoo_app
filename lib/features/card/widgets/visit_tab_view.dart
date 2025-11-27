@@ -136,12 +136,7 @@ class _VisitTabViewState extends State<VisitTabView> {
       itemCount: _restaurants.length,
       itemBuilder: (context, index) {
         final restaurant = _restaurants[index];
-        final tier = restaurant.visits.first.tier.toLowerCase();
-        final tierGradient = tier == 'gold'
-            ? AppColor.goldGradient
-            : tier == 'silver'
-                ? AppColor.silverGradient
-                : AppColor.bronzeGradient;
+        // (Header doesn't need tier styling here)
 
         return Container(
           margin: EdgeInsets.only(bottom: 16.h),
@@ -332,11 +327,13 @@ class _VisitTabViewState extends State<VisitTabView> {
   }
 
   Widget _buildVisitRow(Visit visit, ThemeData theme) {
-    final tierGradient = visit.tier.toLowerCase() == 'gold'
-        ? AppColor.goldGradient
-        : visit.tier.toLowerCase() == 'silver'
-            ? AppColor.silverGradient
-            : AppColor.bronzeGradient;
+    final rawTier = visit.tier.toLowerCase();
+    final normTier = (rawTier == 'new') ? 'gold' : rawTier;
+    final tierGradient = normTier == 'gold'
+      ? AppColor.goldGradient
+      : normTier == 'silver'
+        ? AppColor.silverGradient
+        : AppColor.bronzeGradient;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
@@ -413,7 +410,12 @@ class _VisitTabViewState extends State<VisitTabView> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              visit.tier.toUpperCase(),
+              // Display mapping: gold/new -> PREMIUM, silver -> ELITE, else CORE
+              (normTier == 'gold')
+                  ? 'PREMIUM'
+                  : (normTier == 'silver')
+                      ? 'ELITE'
+                      : 'CORE',
               style: TextStyle(
                 fontSize: 10.sp,
                 color: AppColor.black, // Black text for better contrast

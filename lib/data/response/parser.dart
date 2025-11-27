@@ -50,6 +50,9 @@ import '../../features/shortlist/model/post_application_response.dart';
 import '../../features/verify_otp/model/verify_otp_model.dart';
 import '../../features/wallet/model/business_wallet_transaction_point_response.dart';
 import '../../features/wallet/model/business_wallet_transaction_response.dart';
+import '../../features/visits/model/visits_response_model.dart'; // Added VisitsResponseModel
+import '../../features/visits/model/visit_check_response_model.dart'; // Visit check parser
+import '../../features/visits/model/add_visit_response_model.dart'; // Add visit response
 
 class Parser {
   static Future<Either<AppException, Q>> parseResponse<Q, R>(http.Response response, ComputeCallback<String, R> callback) async {
@@ -72,6 +75,12 @@ class Parser {
         case HttpStatus.ok:
         case HttpStatus.created:
           {
+            // Guard against empty response body
+            if (response.body.isEmpty) {
+              print('⚠️  Empty response body for status ${response.statusCode}');
+              return Left(AppException(0, "Server returned empty response"));
+            }
+            
             dynamic result = await compute(callback, response.body.toString());
             print('✅ PARSED RESULT: $result');
             print('📋 Result Type: ${result.runtimeType}');
@@ -372,5 +381,43 @@ class Parser {
 
   static Future<ProcessPaymentStatusResponse> parseProcessPaymentStatusResponse(String responseBody) async {
     return ProcessPaymentStatusResponse.fromJson(json.decode(responseBody));
+  }
+
+  static Future<VisitsResponseModel> parseVisitsResponseModel(String responseBody) async {
+    try {
+      final dynamic decoded = json.decode(responseBody);
+      print("🔍 parseVisitsResponseModel decoded: $decoded");
+      if (decoded == null || decoded is! Map<String, dynamic>) {
+        print("⚠️  Invalid or null JSON response for visits, creating empty response");
+        return VisitsResponseModel(status: false, message: "Invalid response from server");
+      }
+      return VisitsResponseModel.fromJson(decoded);
+    } catch (e) {
+      print("❌ parseVisitsResponseModel ERROR: $e");
+      rethrow;
+    }
+  }
+
+  static Future<VisitCheckResponse> parseVisitCheckResponse(String responseBody) async {
+    return VisitCheckResponse.fromJson(json.decode(responseBody));
+  }
+
+  static Future<AddVisitResponse> parseAddVisitResponse(String responseBody) async {
+    try {
+      if (responseBody.isEmpty) {
+        print("⚠️  Empty response body for addVisit, creating empty response");
+        return AddVisitResponse(status: true, message: "Visit recorded");
+      }
+      final dynamic decoded = json.decode(responseBody);
+      print("🔍 parseAddVisitResponse decoded: $decoded");
+      if (decoded == null || decoded is! Map<String, dynamic>) {
+        print("⚠️  Invalid or null JSON response for addVisit, creating empty response");
+        return AddVisitResponse(status: false, message: "Invalid response from server");
+      }
+      return AddVisitResponse.fromJson(decoded);
+    } catch (e) {
+      print("❌ parseAddVisitResponse ERROR: $e");
+      rethrow;
+    }
   }
 }
