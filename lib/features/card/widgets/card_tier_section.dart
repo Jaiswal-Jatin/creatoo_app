@@ -1,6 +1,10 @@
 import 'package:creatoo/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:provider/provider.dart';
+import 'package:creatoo/features/card/view_model/card_view_model.dart';
+import 'package:creatoo/utils/enums/status.dart'; // Correct and singular import for Status
+import 'package:creatoo/features/card/data/user_tier_history_response_model.dart';
 
 class CardTierSection extends StatefulWidget {
   const CardTierSection({super.key});
@@ -11,11 +15,89 @@ class CardTierSection extends StatefulWidget {
 
 class _CardTierSectionState extends State<CardTierSection> {
   int? _expandedIndex;
+  late CardViewModel _cardViewModel;
+  List<Map<String, dynamic>> _tiers = []; // Make it mutable
+  
+  @override
+  void initState() {
+    super.initState();
+    _cardViewModel = Provider.of<CardViewModel>(context, listen: false);
+    
+    // Schedule the API call for the next frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cardViewModel.getUserTierHistory();
+    });
 
-  final List<Map<String, dynamic>> _tiers = [
+    _cardViewModel.addListener(_onUserTierHistoryChanged);
+    // Initial update with default values
+    _tiers = List.from(_defaultTiers);
+  }
+
+  @override
+  void dispose() {
+    _cardViewModel.removeListener(_onUserTierHistoryChanged);
+    super.dispose();
+  }
+
+  void _onUserTierHistoryChanged() {
+    if (mounted) {
+      _updateTiersBasedOnViewModel();
+      setState(() {});
+    }
+  }
+
+  // Helper method to filter visits by tier
+  List<VisitHistory> _filterVisitsByTier(List<VisitHistory> visits, String tier) {
+    return visits.where((visit) => visit.tier.toLowerCase() == tier.toLowerCase()).toList();
+  }
+
+  void _updateTiersBasedOnViewModel() {
+    if (_cardViewModel.userTierHistoryResponse.status == Status.completed) {
+      try {
+        final responseData = _cardViewModel.userTierHistoryResponse.data;
+        if (responseData == null || !responseData.status) {
+          _tiers = List.from(_defaultTiers);
+          return;
+        }
+
+        final allVisits = responseData.history;
+        
+        // Categorize visits by tier
+        _tiers = _defaultTiers.map((tier) {
+          final tierName = (tier['name'] as String).toLowerCase();
+          List<VisitHistory> tierVisits;
+          
+          // Handle different tier names
+          if (tierName.contains('premium')) {
+            tierVisits = _filterVisitsByTier(allVisits, 'premium') + 
+                         _filterVisitsByTier(allVisits, 'new');
+          } else if (tierName.contains('elite')) {
+            tierVisits = _filterVisitsByTier(allVisits, 'elite');
+          } else {
+            tierVisits = _filterVisitsByTier(allVisits, 'core');
+          }
+          
+          return {
+            ...tier,
+            'visits': tierVisits.length,
+            'history': tierVisits,
+          };
+        }).toList();
+      } catch (e) {
+        debugPrint('Error updating tiers: $e');
+        _tiers = List.from(_defaultTiers);
+      }
+    } else if (_cardViewModel.userTierHistoryResponse.status == Status.error) {
+      debugPrint('Error fetching user tier history in UI: ${_cardViewModel.userTierHistoryResponse.toString()}');
+      _tiers = List.from(_defaultTiers);
+    }
+  }
+
+  // Define default tiers structure
+  final List<Map<String, dynamic>> _defaultTiers = [
     {
       'name': 'Premium Tier',
-      'visits': 15,
+      'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.goldGradient,
           begin: Alignment.topLeft,
@@ -23,15 +105,11 @@ class _CardTierSectionState extends State<CardTierSection> {
       'textColor': Colors.black87,
       'icon': Icons.workspace_premium_rounded,
       'iconColor': const Color(0xFFD4AF37),
-      'history': [
-        {'place': 'The Grand Restaurant', 'date': '2025-11-20'},
-        {'place': 'Ocean View Cafe', 'date': '2025-11-15'},
-        {'place': 'Mountain Top Bistro', 'date': '2025-11-05'},
-      ]
+      'history': <VisitHistory>[],
     },
     {
-      'name': 'Silver Tier',
-      'visits': 8,
+      'name': 'Elite Tier',
+      'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.silverGradient,
           begin: Alignment.topLeft,
@@ -39,14 +117,11 @@ class _CardTierSectionState extends State<CardTierSection> {
       'textColor': Colors.black87,
       'icon': Icons.stars_rounded,
       'iconColor': const Color(0xFFC0C0C0),
-      'history': [
-        {'place': 'City Diner', 'date': '2025-10-30'},
-        {'place': 'The Corner Cafe', 'date': '2025-10-22'},
-      ]
+      'history': <VisitHistory>[],
     },
     {
-      'name': 'Bronze Tier',
-      'visits': 3,
+      'name': 'Core Tier',
+      'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.bronzeGradient,
           begin: Alignment.topLeft,
@@ -54,11 +129,19 @@ class _CardTierSectionState extends State<CardTierSection> {
       'textColor': Colors.black,
       'icon': Icons.star_half_rounded,
       'iconColor': const Color(0xFFCD7F32),
-      'history': [
-        {'place': 'Local Coffee Shop', 'date': '2025-09-12'},
-      ]
+      'history': <VisitHistory>[],
     },
   ];
+
+  // Helper to format visit history for display
+  List<Map<String, String>> _formatVisitHistory(List<VisitHistory> visits) {
+    return visits.map<Map<String, String>>((visit) => {
+      'place': visit.businessName,
+      'date': visit.time,
+      'tier': visit.tier,
+      'image': visit.businessImage ?? '',
+    }).toList();
+  }
 
   void _toggleExpand(int index) {
     setState(() {
@@ -74,57 +157,13 @@ class _CardTierSectionState extends State<CardTierSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row(
-            //   children: [
-            //     Container(
-            //       padding: const EdgeInsets.all(10),
-            //       decoration: BoxDecoration(
-            //         gradient: const LinearGradient(
-            //           colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-            //           begin: Alignment.topLeft,
-            //           end: Alignment.bottomRight,
-            //         ),
-            //         borderRadius: BorderRadius.circular(12),
-            //         boxShadow: [
-            //           BoxShadow(
-            //             color: Colors.orange.withOpacity(0.3),
-            //             blurRadius: 8,
-            //             offset: const Offset(0, 4),
-            //           ),
-            //         ],
-            //       ),
-            //       child: const Icon(
-            //         Icons.card_membership_rounded,
-            //         color: Colors.white,
-            //         size: 24,
-            //       ),
-            //     ),
-            //     const SizedBox(width: 12),
-            //     Column(
-            //       crossAxisAlignment: CrossAxisAlignment.start,
-            //       children: [
-            //         Text(
-            //           'Your Membership',
-            //           style: TextStyle(
-            //             fontSize: 20,
-            //             fontWeight: FontWeight.bold,
-            //             color: AppColor.black,
-            //             fontFamily: 'SFUIText',
-            //           ),
-            //         ),
-            //         Text(
-            //           'Exclusive tier benefits',
-            //           style: TextStyle(
-            //             fontSize: 13,
-            //             color: AppColor.black.withOpacity(0.6),
-            //             fontFamily: 'SFUIText',
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ],
-            // ),
-            // const SizedBox(height: 24),
+            // Display a loading indicator or error message if needed
+            if (_cardViewModel.userTierHistoryResponse.status == Status.loading)
+              const Center(child: CircularProgressIndicator()),
+            if (_cardViewModel.userTierHistoryResponse.status == Status.error)
+              Center(child: Text('Error: ${_cardViewModel.userTierHistoryResponse.message ?? 'Unknown error'}')),
+            
+            // Display the fetched data, or default data if loading/error
             ...List.generate(_tiers.length, (index) {
               final tier = _tiers[index];
               return TierCard(
@@ -155,7 +194,7 @@ class TierCard extends StatelessWidget {
   final Color iconColor;
   final bool isExpanded;
   final VoidCallback onTap;
-  final List<Map<String, String>> visitHistory;
+  final List<VisitHistory> visitHistory;
 
   const TierCard({
     super.key,
@@ -169,6 +208,16 @@ class TierCard extends StatelessWidget {
     required this.onTap,
     required this.visitHistory,
   });
+
+  // Helper method to format date for display
+  String _formatDate(String dateString) {
+    try {
+      final dateTime = DateTime.parse(dateString);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    } catch (e) {
+      return dateString; // Return original if parsing fails
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +443,7 @@ class TierCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          visit['place']!,
+                          visit.businessName,
                           style: TextStyle(
                             color: textColor,
                             fontWeight: FontWeight.w700,
@@ -412,7 +461,7 @@ class TierCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              visit['date']!,
+                              _formatDate(visit.time),
                               style: TextStyle(
                                 color: textColor.withOpacity(0.8),
                                 fontSize: 13,

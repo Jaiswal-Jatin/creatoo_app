@@ -85,8 +85,22 @@ class Parser {
             print('✅ PARSED RESULT: $result');
             print('📋 Result Type: ${result.runtimeType}');
             if (result != null) {
-              print('🔍 Result Status: ${result.status}');
-              print('🔍 Result Message: ${result.message}');
+              // Safe check for status property
+              try {
+                if (result.status != null) {
+                  print('🔍 Result Status: ${result.status}');
+                }
+              } catch (e) {
+                print('🔍 Result Status: N/A (No status property)');
+              }
+              // Safe check for message property
+              try {
+                if (result.message != null) {
+                  print('🔍 Result Message: ${result.message}');
+                }
+              } catch (e) {
+                print('🔍 Result Message: N/A (No message property)');
+              }
               // Safe check for data property
               try {
                 if (result.data != null) {
@@ -99,7 +113,7 @@ class Parser {
             // If the API returns an object with status flag, surface its message
             try {
               if (result != null && result.status == false) {
-                final msg = result.message ?? "";
+                final msg = (result.message ?? "") as String;
                 if (msg == "Empty Notification.") {
                   print('✅ INFO: No new notifications found.'); // Log as info, not error
                 } else {

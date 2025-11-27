@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core.dart'; // Contains AppColor, SizeConfig, AppGradient
@@ -6,10 +5,9 @@ import '../view_model/card_view_model.dart';
 import '../widgets/about_us_tab_view.dart';
 import '../widgets/cards_tab_view.dart';
 import '../widgets/visit_tab_view.dart';
-import 'package:animated_button/animated_button.dart';
-import '../widgets/activate_card.dart';
-import '../widgets/premium_card.dart'; // New widget for the modal
+import '../widgets/premium_card.dart' hide AppColor; // New widget for the modal
 import '../widgets/card_tab_button.dart';
+import 'package:creatoo/data/services/shared_preference_service.dart'; // Import to get user data
 
 class CardScreen extends StatefulWidget {
   const CardScreen({super.key});
@@ -22,6 +20,9 @@ class _CardScreenState extends State<CardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late CardViewModel viewModel;
+  String? _userName;
+  String? _cardNumber;
+  bool _isCardActive = false;
 
   @override
   void initState() {
@@ -33,6 +34,33 @@ class _CardScreenState extends State<CardScreen>
       }
     });
     viewModel = Provider.of<CardViewModel>(context, listen: false);
+    _loadInitialCardData();
+    // Defer the call to _checkForCard to avoid setState() during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForCard();
+    });
+  }
+
+  Future<void> _checkForCard() async {
+    await viewModel.checkCard(context);
+    if (mounted) {
+      setState(() {
+        if (viewModel.cardData != null) {
+          _cardNumber = viewModel.cardData!.cardNumber;
+          _userName = viewModel.cardData!.name;
+          _isCardActive = viewModel.cardData!.status == 'active';
+        }
+      });
+    }
+  }
+
+  Future<void> _loadInitialCardData() async {
+    final userData = await SharedPreferencesService().getUserData();
+    if (userData != null && mounted) {
+      setState(() {
+        _userName = userData.name;
+      });
+    }
   }
 
   @override
@@ -53,7 +81,15 @@ class _CardScreenState extends State<CardScreen>
       body: Column(
         children: [
           // Premium Glass Card Design
-          PremiumGlassCard(),
+          Consumer<CardViewModel>(
+            builder: (context, cardViewModel, child) {
+              return PremiumGlassCard(
+                userName: cardViewModel.cardData?.name,
+                cardNumber: cardViewModel.cardData?.cardNumber,
+                isCardActive: cardViewModel.cardData?.status == 'active',
+              );
+            },
+          ),
 
           SizedBox(height: 25.h),
 
@@ -99,5 +135,4 @@ class _CardScreenState extends State<CardScreen>
       ),
     );
   }
-
 }

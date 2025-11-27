@@ -938,7 +938,7 @@ Widget _buildTierFeatureSection() {
         shrinkWrap: true,
         children: [
           _buildTierItem(
-            title: "Gold Tier",
+            title: "Premium Tier",
             gradientColors: AppColor.goldGradient,
             controller: _goldTierPageController,
             images: goldTierImages,
@@ -948,7 +948,7 @@ Widget _buildTierFeatureSection() {
           ),
           SizedBox(height: 10.h),
           _buildTierItem(
-            title: "Silver Tier",
+            title: "Elite Tier",
             gradientColors: AppColor.silverGradient,
             controller: _silverTierPageController,
             images: silverTierImages,
@@ -958,7 +958,7 @@ Widget _buildTierFeatureSection() {
           ),
           SizedBox(height: 10.h),
           _buildTierItem(
-            title: "Bronze Tier",
+            title: "Core Tier",
             gradientColors: AppColor.bronzeGradient,
             controller: _bronzeTierPageController,
             images: bronzeTierImages,

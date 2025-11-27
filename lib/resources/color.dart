@@ -82,22 +82,22 @@ class AppColor {
 
 
 
-  // static List<Color> premiumCardGradient = [
-  //   Color(0xFF2E005C), // Very Dark Purple
-  //   Color(0xFF4A0B8A), // Deep Violet
-  //   Color(0xFF7C2BC6), // Vivid Purple
-  //   Color(0xFF9B47E0), // Medium Lavender
-  //   Color(0xFFC27BFF), // Soft Light Purple
-  // ];
+  static List<Color> premiumCardGradient = [
+    Color(0xFF2E005C), // Very Dark Purple
+    Color(0xFF4A0B8A), // Deep Violet
+    Color(0xFF7C2BC6), // Vivid Purple
+    Color(0xFF9B47E0), // Medium Lavender
+    Color(0xFFC27BFF), // Soft Light Purple
+  ];
 
 
-static List<Color> premiumCardGradient = [
-  Color(0xFF3A0070), // Dark Violet
-  Color(0xFF5A0FA3), // Royal Purple
-  Color(0xFF8B33C9), // Bright Purple
-  Color(0xFFBF6BFF), // Pinkish Light Purple
-  Color(0xFFF1D7FF), // Very Light Highlight
-];
+// static List<Color> premiumCardGradient = [
+//   Color(0xFF3A0070), // Dark Violet
+//   Color(0xFF5A0FA3), // Royal Purple
+//   Color(0xFF8B33C9), // Bright Purple
+//   Color(0xFFBF6BFF), // Pinkish Light Purple
+//   Color(0xFFF1D7FF), // Very Light Highlight
+// ];
 
 
 
