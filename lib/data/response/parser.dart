@@ -117,7 +117,7 @@ class Parser {
                 if (msg == "Empty Notification.") {
                   print('✅ INFO: No new notifications found.'); // Log as info, not error
                 } else {
-                  print('❌ PARSE ERROR - Status False: $msg');
+                  print('⚠️ API Response Status False: $msg'); // Changed log to warning for API status false
                 }
                 return Left(Error(message: msg));
               }

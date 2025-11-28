@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:creatoo/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:creatoo/features/card/widgets/activate_card.dart'; // Import ActivateCardModal
 
 // App Colors - Same as your original
 // class AppColor {
@@ -17,15 +18,15 @@ import 'package:flutter/services.dart';
 // }
 
 class PremiumGlassCard extends StatefulWidget {
-  final String? userName;
-  final String? cardNumber;
-  final bool isCardActive;
+  final String? initialUserName;
+  final String? initialCardNumber;
+  final bool initialIsCardActive;
 
   const PremiumGlassCard({
     super.key,
-    this.userName,
-    this.cardNumber,
-    this.isCardActive = false,
+    this.initialUserName,
+    this.initialCardNumber,
+    this.initialIsCardActive = false,
   });
 
   @override
@@ -39,9 +40,18 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
+  // State variables for card data
+  bool _isCardActive = false;
+  String? _userName;
+  String? _cardNumber;
+
   @override
   void initState() {
     super.initState();
+    _isCardActive = widget.initialIsCardActive;
+    _userName = widget.initialUserName;
+    _cardNumber = widget.initialCardNumber;
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -52,6 +62,20 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant PremiumGlassCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialIsCardActive != oldWidget.initialIsCardActive ||
+        widget.initialUserName != oldWidget.initialUserName ||
+        widget.initialCardNumber != oldWidget.initialCardNumber) {
+      setState(() {
+        _isCardActive = widget.initialIsCardActive;
+        _userName = widget.initialUserName;
+        _cardNumber = widget.initialCardNumber;
+      });
+    }
   }
 
   @override
@@ -197,9 +221,9 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                   const Spacer(),
 
                   // Card Number Section
-                  if (widget.isCardActive &&
-                      widget.cardNumber != null &&
-                      widget.cardNumber!.isNotEmpty) ...[
+                  if (_isCardActive &&
+                      _cardNumber != null &&
+                      _cardNumber!.isNotEmpty) ...[
                     // Show/Hide Card Number with Animation
                     Center(
                       child: AnimatedBuilder(
@@ -225,7 +249,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                                         ),
                                       ),
                                       child: Text(
-                                        widget.cardNumber!,
+                                        _cardNumber!,
                                         style: const TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.w700,
@@ -289,7 +313,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            widget.userName?.toUpperCase() ?? "YOUR NAME",
+                            _userName?.toUpperCase() ?? "YOUR NAME",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -301,7 +325,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                       ),
 
                       // Action Button
-                      if (widget.isCardActive)
+                      if (_isCardActive)
                         _buildTapToViewButton()
                       else
                         _buildActivateButton(context),
@@ -415,7 +439,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Material(
-          color: AppColor.black.withOpacity(0.5),
+          color: AppColor.black.withOpacity(0.5), // Full-screen translucent background
           child: ScaleTransition(
             scale: CurvedAnimation(
               parent: animation,
@@ -426,20 +450,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                 parent: animation,
                 curve: Curves.easeOut,
               ),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.all(32),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1a1a2e),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "Activate Card Modal",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ),
-              ),
+              child: const QRScannerScreen(),
             ),
           ),
         );

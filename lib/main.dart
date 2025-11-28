@@ -1,5 +1,7 @@
+import 'package:creatoo/features/card/view_model/card_view_model.dart';
 import 'package:flutter/services.dart';
 
+import 'features/card/view_model/card_visit_view_model.dart';
 import 'core.dart';
 
 void main() async {
@@ -21,7 +23,11 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: Providers.getAllProviders(),
+      providers: [
+        ...Providers.getAllProviders(),
+        ChangeNotifierProvider(create: (_) => CardViewModel()),
+        ChangeNotifierProvider(create: (_) => CardVisitViewModel()),
+      ],
       child: MyApp(),
     ),
   );

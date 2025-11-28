@@ -1,197 +1,353 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:creatoo/core.dart';
-import 'package:creatoo/widgets/app_button.dart';
-import 'package:creatoo/widgets/app_textfield.dart';
 import 'package:creatoo/data/services/shared_preference_service.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
 import 'package:creatoo/features/card/data/activate_card_request_model.dart';
 import 'package:creatoo/features/card/view_model/card_view_model.dart';
 import 'package:provider/provider.dart';
 
-class ActivateCardModal extends StatefulWidget {
-  const ActivateCardModal({super.key});
+class QRScannerScreen extends StatefulWidget {
+  final Function(String cardNumber, String userName)? onCardActivated;
+  const QRScannerScreen({super.key, this.onCardActivated});
 
   @override
-  State<ActivateCardModal> createState() => _ActivateCardModalState();
+  State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
 
-class _ActivateCardModalState extends State<ActivateCardModal> {
-  late TextEditingController nameController;
-  late TextEditingController cardCodeController;
-  late CardViewModel viewModel;
+class _QRScannerScreenState extends State<QRScannerScreen> {
+  MobileScannerController cameraController = MobileScannerController();
+  bool isScanned = false; // Prevent multiple scans
   UserData? userData;
 
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController();
-    cardCodeController = TextEditingController();
-    viewModel = Provider.of<CardViewModel>(context, listen: false);
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
     userData = await SharedPreferencesService().getUserData();
-    if (userData != null && userData!.name != null) {
-      nameController.text = userData!.name!;
-    }
   }
 
   @override
   void dispose() {
-    nameController.dispose();
-    cardCodeController.dispose();
+    cameraController.dispose();
     super.dispose();
+  }
+
+  /// Extract 4-digit code from QR string
+  String? extractCardCode(String qrValue) {
+    // QR me sirf 4 digit code hai
+    final RegExp digitRegex = RegExp(r'^\d{4}$');
+    
+    // Check if QR value is exactly 4 digits
+    if (digitRegex.hasMatch(qrValue.trim())) {
+      return qrValue.trim();
+    }
+    
+    // Agar QR me kuch aur bhi hai, toh 4 digit extract karo
+    final RegExp extractRegex = RegExp(r'\d{4}');
+    final match = extractRegex.firstMatch(qrValue);
+    if (match != null) {
+      return match.group(0);
+    }
+    
+    return null;
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (isScanned) return; // Already scanned, prevent multiple calls
+    
+    final List<Barcode> barcodes = capture.barcodes;
+    
+    for (final barcode in barcodes) {
+      if (barcode.rawValue != null) {
+        final String qrValue = barcode.rawValue!;
+        final String? cardCode = extractCardCode(qrValue);
+        
+        if (cardCode != null && cardCode.length == 4) {
+          setState(() {
+            isScanned = true;
+          });
+          
+          // Stop camera
+          cameraController.stop();
+          
+          // Call activate card API
+          _activateCard(cardCode);
+          break;
+        } else {
+          Utils.flushBar('Invalid QR Code. Please scan a valid card QR.', result: Result.error);
+        }
+      }
+    }
+  }
+
+  void _activateCard(String cardCode) {
+    if (userData == null || userData!.name == null) {
+      Utils.flushBar('User data not found. Please login again.', result: Result.error);
+      Navigator.pop(context);
+      return;
+    }
+
+    final cardViewModel = Provider.of<CardViewModel>(context, listen: false);
+    
+    // API call with scanned code and user name
+    cardViewModel.activeCard(
+      context,
+      ActivateCardRequestModel(
+        name: userData!.name,
+        number: cardCode,
+      ),
+    );
+    
   }
 
   @override
   Widget build(BuildContext context) {
-    final defaultPinTheme = PinTheme(
-      width: 60.h,
-      height: 60.h,
-      padding: EdgeInsets.zero,
-      textStyle: TextStyle(
-        fontSize: 24.sp,
-        color: const Color(0xFF161616),
-        fontWeight: FontWeight.w600,
-      ),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-    );
-
-    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
-      border: Border.all(color: AppColor.primary),
-      borderRadius: BorderRadius.circular(10),
-    );
-
-    final errorPinTheme = defaultPinTheme.copyDecorationWith(
-      border: Border.all(color: AppColor.error),
-      borderRadius: BorderRadius.circular(10),
-    );
-
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColor.lightButtonGrey,
-          borderRadius: BorderRadius.circular(25),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(
-                  Icons.close,
-                  color: AppColor.black,
-                ),
-              ),
-            ),
-            Text(
-              'Activate Your Card',
-              style: TextStyle(
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 25.h),
-            AppTextField(
-              controller: nameController,
-              hintText: 'Name',
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 10),
-                child: Icon(Icons.person_outline, color: AppColor.black.withOpacity(0.7)),
-              ),
-              disableBorder: false,
-              borderColor: AppColor.black.withOpacity(0.5),
-              textColor: AppColor.black,
-              contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
-              textAlign: TextAlign.start,
-              readOnly: true, // Make name field read-only
-            ),
-            SizedBox(height: 15.h),
-            Text(
-              'Enter Card Code',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w400,
-                color: AppColor.black,
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Pinput(
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              length: 4, // 4-digit card code
-              controller: cardCodeController,
-              isCursorAnimationEnabled: true,
-              animationCurve: Curves.linear,
-              animationDuration: const Duration(milliseconds: 100),
-              closeKeyboardWhenCompleted: true,
-              cursor: Text(
-                '-',
-                style: TextStyle(
-                  fontSize: 25.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              mouseCursor: MouseCursor.defer,
-              showCursor: true,
-              defaultPinTheme: defaultPinTheme,
-              focusedPinTheme: focusedPinTheme,
-              errorPinTheme: errorPinTheme,
-              hapticFeedbackType: HapticFeedbackType.heavyImpact,
-              pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-              useNativeKeyboard: true,
-              textInputAction: TextInputAction.done,
-              pinContentAlignment: Alignment.center,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter card code';
-                } else if (value.length != 4) {
-                  return 'Card code must be 4 digits';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 25.h),
-            Consumer<CardViewModel>(
-              builder: (context, cardViewModel, child) {
-                return AppButton(
-                  text: 'Activate Card',
-                  onTap: () {
-                    if (cardCodeController.text.length == 4) {
-                      cardViewModel.activeCard(
-                        context, // Pass the context from the widget
-                        ActivateCardRequestModel(
-                          name: nameController.text, // User's actual name
-                          number: cardCodeController.text, // Card code as number
-                        ),
-                      );
-                    } else {
-                      Utils.flushBar('Please enter a 4-digit card code', result: Result.error);
-                    }
-                  },
-                  buttonColor: AppColor.primary,
-                  height: 50,
-                  isIconEnabled: false,
-                  isLoading: cardViewModel.activeCardResponse.status == Status.loading,
+        title: Text(
+          'Scan Card QR Code',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          // Flash toggle
+          IconButton(
+            icon: ValueListenableBuilder(
+              valueListenable: cameraController,
+              builder: (context, state, child) {
+                return Icon(
+                  state.torchState == TorchState.on
+                      ? Icons.flash_on
+                      : Icons.flash_off,
+                  color: Colors.white,
                 );
               },
             ),
+            onPressed: () => cameraController.toggleTorch(),
+          ),
+          // Camera switch
+          IconButton(
+            icon: const Icon(Icons.cameraswitch, color: Colors.white),
+            onPressed: () => cameraController.switchCamera(),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // QR Scanner
+          MobileScanner(
+            controller: cameraController,
+            onDetect: _onDetect,
+          ),
+          
+          // Overlay with scanning frame
+          _buildScannerOverlay(),
+          
+          // Bottom instruction text
+          Positioned(
+            bottom: 100.h,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                Icon(
+                  Icons.qr_code_scanner,
+                  color: Colors.white,
+                  size: 40.sp,
+                ),
+                SizedBox(height: 15.h),
+                Text(
+                  'Point camera at QR code on your card',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'QR code will be scanned automatically',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Loading overlay when scanning
+          if (isScanned)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      color: AppColor.primary,
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'Activating Card...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScannerOverlay() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scanAreaSize = constraints.maxWidth * 0.7;
+        final left = (constraints.maxWidth - scanAreaSize) / 2;
+        final top = (constraints.maxHeight - scanAreaSize) / 2.5;
+
+        return Stack(
+          children: [
+            // Dark overlay
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.6),
+                BlendMode.srcOut,
+              ),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
+                      backgroundBlendMode: BlendMode.dstOut,
+                    ),
+                  ),
+                  Positioned(
+                    left: left,
+                    top: top,
+                    child: Container(
+                      width: scanAreaSize,
+                      height: scanAreaSize,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Corner decorations
+            Positioned(
+              left: left,
+              top: top,
+              child: _buildCorner(Alignment.topLeft),
+            ),
+            Positioned(
+              right: left,
+              top: top,
+              child: _buildCorner(Alignment.topRight),
+            ),
+            Positioned(
+              left: left,
+              bottom: constraints.maxHeight - top - scanAreaSize,
+              child: _buildCorner(Alignment.bottomLeft),
+            ),
+            Positioned(
+              right: left,
+              bottom: constraints.maxHeight - top - scanAreaSize,
+              child: _buildCorner(Alignment.bottomRight),
+            ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCorner(Alignment alignment) {
+    const cornerSize = 30.0;
+    const strokeWidth = 4.0;
+
+    return SizedBox(
+      width: cornerSize,
+      height: cornerSize,
+      child: CustomPaint(
+        painter: CornerPainter(
+          alignment: alignment,
+          color: AppColor.primary,
+          strokeWidth: strokeWidth,
         ),
       ),
     );
   }
+}
+
+/// Custom painter for scanner corners
+class CornerPainter extends CustomPainter {
+  final Alignment alignment;
+  final Color color;
+  final double strokeWidth;
+
+  CornerPainter({
+    required this.alignment,
+    required this.color,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+
+    if (alignment == Alignment.topLeft) {
+      path.moveTo(0, size.height);
+      path.lineTo(0, 0);
+      path.lineTo(size.width, 0);
+    } else if (alignment == Alignment.topRight) {
+      path.moveTo(0, 0);
+      path.lineTo(size.width, 0);
+      path.lineTo(size.width, size.height);
+    } else if (alignment == Alignment.bottomLeft) {
+      path.moveTo(0, 0);
+      path.lineTo(0, size.height);
+      path.lineTo(size.width, size.height);
+    } else if (alignment == Alignment.bottomRight) {
+      path.moveTo(0, size.height);
+      path.lineTo(size.width, size.height);
+      path.lineTo(size.width, 0);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

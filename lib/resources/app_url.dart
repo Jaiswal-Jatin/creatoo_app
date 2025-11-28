@@ -54,7 +54,7 @@ class AppUrl {
 //card api
 static const String cardCheck = '$baseUrl/cards/check';       // done
 static const String activeCard = '$baseUrl/cards/verify';      //done
-
+static const String visitByRestaurant = '$baseUrl/visit/user-history'; //done
 static const String userTierHistory = '$baseUrl/visit/user-all-history';            //done
 static  const String visitCheck = '$baseUrl/visit?';            //done
 static const String Addvisit = '$baseUrl/visit';                //done

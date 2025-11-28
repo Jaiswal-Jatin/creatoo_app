@@ -1,8 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:creatoo/core.dart'; // For AppColor, SizeConfig
+import 'package:creatoo/core.dart';
+import 'package:creatoo/features/card/data/visit_by_restaurant_response_model.dart';
+import 'package:creatoo/features/card/view_model/card_visit_view_model.dart';
+import 'package:creatoo/utils/enums/status.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 // Data model for a single visit
 class Visit {
@@ -43,260 +47,277 @@ class VisitTabView extends StatefulWidget {
 }
 
 class _VisitTabViewState extends State<VisitTabView> {
-  late List<RestaurantViewModel> _restaurants;
+  late CardVisitViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _restaurants = _processVisits(_getMockVisits());
-    // Sort restaurants by the most recent visit
-    _restaurants.sort((a, b) => b.mostRecentVisit.compareTo(a.mostRecentVisit));
+    _viewModel = Provider.of<CardVisitViewModel>(context, listen: false);
+    // Fetch data on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewModel.fetchVisitByRestaurant(token ?? '');
+    });
   }
 
-  // Helper to group visits by restaurant
-  List<RestaurantViewModel> _processVisits(List<Visit> visits) {
-    // Group visits by restaurant name
-    final Map<String, List<Visit>> groupedVisits = {};
-    for (final visit in visits) {
-      if (!groupedVisits.containsKey(visit.restaurantName)) {
-        groupedVisits[visit.restaurantName] = [];
+  // Helper to convert API response to Visit model
+  List<RestaurantViewModel> _convertToRestaurantViewModels(
+      VisitByRestaurantResponseModel apiResponse) {
+    List<RestaurantViewModel> restaurants = [];
+
+    if (apiResponse.restaurants != null && apiResponse.restaurants!.isNotEmpty) {
+      for (var restaurant in apiResponse.restaurants!) {
+        List<Visit> visits = [];
+
+        if (restaurant.visits != null && restaurant.visits!.isNotEmpty) {
+          for (var visit in restaurant.visits!) {
+            visits.add(
+              Visit(
+                restaurantName: restaurant.businessName ?? 'Unknown Business',
+                date: _parseDate(visit.time),
+                tier: visit.tier ?? 'new',
+                // <CHANGE> Using local asset instead of Images.placeholder
+                imageUrl: restaurant.businessImage?.isNotEmpty == true
+                    ? restaurant.businessImage!
+                    : 'assets/images/logo.png',
+              ),
+            );
+          }
+        }
+
+        if (visits.isNotEmpty) {
+          restaurants.add(
+            RestaurantViewModel(
+              name: restaurant.businessName ?? 'Unknown Business',
+              // <CHANGE> Using local asset instead of Images.placeholder
+              imageUrl: restaurant.businessImage?.isNotEmpty == true
+                  ? restaurant.businessImage!
+                  : 'assets/images/logo.png',
+              visits: visits,
+            ),
+          );
+        }
       }
-      // Sort visits for each restaurant by date (newest first)
-      groupedVisits[visit.restaurantName]!.add(visit);
     }
 
-    // Sort visits within each restaurant and create the view models
-    return groupedVisits.entries.map((entry) {
-      final restaurantName = entry.key;
-      final restaurantVisits = entry.value;
-      restaurantVisits.sort(
-          (a, b) => b.date.compareTo(a.date)); // Sort visits for the restaurant
-      return RestaurantViewModel(
-        name: restaurantName,
-        imageUrl: restaurantVisits.first.imageUrl,
-        visits: restaurantVisits,
-      );
-    }).toList();
+    // Sort by most recent visit
+    restaurants.sort((a, b) => b.mostRecentVisit.compareTo(a.mostRecentVisit));
+    return restaurants;
   }
 
-  // Mock data source
-  List<Visit> _getMockVisits() {
-    return [
-      Visit(
-          restaurantName: 'The Grand Bistro',
-          date: DateTime(2025, 10, 26),
-          tier: 'Gold',
-          imageUrl:
-              'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'Pizza Palace',
-          date: DateTime(2025, 9, 15),
-          tier: 'Silver',
-          imageUrl:
-              'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'The Grand Bistro',
-          date: DateTime(2025, 8, 1),
-          tier: 'Silver',
-          imageUrl:
-              'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'Cafe Delight',
-          date: DateTime(2025, 7, 20),
-          tier: 'Bronze',
-          imageUrl:
-              'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'The Grand Bistro',
-          date: DateTime(2025, 6, 5),
-          tier: 'Gold',
-          imageUrl:
-              'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'Sushi Express',
-          date: DateTime(2025, 11, 1),
-          tier: 'Gold',
-          imageUrl:
-              'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-      Visit(
-          restaurantName: 'Cafe Delight',
-          date: DateTime(2025, 10, 30),
-          tier: 'Silver',
-          imageUrl:
-              'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-    ];
+  DateTime _parseDate(String? dateStr) {
+    if (dateStr == null) return DateTime.now();
+    try {
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+
+  // <CHANGE> Helper to check if URL is a network URL or local asset
+  bool _isNetworkImage(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      itemCount: _restaurants.length,
-      itemBuilder: (context, index) {
-        final restaurant = _restaurants[index];
-        // (Header doesn't need tier styling here)
+    return Consumer<CardVisitViewModel>(
+      builder: (context, viewModel, _) {
+        if (viewModel.visitResponse.status == Status.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        return Container(
-          margin: EdgeInsets.only(bottom: 16.h),
-          decoration: BoxDecoration(
-            color: AppColor.moreLighterDd.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColor.grey.withOpacity(0.1),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: Border.all(
-              color: AppColor.lightGrey.withOpacity(0.3),
-              width: 1,
+        if (viewModel.visitResponse.status == Status.error) {
+          return Center(
+            child: Text(
+              'Error: ${viewModel.visitResponse.message}',
+              style: const TextStyle(color: Colors.red),
             ),
+          );
+        }
+
+        if (viewModel.visitResponse.status == Status.completed &&
+            viewModel.visitResponse.data != null) {
+          final restaurants =
+              _convertToRestaurantViewModels(viewModel.visitResponse.data!);
+
+          if (restaurants.isEmpty) {
+            return const Center(
+              child: Text('No visits yet'),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            itemCount: restaurants.length,
+            itemBuilder: (context, index) {
+              final restaurant = restaurants[index];
+
+              return _buildRestaurantCard(restaurant, theme);
+            },
+          );
+        }
+
+        return const Center(child: Text('No data available'));
+      },
+    );
+  }
+
+  Widget _buildRestaurantCard(RestaurantViewModel restaurant, ThemeData theme) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      decoration: BoxDecoration(
+        color: AppColor.moreLighterDd.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.grey.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with image and basic info
-              Container(
-                height: 100.h, // Reduced height
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  image: DecorationImage(
-                    image: NetworkImage(restaurant.imageUrl),
-                    fit: BoxFit.cover,
-                  ),
+        ],
+        border: Border.all(
+          color: AppColor.lightGrey.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with image and basic info
+          Container(
+            height: 100.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              // <CHANGE> Handle both network and asset images
+              image: DecorationImage(
+                image: _isNetworkImage(restaurant.imageUrl)
+                    ? NetworkImage(restaurant.imageUrl) as ImageProvider
+                    : AssetImage(restaurant.imageUrl),
+                fit: BoxFit.cover,
+                onError: (exception, stackTrace) {},
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(16)),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    AppColor.black,
+                  ],
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        AppColor.black,
-                      ],
+              ),
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Restaurant name
+                  Text(
+                    restaurant.name,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: AppColor.white,
+                      fontWeight: FontWeight.w700,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  SizedBox(height: 4.h),
+
+                  // Visit info row
+                  Row(
                     children: [
-                      // Restaurant name
-                      Text(
-                        restaurant.name,
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          color: AppColor.white,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              offset: const Offset(0, 1),
-                              blurRadius: 6,
-                              color: Colors.black.withOpacity(0.4),
-                            ),
-                          ],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      SizedBox(height: 4.h),
-
-                      // Visit info row
+                      // Last visit date
                       Row(
                         children: [
-                          // Last visit date
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                size: 12.sp,
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                              SizedBox(width: 4.w),
-                              Text(
-                                DateFormat('MMM d, yyyy')
-                                    .format(restaurant.mostRecentVisit),
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppColor.white.withOpacity(0.9),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12.sp,
+                            color: Colors.white.withOpacity(0.9),
                           ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            DateFormat('MMM d, yyyy')
+                                .format(restaurant.mostRecentVisit),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColor.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
 
-                          SizedBox(width: 12.w),
+                      SizedBox(width: 12.w),
 
-                          // Visit count
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star_rounded,
-                                size: 14.sp,
-                                color: AppColor.mangoYellow,
-                              ),
-                              SizedBox(width: 4.w),
-                              Text(
-                                '${restaurant.visits.length} ${restaurant.visits.length == 1 ? 'Visit' : 'Visits'}',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppColor.white.withOpacity(0.9),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                      // Visit count
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star_rounded,
+                            size: 14.sp,
+                            color: AppColor.mangoYellow,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            '${restaurant.visits.length} ${restaurant.visits.length == 1 ? 'Visit' : 'Visits'}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColor.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
-
-              // Visit history section
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColor.moreLighterDd.withOpacity(0.1),
-                  borderRadius:
-                      BorderRadius.vertical(bottom: Radius.circular(16)),
-                ),
-                child: Theme(
-                  data: theme.copyWith(
-                    dividerColor: AppColor.transparent,
-                    cardColor: AppColor.moreLighterDd,
-                  ),
-                  child: ExpansionTile(
-                    tilePadding:
-                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                    title: Text(
-                      'View Visit History',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: AppColor.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: AppColor.black,
-                      size: 22.sp,
-                    ),
-                    children: [
-                      _buildVisitHistory(restaurant.visits, theme),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+
+          // Visit history section
+          Container(
+            decoration: BoxDecoration(
+              color: AppColor.moreLighterDd.withOpacity(0.1),
+              borderRadius:
+                  BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Theme(
+              data: theme.copyWith(
+                dividerColor: AppColor.transparent,
+                cardColor: AppColor.moreLighterDd,
+              ),
+              child: ExpansionTile(
+                tilePadding:
+                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                title: Text(
+                  'View Visit History',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: AppColor.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColor.black,
+                  size: 22.sp,
+                ),
+                children: [
+                  _buildVisitHistory(restaurant.visits, theme),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -327,13 +348,48 @@ class _VisitTabViewState extends State<VisitTabView> {
   }
 
   Widget _buildVisitRow(Visit visit, ThemeData theme) {
+    // <CHANGE> Fixed tier mapping - now correctly maps API tier values
     final rawTier = visit.tier.toLowerCase();
-    final normTier = (rawTier == 'new') ? 'gold' : rawTier;
-    final tierGradient = normTier == 'gold'
-      ? AppColor.goldGradient
-      : normTier == 'silver'
-        ? AppColor.silverGradient
-        : AppColor.bronzeGradient;
+    
+    // <CHANGE> Correct tier to gradient and label mapping
+    List<Color> tierGradient;
+    String tierLabel;
+    
+    switch (rawTier) {
+      case 'premium':
+        tierGradient = AppColor.goldGradient;
+        tierLabel = 'PREMIUM';
+        break;
+      case 'elite':
+        tierGradient = AppColor.silverGradient;
+        tierLabel = 'ELITE';
+        break;
+      case 'core':
+        tierGradient = AppColor.bronzeGradient;
+        tierLabel = 'CORE';
+        break;
+      case 'new':
+        tierGradient = AppColor.goldGradient;
+        tierLabel = 'NEW';
+        break;
+      // <CHANGE> Handle legacy gold/silver/bronze values if any
+      case 'gold':
+        tierGradient = AppColor.goldGradient;
+        tierLabel = 'PREMIUM';
+        break;
+      case 'silver':
+        tierGradient = AppColor.silverGradient;
+        tierLabel = 'ELITE';
+        break;
+      case 'bronze':
+        tierGradient = AppColor.bronzeGradient;
+        tierLabel = 'CORE';
+        break;
+      default:
+        // <CHANGE> Default to PREMIUM instead of CORE
+        tierGradient = AppColor.goldGradient;
+        tierLabel = 'PREMIUM';
+    }
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
@@ -386,14 +442,13 @@ class _VisitTabViewState extends State<VisitTabView> {
                       Icons.access_time_rounded,
                       size: 12.sp,
                       color: AppColor.grey,
-                      
                     ),
                     SizedBox(width: 4.w),
                     Text(
                       '${DateFormat('h:mm a').format(visit.date)}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColor.grey,
-                         fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
@@ -402,23 +457,18 @@ class _VisitTabViewState extends State<VisitTabView> {
             ),
           ),
 
-          // Tier badge
+          // <CHANGE> Tier badge with correct mapping
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: tierGradient[0], // Solid background color
+              color: tierGradient[0],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              // Display mapping: gold/new -> PREMIUM, silver -> ELITE, else CORE
-              (normTier == 'gold')
-                  ? 'PREMIUM'
-                  : (normTier == 'silver')
-                      ? 'ELITE'
-                      : 'CORE',
+              tierLabel,
               style: TextStyle(
                 fontSize: 10.sp,
-                color: AppColor.black, // Black text for better contrast
+                color: AppColor.black,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
               ),
