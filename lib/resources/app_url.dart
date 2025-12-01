@@ -133,6 +133,10 @@ static const String busineesHistory = '$baseUrl/visit/history';     //done
   static const String settingApi = '$baseUrl/setting/setting';
   static const String creatooRequestApi = '$baseUrl/creatooRequest';
 
+//version verify
+  static const String versionVerify = '$baseUrl/version/verify';
+
+
 
 
 

@@ -47,4 +47,6 @@ class RoutesName {
   static const String reviewView = 'reviewsView';
   static const String paymentSuccessView = 'paymentSuccessView';
   static const String cardView = 'cardView';
+  
+  static const String forceUpdateView = 'forceUpdateView';
 }

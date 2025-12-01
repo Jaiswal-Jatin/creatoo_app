@@ -1,5 +1,6 @@
 import 'package:creatoo/features/onboarding/model/onboarding_model.dart';
 import 'package:flutter/services.dart';
+import 'package:creatoo/features/force_update/service/version_check_service.dart';
 
 import '../../../core.dart';
 import '../widget/onboarding_slide_widget.dart';
@@ -10,21 +11,49 @@ class OnboardingView extends StatefulWidget {
 }
 
 class _OnboardingViewState extends State<OnboardingView> {
-  late PageController _pageController; // Page controller for managing pages
-  int _currentPageIndex = 0; // Track current page index
+  late PageController _pageController;
+  int _currentPageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    initialization();
+    _checkVersionAndInitialize();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom]);
-    _pageController = PageController(); // Initialize page controller
+    _pageController = PageController();
   }
 
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values); // to re-show bars
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+  }
+
+  Future<void> _checkVersionAndInitialize() async {
+    try {
+      final versionResponse = await VersionCheckService.checkAppVersion();
+      
+      if (versionResponse != null && versionResponse.needsUpdate) {
+        FlutterNativeSplash.remove();
+        
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushReplacementNamed(
+            navigatorKey.currentContext!,
+            RoutesName.forceUpdateView,
+            arguments: {
+              'message': versionResponse.message,
+              'currentVersion': versionResponse.clientVersion,
+              'latestVersion': versionResponse.latestVersion,
+            },
+          );
+        });
+        return;
+      }
+      
+      initialization();
+    } catch (e, st) {
+      print("Error during version check: $e\n$st");
+      initialization();
+    }
   }
 
   void initialization() async {

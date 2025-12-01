@@ -33,6 +33,7 @@ import 'package:creatoo/features/wallet/view/business_wallet_view.dart';
 import 'package:creatoo/features/wallet/view/wallet_view.dart';
 import 'package:creatoo/widgets/app_success_widget.dart';
 import 'package:creatoo/features/card/view/card_screen.dart';
+import 'package:creatoo/features/force_update/view/force_update_screen.dart';
 
 import '../../features/add_post/model/add_post_model.dart';
 import '../../features/auth/view/auth_view.dart';
@@ -50,6 +51,17 @@ class Routes {
     switch (settings.name) {
       case RoutesName.onboardingView:
         return _buildRoute(settings, OnboardingView());
+
+      case RoutesName.forceUpdateView:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          settings,
+          ForceUpdateScreen(
+            message: args['message'] ?? 'A new update is available',
+            currentVersion: args['currentVersion'] ?? '',
+            latestVersion: args['latestVersion'] ?? '',
+          ),
+        );
 
       case RoutesName.startupView:
         return _buildRoute(settings, StartupView());
