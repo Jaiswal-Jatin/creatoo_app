@@ -427,7 +427,7 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                                         RoutesName.webView,
                                         arguments: WebViewData(
                                           "",
-                                          "${AppUrl.host}/terms-conditions.html",
+                                          "${AppUrl.host}/api/Terms-And-Conditions.html",
                                           enableAppBar: true,
                                         ),
                                       );

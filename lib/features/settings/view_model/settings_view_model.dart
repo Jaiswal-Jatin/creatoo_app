@@ -150,7 +150,7 @@ class SettingsViewModel with ChangeNotifier {
             RoutesName.webView,
             arguments: WebViewData(
               "",
-              "${AppUrl.host}/privacy-policy.html",
+              "${AppUrl.host}/api/privacy-policy.html",
               enableAppBar: true,
             ),
           );
@@ -166,7 +166,7 @@ class SettingsViewModel with ChangeNotifier {
             RoutesName.webView,
             arguments: WebViewData(
               "",
-              "${AppUrl.host}/terms-conditions.html",
+              "${AppUrl.host}/api/Terms-And-Conditions.html",
               enableAppBar: true,
             ),
           );
@@ -182,7 +182,7 @@ class SettingsViewModel with ChangeNotifier {
             RoutesName.webView,
             arguments: WebViewData(
               "",
-              "${AppUrl.host}/refund-policy.html",
+              "${AppUrl.host}/api/refund-policy.html",
               enableAppBar: true,
             ),
           );

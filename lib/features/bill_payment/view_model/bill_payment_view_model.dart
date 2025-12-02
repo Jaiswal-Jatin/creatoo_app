@@ -119,8 +119,16 @@ class BillPaymentViewModel with ChangeNotifier {
   }
 
   Future<void> applyOffersApiCall() async {
+    debugPrint('=== Starting applyOffersApiCall ===');
+    debugPrint('Request Data: ');
+    debugPrint('- User ID: $userId');
+    debugPrint('- Business ID: ${businessDescription?.id}');
+    debugPrint('- Amount: $_amount');
+    debugPrint('- Has Referral Code: ${referralCodeController.text.isNotEmpty}');
+    
     setBusinessDetailsResponse(ApiResponse.loading());
     notifyListeners();
+    
     var data = {
       "user_id": userId,
       "business_id": businessDescription?.id,
@@ -128,23 +136,48 @@ class BillPaymentViewModel with ChangeNotifier {
       "bill_amount": _amount,
       "referrer_code": (referralCodeController.text.isNotEmpty) ? referralCodeController.text : null,
     };
-    var response = await _myRepo.applyOffersApi(data);
-    response.fold(
-      (l) {
-        setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-        Utils.toastMessage(l.message.toString());
-      },
-      (r) async {
-        setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-        billSummary = r.data;
-        merchantTransactionId = r.data?.merchantTransactionId;
-        Navigator.pushNamed(
-          navigatorKey.currentContext!,
-          RoutesName.proceedToPay,
-        );
-      },
-    );
-    notifyListeners();
+    
+    debugPrint('Sending API request with data: $data');
+    
+    try {
+      var response = await _myRepo.applyOffersApi(data);
+      
+      response.fold(
+        (l) {
+          debugPrint('=== API Error ===');
+          debugPrint('Error Message: ${l.message}');
+          if (l.data != null) {
+            debugPrint('Error Data: ${l.data}');
+          }
+          
+          setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
+          Utils.toastMessage(l.message.toString());
+        },
+        (r) async {
+          debugPrint('=== API Success ===');
+          debugPrint('Response Data: ${r.data?.toJson()}');
+          debugPrint('Merchant Transaction ID: ${r.data?.merchantTransactionId}');
+          
+          setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
+          billSummary = r.data;
+          merchantTransactionId = r.data?.merchantTransactionId;
+          
+          debugPrint('Navigating to payment screen...');
+          Navigator.pushNamed(
+            navigatorKey.currentContext!,
+            RoutesName.proceedToPay,
+          );
+        },
+      );
+    } catch (e, stackTrace) {
+      debugPrint('=== Exception in applyOffersApiCall ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack Trace: $stackTrace');
+      Utils.toastMessage('An error occurred while processing your request');
+    } finally {
+      notifyListeners();
+      debugPrint('=== Completed applyOffersApiCall ===');
+    }
   }
 
   Future<void> startPayment({required String? orderId, required double amount, String? mobileNumber}) async {

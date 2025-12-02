@@ -19,39 +19,79 @@ class AppImageWidget extends StatelessWidget {
     this.isProfile = false,
   });
 
+  String _getImageUrl(String url) {
+    if (url.isEmpty) return '';
+    
+    // If already a full URL, return as is
+    if (url.startsWith('http')) {
+      return url;
+    }
+    
+    // Handle cases where the URL might already have a leading slash
+    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    
+    // Return the full DigitalOcean Spaces URL
+    return 'https://creatoos3.blr1.digitaloceanspaces.com/images/$cleanUrl';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imageUrl = _getImageUrl(this.imageUrl);
+    
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.grey.shade300), // Added border to the image
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: CachedNetworkImage(
-          alignment: Alignment.center,
-          height: height,
-          width: width,
-          imageUrl: "$baseUrl$imageUrl",
-          fit: BoxFit.cover,
-          placeholder: ImagePlaceholderWidget,
-          errorWidget: isProfile
-              ? (ctx, url, error) => SizedBox(
-                    width: width,
-                    height: height,
-                    child: ClipOval(
-                      child: Container(
-                        color: Colors.grey.shade200,
-                        child: Icon(
-                          Icons.person,
-                          size: iconSize,
-                          color: Colors.grey,
+        child: imageUrl.isNotEmpty 
+          ? CachedNetworkImage(
+              alignment: Alignment.center,
+              height: height,
+              width: width,
+              imageUrl: imageUrl,
+              fit: fit,
+              placeholder: ImagePlaceholderWidget,
+              errorWidget: isProfile
+                  ? (ctx, url, error) => SizedBox(
+                        width: width,
+                        height: height,
+                        child: ClipOval(
+                          child: Container(
+                            color: Colors.grey.shade200,
+                            child: Icon(
+                              Icons.person,
+                              size: iconSize,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )
-              : ImageErrorWidget,
-        ),
+                      )
+                  : ImageErrorWidget,
+            )
+          : isProfile
+              ? Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person,
+                    size: iconSize,
+                    color: Colors.grey,
+                  ),
+                )
+              : Container(
+                  color: Colors.grey.shade200,
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: iconSize,
+                    color: Colors.grey,
+                  ),
+                ),
       ),
     );
   }

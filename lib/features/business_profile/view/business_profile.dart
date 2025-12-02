@@ -42,7 +42,9 @@ class _BusinessProfileViewState extends State<BusinessProfileView> {
                   CircleAvatar(
                     radius: 50.h,
                     foregroundImage: NetworkImage(
-                      '$baseUrl${item.businessImage}',
+                      item.businessImage?.isNotEmpty == true 
+                          ? 'https://creatoos3.blr1.digitaloceanspaces.com/images/${item.businessImage!.startsWith('/') ? item.businessImage!.substring(1) : item.businessImage}'
+                          : 'https://creatoos3.blr1.digitaloceanspaces.com/images/default_profile.png',
                     ),
                   ),
                   SizedBox(height: 10.h),

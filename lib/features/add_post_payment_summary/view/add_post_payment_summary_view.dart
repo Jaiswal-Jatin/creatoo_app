@@ -141,7 +141,7 @@ class _AddPostPaymentSummaryViewState extends State<AddPostPaymentSummaryView> {
                           RoutesName.webView,
                           arguments: WebViewData(
                             "",
-                            "${AppUrl.host}/terms-conditions.html",
+                            "${AppUrl.host}/api/terms-conditions.html",
                             enableAppBar: true,
                           ),
                         );

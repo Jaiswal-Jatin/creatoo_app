@@ -192,28 +192,41 @@ class _ProceedToCartState extends State<ProceedToCart> {
         child: AppButton(
           isIconEnabled: true,
           onTap: () async {
+            debugPrint('=== Apply Offers & Pay Button Clicked ===');
+            debugPrint('Amount entered: ${viewModel.amountController.text}');
+            
             if (viewModel.amountController.text.trim().isEmpty) {
+              final errorMsg = 'Amount is required';
+              debugPrint('Validation Error: $errorMsg');
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: AppTextWidget(text: "Amount is required"),
+                  content: AppTextWidget(text: errorMsg),
                   backgroundColor: Colors.red,
                 ),
               );
               return;
             }
-            if (viewModel.businessDescription!.minOrder != null &&
-                (double.parse(viewModel.amountController.text.trim().replaceAll(',', '')) <
-                    viewModel.businessDescription!.minOrder!.toDouble())) {
+            
+            final amount = double.tryParse(viewModel.amountController.text.trim().replaceAll(',', '')) ?? 0.0;
+            final minOrder = viewModel.businessDescription?.minOrder?.toDouble();
+            
+            if (minOrder != null && amount < minOrder) {
+              final errorMsg = 'Minimum Order amount is: $minOrder';
+              debugPrint('Validation Error: $errorMsg. Entered amount: $amount');
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: AppTextWidget(text: "Minimum Order amount is: ${viewModel.businessDescription?.minOrder}"),
+                  content: AppTextWidget(text: errorMsg),
                   backgroundColor: Colors.red,
                 ),
               );
               return;
             }
+            
+            debugPrint('Proceeding with amount: $amount');
             viewModel.autoFocus = false;
+            debugPrint('Calling applyOffersApi...');
             await viewModel.applyOffersApiCall();
+            debugPrint('After applyOffersApi call');
           },
           text: "Apply Offers & Pay",
         ),
