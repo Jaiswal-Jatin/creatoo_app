@@ -136,6 +136,9 @@ static const String busineesHistory = '$baseUrl/visit/history';     //done
 //version verify
   static const String versionVerify = '$baseUrl/version/verify';
 
+  //Exclusive Offers
+  static const String getExclusiveOffers = '$baseUrl/exclusiveOffer/by-business/:id';
+
 
 
 

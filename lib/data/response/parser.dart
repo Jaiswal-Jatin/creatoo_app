@@ -43,6 +43,7 @@ import '../../features/register_creator/model/user_insta_response.dart';
 import '../../features/review/model/reviews_response_model.dart';
 import '../../features/scanner/model/scanner_model_response.dart';
 import '../../features/search/model/business_details_response_model.dart';
+import '../../features/search/model/exclusive_offers_response_model.dart';
 import '../../features/search/model/search_business_model.dart';
 import '../../features/search/model/search_creator_model.dart';
 import '../../features/settings/model/logout_model.dart';
@@ -345,6 +346,10 @@ class Parser {
 
   static Future<BusinessDetailsResponseModel> parseGetBusinessDetailsResponse(String responseBody) async {
     return BusinessDetailsResponseModel.fromJson(json.decode(responseBody));
+  }
+
+  static Future<ExclusiveOffersResponseModel> parseExclusiveOffersResponse(String responseBody) async {
+    return ExclusiveOffersResponseModel.fromJson(json.decode(responseBody));
   }
 
   static Future<SetDiscountResponseModel> parseSetDiscountResponse(String responseBody) async {

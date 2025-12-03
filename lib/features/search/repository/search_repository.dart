@@ -1,4 +1,5 @@
 import 'package:creatoo/features/search/model/business_details_response_model.dart';
+import 'package:creatoo/features/search/model/exclusive_offers_response_model.dart';
 
 import '../../../core.dart';
 import '../model/search_business_model.dart';
@@ -49,6 +50,15 @@ class SearchRepository {
       {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
       Parser.parseGetBusinessDetailsResponse,
       body: body,
+    );
+  }
+
+  Future<Either<AppException, ExclusiveOffersResponseModel>> getExclusiveOffers(int businessId) async {
+    final apiUrl = AppUrl.getExclusiveOffers.replaceFirst(':id', businessId.toString());
+    return await _apiServices.callGetAPI(
+      apiUrl,
+      {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      Parser.parseExclusiveOffersResponse,
     );
   }
 

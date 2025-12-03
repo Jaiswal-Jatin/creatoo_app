@@ -85,6 +85,7 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     super.initState();
     viewModel = Provider.of<SearchViewModel>(context, listen: false);
     viewModel.getBusinessDetailsApi(id: widget.businessId);
+    viewModel.getExclusiveOffersApi(businessId: widget.businessId);
     _startAutoScroll();
     // Start auto-slide for all tier sliders
     _startTierSlidersAutoSlide();
@@ -245,16 +246,29 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   Widget build(BuildContext context) {
     viewModel = Provider.of<SearchViewModel>(context);
 
-    switch (viewModel.businessDetailsResponse.status) {
-      case Status.loading:
-        return AppLoadingWidget();
-      case Status.error:
-        return AppErrorWidget(message: viewModel.businessDetailsResponse.message.toString());
-      case Status.completed:
-        return _buildBody();
-      default:
-        return AppNoDataWidget();
+    // Check if both business details and exclusive offers are loaded
+    if (viewModel.businessDetailsResponse.status == Status.loading ||
+        viewModel.exclusiveOffersApiResponse.status == Status.loading) {
+      return AppLoadingWidget();
     }
+
+    if (viewModel.businessDetailsResponse.status == Status.error) {
+      return AppErrorWidget(
+          message: viewModel.businessDetailsResponse.message.toString());
+    }
+
+    if (viewModel.exclusiveOffersApiResponse.status == Status.error &&
+        viewModel.exclusiveOffersApiResponse.message !=
+            "Exclusive offer not found for this business_id") {
+      return AppErrorWidget(
+          message: viewModel.exclusiveOffersApiResponse.message.toString());
+    }
+
+    if (viewModel.businessDetailsResponse.status == Status.completed) {
+      return _buildBody();
+    }
+
+    return AppNoDataWidget();
   }
 
   Widget _buildBody() {
@@ -885,6 +899,20 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   }
 
 Widget _buildTierFeatureSection() {
+  // Check if exclusive offers data is available and not empty
+  final exclusiveOffers = viewModel.exclusiveOffersData;
+  final exclusiveOffersResponse = viewModel.exclusiveOffersApiResponse;
+
+  // If offers are not found by message, or data is null, or all tiers are empty, don't show the section.
+  if ((exclusiveOffersResponse.message ==
+          "Exclusive offer not found for this business_id") ||
+      exclusiveOffers == null ||
+      ((exclusiveOffers.premiumOffers?.isEmpty ?? true) &&
+          (exclusiveOffers.eliteOffers?.isEmpty ?? true) &&
+          (exclusiveOffers.coreOffers?.isEmpty ?? true))) {
+    return SizedBox.shrink();
+  }
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -894,19 +922,6 @@ Widget _buildTierFeatureSection() {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Container(
-            //   padding: EdgeInsets.all(8.w),
-            //   decoration: BoxDecoration(
-            //     color: AppColor.primary.withOpacity(0.1),
-            //     borderRadius: BorderRadius.circular(12),
-            //   ),
-            //   child: Icon(
-            //     Icons.workspace_premium_rounded,
-            //     color: AppColor.primary,
-            //     size: 24.sp,
-            //   ),
-            // ),
-            // SizedBox(width: 12.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -930,48 +945,61 @@ Widget _buildTierFeatureSection() {
           ],
         ),
       ),
-      
+
       // Tiers List with consistent spacing
       ListView(
         padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         children: [
-          _buildTierItem(
-            title: "Premium Tier",
-            gradientColors: AppColor.goldGradient,
-            controller: _goldTierPageController,
-            images: goldTierImages,
-            currentPage: _currentGoldPage,
-            onPageChanged: (index) => setState(() => _currentGoldPage = index),
-            iconPath: 'assets/icons/insurance.png',
-          ),
-          SizedBox(height: 10.h),
-          _buildTierItem(
-            title: "Elite Tier",
-            gradientColors: AppColor.silverGradient,
-            controller: _silverTierPageController,
-            images: silverTierImages,
-            currentPage: _currentSilverPage,
-            onPageChanged: (index) => setState(() => _currentSilverPage = index),
-            iconPath: 'assets/icons/insurance.png',
-          ),
-          SizedBox(height: 10.h),
-          _buildTierItem(
-            title: "Core Tier",
-            gradientColors: AppColor.bronzeGradient,
-            controller: _bronzeTierPageController,
-            images: bronzeTierImages,
-            currentPage: _currentBronzePage,
-            onPageChanged: (index) => setState(() => _currentBronzePage = index),
-            iconPath: 'assets/icons/insurance.png',
-          ),
-          SizedBox(height: 10.h),
+          // Show Premium Tier only if business has premium offers
+          if (exclusiveOffers.premiumOffers?.isNotEmpty ?? false)
+            _buildTierItem(
+              title: "Premium Tier",
+              gradientColors: AppColor.goldGradient,
+              controller: _goldTierPageController,
+              images: exclusiveOffers.premiumOffers!,
+              currentPage: _currentGoldPage,
+              onPageChanged: (index) => setState(() => _currentGoldPage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
+          if (exclusiveOffers.premiumOffers?.isNotEmpty ?? false)
+            SizedBox(height: 10.h),
+
+          // Show Elite Tier only if business has elite offers
+          if (exclusiveOffers.eliteOffers?.isNotEmpty ?? false)
+            _buildTierItem(
+              title: "Elite Tier",
+              gradientColors: AppColor.silverGradient,
+              controller: _silverTierPageController,
+              images: exclusiveOffers.eliteOffers!,
+              currentPage: _currentSilverPage,
+              onPageChanged: (index) => setState(() => _currentSilverPage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
+          if (exclusiveOffers.eliteOffers?.isNotEmpty ?? false)
+            SizedBox(height: 10.h),
+
+          // Show Core Tier only if business has core offers
+          if (exclusiveOffers.coreOffers?.isNotEmpty ?? false)
+            _buildTierItem(
+              title: "Core Tier",
+              gradientColors: AppColor.bronzeGradient,
+              controller: _bronzeTierPageController,
+              images: exclusiveOffers.coreOffers!,
+              currentPage: _currentBronzePage,
+              onPageChanged: (index) => setState(() => _currentBronzePage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
+          if (exclusiveOffers.coreOffers?.isNotEmpty ?? false)
+            SizedBox(height: 10.h),
         ],
       ),
     ],
   );
 }
+
+
 
 Widget _buildTierItem({
   required String title,

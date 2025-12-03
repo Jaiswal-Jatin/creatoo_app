@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:creatoo/features/search/model/business_details_response_model.dart';
+import 'package:creatoo/features/search/model/exclusive_offers_response_model.dart';
 
 import '../../../core.dart';
 import '../model/search_business_model.dart';
@@ -25,8 +26,14 @@ class SearchViewModel with ChangeNotifier {
   Timer? _debounce;
   late TextEditingController searchController = TextEditingController();
   BusinessDescription? businessDescription;
+  ExclusiveOffersData? exclusiveOffersData;
 
   ApiResponse<SearchCreatorResponse> creatorResponse = ApiResponse.initial();
+  ApiResponse<ExclusiveOffersResponseModel> exclusiveOffersApiResponse = ApiResponse.initial();
+
+  setExclusiveOffersResponse(ApiResponse<ExclusiveOffersResponseModel> response) {
+    exclusiveOffersApiResponse = response;
+  }
 
   setCreatorResponse(ApiResponse<SearchCreatorResponse> response) {
     creatorResponse = response;
@@ -190,6 +197,22 @@ class SearchViewModel with ChangeNotifier {
       (r) {
         setBusinessDetailsResponse(ApiResponse.completed(r));
         businessDescription = r.data;
+      },
+    );
+    notifyListeners();
+  }
+
+  Future<void> getExclusiveOffersApi({required int businessId}) async {
+    setExclusiveOffersResponse(ApiResponse.loading());
+    var response = await _myRepo.getExclusiveOffers(businessId);
+    response.fold(
+      (l) {
+        setExclusiveOffersResponse(ApiResponse.error(l.message));
+        Utils.toastMessage(l.message.toString());
+      },
+      (r) {
+        setExclusiveOffersResponse(ApiResponse.completed(r));
+        exclusiveOffersData = r.data;
       },
     );
     notifyListeners();
