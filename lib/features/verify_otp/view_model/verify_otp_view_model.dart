@@ -84,7 +84,20 @@ class VerifyOtpViewModel with ChangeNotifier {
         print('ERROR Response: ${l.message}');
         print('Error Details: $l');
         setVerifyOtpResponse(ApiResponse.error(l.message));
-        Utils.toastMessage(l.message.toString());
+        
+        // Check if error message indicates user doesn't exist
+        if (l.message?.toLowerCase().contains('user not exist') == true) {
+          print('User Not Found - Redirecting to Registration');
+          if (roleId == Constants.businessUser) {
+            print('Redirecting to Business Registration');
+            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerBusinessView, arguments: phone);
+          } else if (roleId == Constants.creatorUser) {
+            print('Redirecting to Creator Registration');
+            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerCreatorView, arguments: phone);
+          }
+        } else {
+          Utils.toastMessage(l.message.toString());
+        }
         notifyListeners();
       },
       (r) async {
