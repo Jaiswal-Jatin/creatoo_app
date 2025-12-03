@@ -158,9 +158,10 @@ class _HomeViewState extends State<HomeView> {
               SizedBox(
                 height: 10.h,
               ),
-              viewModel.homeResponse.data!.data!.topReviewers!.isEmpty
-                  ? const SizedBox.shrink()
-                  : buildReviewers(name: "Top Reviewers", data: viewModel.homeResponse.data!.data!.topReviewers!),
+              // Show Top Reviewers only for regular users
+              (roleId != Constants.businessUser && viewModel.homeResponse.data!.data!.topReviewers!.isNotEmpty)
+                  ? buildReviewers(name: "Top Reviewers", data: viewModel.homeResponse.data!.data!.topReviewers!)
+                  : const SizedBox.shrink(),
               
               // Show Top Businesses for regular users, Lottie animation for business users
               (roleId == Constants.businessUser)
