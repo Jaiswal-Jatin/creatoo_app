@@ -239,6 +239,7 @@ class Business {
   int? isActive;
   int? isTop;
   int? roleId;
+  int? set_first_time_discount;
 
   Business({
     this.id,
@@ -252,6 +253,7 @@ class Business {
     this.isActive,
     this.isTop,
     this.roleId,
+    this.set_first_time_discount,
   });
 
   factory Business.fromRawJson(String str) => Business.fromJson(json.decode(str));
@@ -270,6 +272,7 @@ class Business {
         isActive: _toInt(json["is_active"]),
         isTop: _toInt(json["is_top"]),
         roleId: json["role_id"],
+        set_first_time_discount: json["set_first_time_discount"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -284,6 +287,7 @@ class Business {
         "is_active": isActive,
         "is_top": isTop,
         "role_id": roleId,
+        "set_first_time_discount": set_first_time_discount,
       };
 }
 

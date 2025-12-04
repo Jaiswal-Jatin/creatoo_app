@@ -52,16 +52,16 @@ class _SettingsViewState extends State<SettingsView> {
             width: SizeConfig.screenWidth,
           ),
           Positioned(
-            top: 80,
-            left: 20,
+            top: 80.h,
+            left: 20.w,
             child: Text(
               'My Profile',
-              style: AppTextStyles.appBarTitleTextStyle.copyWith(fontSize: 25),
+              style: AppTextStyles.appBarTitleTextStyle.copyWith(fontSize: 25.sp),
             ),
           ),
           if (Platform.isIOS && roleId == Constants.creatorUser)
             Positioned(
-              top: 30,
+              top: 30.h,
               left: 0,
               child: IconButton(
                 icon: SvgPicture.asset(
@@ -81,7 +81,7 @@ class _SettingsViewState extends State<SettingsView> {
 
   Widget _buildItemList(SettingsViewModel viewModel) {
     return ListView.separated(
-      padding: EdgeInsets.only(top: 10.h, left: 20, right: 20),
+      padding: EdgeInsets.only(top: 10.h, left: 20.w, right: 20.w),
       itemCount: viewModel.itemList.length,
       separatorBuilder: (_, __) => Divider(),
       itemBuilder: (context, index) {

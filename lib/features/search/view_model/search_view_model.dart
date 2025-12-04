@@ -208,7 +208,7 @@ class SearchViewModel with ChangeNotifier {
     response.fold(
       (l) {
         setExclusiveOffersResponse(ApiResponse.error(l.message));
-        Utils.toastMessage(l.message.toString());
+        // Removed toast message as per requirement to hide 'Exclusive offer not found' message
       },
       (r) {
         setExclusiveOffersResponse(ApiResponse.completed(r));

@@ -101,6 +101,7 @@ static const String busineesHistory = '$baseUrl/visit/history';     //done
   static const String getBusinessSetting = '$baseUrl/setting/getBusinessSetting';
   static const String editBusinessDiscount = '$baseUrl/business/setDiscount';
   static const String editBusinessDescription = '$baseUrl/business/businessDescription';
+  static const String getBusinessSubscription = '$baseUrl/subscription/business/current';
 
 
 

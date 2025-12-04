@@ -74,7 +74,7 @@ class _AppChipChoiceWidgetState extends State<AppChipChoiceWidget> {
       children: [
         if (widget.options.isNotEmpty)
           SizedBox(
-            height: 40,
+            height: 40.h,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               controller: _scrollController,

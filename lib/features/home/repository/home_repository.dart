@@ -2,6 +2,7 @@ import 'package:creatoo/core.dart';
 import 'package:creatoo/features/business_profile/repository/business_profile_repository.dart';
 
 import '../model/home_screen_response_model.dart';
+import '../model/subscription_response_model.dart';
 
 class HomeRepository extends BusinessProfileRepository {
   final BaseApiServices _apiServices = NetworkApiService();
@@ -12,6 +13,14 @@ class HomeRepository extends BusinessProfileRepository {
       {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
       Parser.parseHomeDataResponse,
       body: {"user_id": userId},
+    );
+  }
+
+  Future<Either<AppException, SubscriptionResponse>> checkBusinessSubscription() async {
+    return await _apiServices.callGetAPI(
+      AppUrl.getBusinessSubscription,
+      {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      Parser.parseSubscriptionResponse,
     );
   }
 }

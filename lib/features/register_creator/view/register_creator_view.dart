@@ -83,7 +83,7 @@ class _RegisterCreatorViewState extends State<RegisterCreatorView> {
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: AppColor.white,
-                                          width: 5,
+                                          width: 5.w,
                                           strokeAlign: BorderSide.strokeAlignCenter,
                                         ),
                                       ),
@@ -106,7 +106,7 @@ class _RegisterCreatorViewState extends State<RegisterCreatorView> {
                         ),
                         SizedBox(height: 10.h),
                         Container(
-                          padding: EdgeInsets.only(left: 5),
+                          padding: EdgeInsets.only(left: 5.w),
                           child: Text(
                             'Mobile Number',
                             style: GoogleFonts.montserrat(
@@ -122,7 +122,7 @@ class _RegisterCreatorViewState extends State<RegisterCreatorView> {
                           controller: TextEditingController(text: widget.phone),
                           hintText: "Enter Mobile number",
                           textInputType: TextInputType.number,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 18),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 18.h),
                           disableBorder: false,
                           readOnly: true,
                           maxLength: 10,
@@ -209,7 +209,7 @@ class _RegisterCreatorViewState extends State<RegisterCreatorView> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: Container(
-          margin: EdgeInsets.symmetric(horizontal: 20.h),
+          margin: EdgeInsets.symmetric(horizontal: 20.w),
           child: AppButton(
             text: "Continue",
             isLoading: viewModel.creatorResponse.status == Status.loading,

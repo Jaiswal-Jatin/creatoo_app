@@ -27,6 +27,21 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView> {
 
     viewModel = Provider.of<BillPaymentViewModel>(context, listen: false);
 
+    // Debug print to check data availability
+    debugPrint('\n\n=== PaymentSuccessView initState Debug ===');
+    debugPrint('📊 ViewModel Data Check:');
+    debugPrint('🔹 paymentData: ${viewModel.paymentData}');
+    debugPrint('🔹 paymentData.totalBill: ${viewModel.paymentData?.totalBill}');
+    debugPrint('🔹 paymentData.finalBill: ${viewModel.paymentData?.finalBill}');
+    debugPrint('🔹 paymentData.receiptName: ${viewModel.paymentData?.receiptName}');
+    debugPrint('🔹 paymentData.createdAt: ${viewModel.paymentData?.createdAt}');
+    debugPrint('🔹 businessName: ${viewModel.businessName}');
+    debugPrint('🔹 businessId: ${viewModel.businessId}');
+    debugPrint('🔹 orderId: ${viewModel.orderId}');
+    debugPrint('🔹 businessDescription: ${viewModel.businessDescription}');
+    debugPrint('🔹 businessDescription.businessName: ${viewModel.businessDescription?.businessName}');
+    debugPrint('==================================================\n');
+
     _confettiControllerTopLeft = ConfettiController(duration: const Duration(seconds: 3));
     _confettiControllerTopRight = ConfettiController(duration: const Duration(seconds: 3));
 
@@ -202,12 +217,35 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView> {
                                 AppRoundButton(
                                   title: 'Next',
                                   borderRadius: 16,
-                                  onPress: () {
-                                    Navigator.pushNamed(context, RoutesName.feedbackScreen, arguments: {
-                                      'businessName': viewModel.businessName,
-                                      'businessId': viewModel.businessId,
-                                      'orderId': viewModel.orderId,
-                                    });
+                                  onPress: () async {
+                                    try {
+                                      // First pop the current screen
+                                      if (Navigator.canPop(context)) {
+                                        Navigator.pop(context);
+                                      }
+                                      // Then navigate to feedback screen
+                                      if (context.mounted) {
+                                        Navigator.pushNamed(
+                                          context, 
+                                          RoutesName.feedbackScreen, 
+                                          arguments: {
+                                            'businessName': viewModel.businessName,
+                                            'businessId': viewModel.businessId,
+                                            'orderId': viewModel.orderId,
+                                          },
+                                        );
+                                      }
+                                    } catch (e) {
+                                      debugPrint('Navigation error: $e');
+                                      // Fallback to home if navigation fails
+                                      if (context.mounted) {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          RoutesName.homeView,
+                                          (route) => false,
+                                        );
+                                      }
+                                    }
                                   },
                                 ),
                               ],

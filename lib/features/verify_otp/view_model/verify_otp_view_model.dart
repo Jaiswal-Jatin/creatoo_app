@@ -3,6 +3,7 @@ import 'package:smart_auth/smart_auth.dart';
 import '../../../core.dart';
 import '../../../data/services/sms_retriver_service.dart';
 import '../../auth/model/otp_reponse_model.dart';
+import '../../home/view_model/home_view_model.dart';
 import '../model/verify_otp_model.dart';
 import '../repository/verify_otp_repository.dart';
 
@@ -120,6 +121,13 @@ class VerifyOtpViewModel with ChangeNotifier {
         } else {
           print('User Already Registered - Navigating to Home');
           await saveUserData(r.data!);
+          
+          // Check subscription for business users before navigating
+          if (roleId == Constants.businessUser) {
+            final homeViewModel = Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false);
+            await homeViewModel.checkBusinessSubscription();
+          }
+          
           Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, RoutesName.homePage, (route) => false);
         }
         Utils.toastMessage(r.message.toString());

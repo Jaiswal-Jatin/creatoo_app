@@ -60,7 +60,7 @@ class AppDialog {
           child: Container(
             width: SizeConfig.screenWidth,
             // height: 220.h,
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -72,7 +72,7 @@ class AppDialog {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 Form(
                   key: _formKey,
                   child: AppTextField(
@@ -81,14 +81,14 @@ class AppDialog {
                     disableBorder: false,
                     hintText: "Enter amount",
                     maxLines: 1,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
                     textInputType: TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$')),
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
@@ -96,10 +96,10 @@ class AppDialog {
                       child: ElevatedButton(
                         child: Text('Cancel'),
                         style: ButtonStyle(
-                          minimumSize: WidgetStateProperty.all(Size.fromHeight(50)),
+                          minimumSize: WidgetStateProperty.all(Size.fromHeight(50.h)),
                           backgroundColor: WidgetStateProperty.all(AppColor.lightGrey),
                           foregroundColor: WidgetStateProperty.all(AppColor.black),
-                          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
+                          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w)),
                           shape: WidgetStateProperty.all(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -108,7 +108,7 @@ class AppDialog {
                           elevation: WidgetStateProperty.all(2),
                           textStyle: WidgetStateProperty.all(
                             TextStyle(
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -118,13 +118,13 @@ class AppDialog {
                         },
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Expanded(
                       child: ElevatedButton(
                         child: Text('Confirm'),
                         style: ButtonStyle(
-                          minimumSize: WidgetStateProperty.all(Size.fromHeight(50)),
-                          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
+                          minimumSize: WidgetStateProperty.all(Size.fromHeight(50.h)),
+                          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w)),
                           shape: WidgetStateProperty.all(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -133,7 +133,7 @@ class AppDialog {
                           elevation: WidgetStateProperty.all(2),
                           textStyle: WidgetStateProperty.all(
                             TextStyle(
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -498,6 +498,81 @@ class AppDialog {
           ],
         );
       },
+    );
+  }
+
+  static Future<void> showSubscriptionRequiredDialog() async {
+    return showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                width: 80.w,
+                height: 80.w,
+                decoration: BoxDecoration(
+                  color: AppColor.kPrimary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.card_membership,
+                  size: 40.sp,
+                  color: AppColor.kPrimary,
+                ),
+              ),
+              SizedBox(height: 20.h),
+              
+              // Title
+              Text(
+                'Subscription Required',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              SizedBox(height: 12.h),
+              
+              // Content
+              Text(
+                'You need an active subscription to access this feature. Please purchase a subscription to continue.',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppColor.darkGrey,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              SizedBox(height: 24.h),
+              
+              // Button
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  text: 'Buy fromBusiness Admin Dashboard',
+                  isIconEnabled: false,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    // TODO: Navigate to subscription purchase screen
+                    // Navigator.pushNamed(context, RoutesName.subscriptionView);
+                  },
+                  buttonColor: AppColor.kPrimary,
+                  textColor: AppColor.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

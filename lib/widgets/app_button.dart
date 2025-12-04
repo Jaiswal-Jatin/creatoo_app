@@ -26,17 +26,21 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     return GestureDetector(
       onTap: (isLoading || isDisabled) ? null : onTap,
       child: Stack(
         alignment: Alignment.centerRight,
         children: [
           Container(
-            height: height.h,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            height: isSmall ? h * 0.05 : height.h,
+            padding: EdgeInsets.symmetric(horizontal: w * 0.025, vertical: h * 0.01),
             decoration: BoxDecoration(
                 color: (isLoading || isDisabled) ? AppColor.primaryDisabled : buttonColor,
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(isSmall ? 10 : 15),
                 border: enableBorder ? Border.all(color: AppColor.lightGrey) : null),
             child: Center(
               child: isLoading
@@ -49,8 +53,11 @@ class AppButton extends StatelessWidget {
                         style: TextStyle(
                           color: (isLoading || isDisabled) ? textColor.withOpacity(0.7) : textColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16.sp,
+                          fontSize: isSmall ? w * 0.035 : 16.sp,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: true,
                       ),
                     ),
             ),
@@ -58,10 +65,11 @@ class AppButton extends StatelessWidget {
           Visibility(
             visible: isIconEnabled,
             child: Positioned(
-              right: 10,
+              right: w * 0.025,
               child: Icon(
                 Icons.arrow_forward,
                 color: (isLoading || isDisabled) ? AppColor.white.withOpacity(0.7) : AppColor.white,
+                size: isSmall ? w * 0.04 : null,
               ),
             ),
           ),

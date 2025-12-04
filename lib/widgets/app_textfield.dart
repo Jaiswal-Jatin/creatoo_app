@@ -79,6 +79,10 @@ class AppTextField extends StatefulWidget {
 class _AppTextFieldState extends State<AppTextField> {
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     return TextFormField(
       textAlign: widget.textAlign,
       autofocus: widget.autofocus,
@@ -96,7 +100,7 @@ class _AppTextFieldState extends State<AppTextField> {
       textCapitalization: widget.capitaliseText,
       cursorColor: widget.cursorColor ?? widget.textColor ?? Colors.black,
       style: widget.textStyle ?? TextStyle(
-        fontSize: widget.textSize,
+        fontSize: widget.textSize ?? (isSmall ? w * 0.035 : null),
         fontWeight: widget.fontWeight,
         color: widget.textColor ?? Colors.black,
       ),
@@ -106,29 +110,29 @@ class _AppTextFieldState extends State<AppTextField> {
         hintText: widget.hintText,
         prefixIcon: widget.prefixIcon,
         suffixIcon: widget.suffixIcon,
-        contentPadding: widget.contentPadding,
+        contentPadding: widget.contentPadding ?? EdgeInsets.only(left: isSmall ? w * 0.025 : 10),
         counterText: '',
-        prefixIconConstraints: BoxConstraints.tightForFinite(width: 120, height: 20),
-        suffixIconConstraints: BoxConstraints.tightForFinite(width: 60, height: 20),
+        prefixIconConstraints: BoxConstraints.tightForFinite(width: isSmall ? w * 0.3 : 120, height: isSmall ? h * 0.025 : 20),
+        suffixIconConstraints: BoxConstraints.tightForFinite(width: isSmall ? w * 0.15 : 60, height: isSmall ? h * 0.025 : 20),
         hintStyle: widget.hintStyle ?? GoogleFonts.montserrat(
           fontWeight: FontWeight.w500,
-          fontSize: 14.sp,
+          fontSize: isSmall ? w * 0.032 : 14.sp,
           color: Colors.black.withOpacity(0.5),
         ),
-        errorStyle: TextStyle(fontSize: 14.sp),
+        errorStyle: TextStyle(fontSize: isSmall ? w * 0.032 : 14.sp),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
-          gapPadding: 16,
+          borderRadius: BorderRadius.circular(isSmall ? 12 : widget.borderRadius),
+          gapPadding: isSmall ? 12 : 16,
           borderSide: widget.disableBorder ? BorderSide.none : BorderSide(width: 5, style: BorderStyle.solid, color: widget.borderColor!),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
+          borderRadius: BorderRadius.circular(isSmall ? 12 : widget.borderRadius),
           borderSide: widget.disableBorder 
               ? BorderSide.none 
               : BorderSide(color: widget.borderColor!),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
+          borderRadius: BorderRadius.circular(isSmall ? 12 : widget.borderRadius),
           borderSide: BorderSide(
             color: widget.focusedBorderColor ?? widget.borderColor ?? AppColor.kPrimary,
             width: 1.5,

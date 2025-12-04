@@ -72,7 +72,7 @@ class _AppFormState extends State<AppForm> {
                   hintText: "Enter ${widget.hintTexts[index]}",
                   textInputType: getTextInputType(widget.hintTexts[index]),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 25, vertical: 18),
+                      EdgeInsets.symmetric(horizontal: 25.w, vertical: 18.h),
                   disableBorder: false,
                   maxLength: widget.maxLength,
                   capitaliseText: widget.capitaliseText,

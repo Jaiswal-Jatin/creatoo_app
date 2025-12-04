@@ -15,13 +15,13 @@ class AppWalletCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 120.h,
-      margin: EdgeInsets.all(20),
+      margin: EdgeInsets.all(20.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           SizedBox(
-            height: 10,
+            height: 10.h,
           ),
           Text(
             'Wallet',

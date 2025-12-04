@@ -174,7 +174,7 @@ class _AddPostViewState extends State<AddPostView> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20.h),
+        margin: EdgeInsets.symmetric(horizontal: 20.w),
         child: AppButton(
           text: "Proceed",
           onTap: () async {
@@ -240,7 +240,7 @@ class _AddPostViewState extends State<AddPostView> {
             hintText: title.toLowerCase().contains("expiry")
                 ? "DD/MM/YYYY"
                 : "Enter ${title.toLowerCase()}",
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
           ),
           SizedBox(height: 20.h),
         ],

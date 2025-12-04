@@ -1,10 +1,12 @@
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/bill_payment/view_model/bill_payment_view_model.dart';
 import 'package:creatoo/features/home/model/home_screen_response_model.dart';
+import 'package:creatoo/features/home/model/subscription_response_model.dart';
 import 'package:creatoo/features/home/repository/home_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
 
 import '../../settings/view_model/settings_view_model.dart';
+import '../../../widgets/app_dialog.dart';
 
 class HomeViewModel with ChangeNotifier {
   final HomeRepository _myRepo = HomeRepository();
@@ -18,6 +20,10 @@ class HomeViewModel with ChangeNotifier {
   int _selectedIndex = 0;
   bool _creatooView = false;
   bool? isLogout;
+  
+  // Subscription state for business users
+  Subscription? businessSubscription;
+  bool hasCheckedSubscription = false;
 
   int get selectedIndex => _selectedIndex;
   bool get creatooView => _creatooView;
@@ -39,6 +45,10 @@ class HomeViewModel with ChangeNotifier {
     if (isLogout == null || isLogout == false) {
       await getHomeData();
       await getProfile();
+      // Check subscription for business users
+      if (roleId == Constants.businessUser) {
+        await checkBusinessSubscription();
+      }
     }
   }
 
@@ -203,6 +213,29 @@ class HomeViewModel with ChangeNotifier {
       await fetchBusinessProfile();
     } else {
       await fetchCreatorProfile();
+    }
+  }
+
+  Future<void> checkBusinessSubscription() async {
+    if (roleId == Constants.businessUser && !hasCheckedSubscription) {
+      var response = await _myRepo.checkBusinessSubscription();
+      response.fold(
+        (l) {
+          // Handle error - log it
+          debugPrint('Subscription check failed: ${l.message}');
+        },
+        (r) {
+          businessSubscription = r.subscription;
+          hasCheckedSubscription = true;
+          if (businessSubscription == null) {
+            // Show subscription popup
+            Future.delayed(const Duration(milliseconds: 500), () {
+              AppDialog.showSubscriptionRequiredDialog();
+            });
+          }
+          notifyListeners();
+        },
+      );
     }
   }
 }

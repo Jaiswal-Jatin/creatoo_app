@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../resources/color.dart';
+import '../utils/ui_config/app_size_config.dart';
 
 class ProgressBar extends StatelessWidget {
   final int currentPage;
@@ -14,26 +15,29 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     double progress = (currentPage / totalPages).clamp(0.0, 1.0);
 
     return Container(
-      height: 15, // Ensure this height is enforced
+      height: isSmall ? h * 0.02 : 15.h,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColor.moreLighterDd, // Background color inside decoration
-        borderRadius: BorderRadius.circular(8),
+        color: AppColor.moreLighterDd,
+        borderRadius: BorderRadius.circular(isSmall ? 6 : 8),
       ),
       child: Stack(
         children: [
-          // Foreground progress
           Align(
             alignment: Alignment.centerLeft,
             child: Container(
-              width: MediaQuery.of(context).size.width * progress,
-              height: 15,
+              width: w * progress,
+              height: isSmall ? h * 0.02 : 15.h,
               decoration: BoxDecoration(
-                color: AppColor.kPrimary, // Foreground color inside decoration
-                borderRadius: BorderRadius.circular(8),
+                color: AppColor.kPrimary,
+                borderRadius: BorderRadius.circular(isSmall ? 6 : 8),
               ),
             ),
           ),

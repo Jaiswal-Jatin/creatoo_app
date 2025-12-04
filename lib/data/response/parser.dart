@@ -54,6 +54,7 @@ import '../../features/wallet/model/business_wallet_transaction_response.dart';
 import '../../features/visits/model/visits_response_model.dart'; // Added VisitsResponseModel
 import '../../features/visits/model/visit_check_response_model.dart'; // Visit check parser
 import '../../features/visits/model/add_visit_response_model.dart'; // Add visit response
+import '../../features/home/model/subscription_response_model.dart'; // Subscription response
 
 class Parser {
   static Future<Either<AppException, Q>> parseResponse<Q, R>(http.Response response, ComputeCallback<String, R> callback) async {
@@ -438,5 +439,9 @@ class Parser {
       print("❌ parseAddVisitResponse ERROR: $e");
       rethrow;
     }
+  }
+
+  static Future<SubscriptionResponse> parseSubscriptionResponse(String responseBody) async {
+    return SubscriptionResponse.fromJson(json.decode(responseBody));
   }
 }

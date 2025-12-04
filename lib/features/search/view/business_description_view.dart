@@ -257,12 +257,9 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
           message: viewModel.businessDetailsResponse.message.toString());
     }
 
-    if (viewModel.exclusiveOffersApiResponse.status == Status.error &&
-        viewModel.exclusiveOffersApiResponse.message !=
-            "Exclusive offer not found for this business_id") {
-      return AppErrorWidget(
-          message: viewModel.exclusiveOffersApiResponse.message.toString());
-    }
+    // Skip showing any error messages for exclusive offers API response
+    // as per requirement to hide 'Exclusive offer not found' message
+    // No error handling needed for exclusive offers API
 
     if (viewModel.businessDetailsResponse.status == Status.completed) {
       return _buildBody();
@@ -903,10 +900,8 @@ Widget _buildTierFeatureSection() {
   final exclusiveOffers = viewModel.exclusiveOffersData;
   final exclusiveOffersResponse = viewModel.exclusiveOffersApiResponse;
 
-  // If offers are not found by message, or data is null, or all tiers are empty, don't show the section.
-  if ((exclusiveOffersResponse.message ==
-          "Exclusive offer not found for this business_id") ||
-      exclusiveOffers == null ||
+  // If data is null or all tiers are empty, don't show the section
+  if (exclusiveOffers == null ||
       ((exclusiveOffers.premiumOffers?.isEmpty ?? true) &&
           (exclusiveOffers.eliteOffers?.isEmpty ?? true) &&
           (exclusiveOffers.coreOffers?.isEmpty ?? true))) {

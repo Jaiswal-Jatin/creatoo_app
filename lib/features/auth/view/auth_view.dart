@@ -40,6 +40,10 @@ class _AuthViewState extends State<AuthView> {
   @override
   Widget build(BuildContext context) {
     final AuthViewModel viewModel = Provider.of<AuthViewModel>(context);
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     return AppScaffold(
       gradient: AppGradient.loginBg,
       body: Column(
@@ -47,13 +51,14 @@ class _AuthViewState extends State<AuthView> {
           // Conditional back button for iOS
           if (Platform.isIOS)
             Padding(
-              padding: EdgeInsets.only(top: 20.h, left: 10.w),
+              padding: EdgeInsets.only(top: isSmall ? h * 0.025 : 20.h, left: w * 0.025),
               child: Align(
                 alignment: Alignment.topLeft,
                 child: IconButton(
                   icon: Icon(
                     Icons.arrow_back_ios,
                     color: AppColor.primary,
+                    size: isSmall ? w * 0.05 : null,
                   ),
                   onPressed: () {
                     Navigator.pop(context);
@@ -66,14 +71,14 @@ class _AuthViewState extends State<AuthView> {
               key: viewModel.formKey,
               child: Center(
                 child: Container(
-                  height: SizeConfig.screenHeight / 1.4,
-                  margin: EdgeInsets.all(24.h),
-                  padding: EdgeInsets.all(24.h),
+                  height: isSmall ? h * 0.65 : SizeConfig.screenHeight / 1.4,
+                  margin: EdgeInsets.all(isSmall ? w * 0.06 : 24.h),
+                  padding: EdgeInsets.all(isSmall ? w * 0.06 : 24.h),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: AppColor.white.withOpacity(0.6),
                     borderRadius: BorderRadius.all(
-                      Radius.circular(12),
+                      Radius.circular(isSmall ? 10 : 12),
                     ),
                   ),
                   child: SingleChildScrollView(
@@ -85,28 +90,35 @@ class _AuthViewState extends State<AuthView> {
                         Text(
                           'Login',
                           style: TextStyle(
-                            fontSize: 30.sp,
+                            fontSize: isSmall ? w * 0.07 : 30.sp,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: isSmall ? h * 0.015 : 12.h),
                         SvgPicture.asset(
-                          height: 200.h,
-                          width: 200.w,
+                          height: isSmall ? h * 0.25 : 200.h,
+                          width: isSmall ? w * 0.5 : 200.w,
                           AppIcon.auth,
                           fit: BoxFit.contain,
                         ),
-                        SizedBox(height: 12.h),
-                        Text('Hello! Looks like you’re enjoying our page, but you haven’t Log In for an account yet.',
+                        SizedBox(height: isSmall ? h * 0.015 : 12.h),
+                        Flexible(
+                          child: Text(
+                            'Hello! Looks like you\'re enjoying our page, but you haven\'t Log In for an account yet.',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.montserrat(
                               textStyle: Theme.of(navigatorKey.currentContext!).textTheme.displayLarge,
-                              fontSize: 15.sp,
+                              fontSize: isSmall ? w * 0.035 : 15.sp,
                               fontWeight: FontWeight.w400,
-                            )),
-                        SizedBox(height: 24.h),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 3,
+                            softWrap: true,
+                          ),
+                        ),
+                        SizedBox(height: isSmall ? h * 0.03 : 24.h),
                         Container(
-                          height: 70.h,
+                          height: isSmall ? h * 0.08 : 70.h,
                           child: AppTextField(
                             // autofocus: true,
                             controller: viewModel.phoneController,
@@ -115,13 +127,14 @@ class _AuthViewState extends State<AuthView> {
                             maxLength: 10,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             prefixIcon: Padding(
-                              padding: const EdgeInsets.only(left: 15.0, right: 5),
+                              padding: EdgeInsets.only(left: isSmall ? w * 0.04 : 15.0, right: isSmall ? w * 0.015 : 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SvgPicture.asset(
-                                    height: 20.h,
-                                    width: 20.h,
+                                    height: isSmall ? w * 0.05 : 20.h,
+                                    width: isSmall ? w * 0.05 : 20.h,
                                     AppIcon.indiaFlag,
                                     fit: BoxFit.contain,
                                   ),
@@ -129,13 +142,14 @@ class _AuthViewState extends State<AuthView> {
                                     '${viewModel.countryCode}',
                                     style: GoogleFonts.montserrat(
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 14.sp,
+                                      fontSize: isSmall ? w * 0.032 : 14.sp,
                                       color: AppColor.primary,
                                     ),
                                   ),
                                   Icon(
                                     Icons.keyboard_arrow_down,
                                     color: AppColor.primary,
+                                    size: isSmall ? w * 0.04 : null,
                                   ),
                                   VerticalDivider(
                                     thickness: 1,
@@ -153,7 +167,7 @@ class _AuthViewState extends State<AuthView> {
                             validator: (v) => Validator.validate(v, "Mobile Number"),
                           ),
                         ),
-                        SizedBox(height: 24.h),
+                        SizedBox(height: isSmall ? h * 0.03 : 24.h),
                         AppButton(
                           text: "Log In",
                           isIconEnabled: false,

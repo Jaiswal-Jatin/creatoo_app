@@ -85,12 +85,9 @@ class _ThankYouFeedbackState extends State<ThankYouFeedback> {
               child: AppButton(
                 isIconEnabled: true,
                 onTap: () {
-                  final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
-                  homeViewModel.changeIndex(0, false);
-
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    RoutesName.homePage,
+                    RoutesName.homeView,
                     (route) => false,
                   );
                 },

@@ -47,7 +47,7 @@ class _Question1State extends State<Question1> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 80),
+            SizedBox(height: 80.h),
 
             Center(
               child: AnimatedSwitcher(
@@ -60,8 +60,8 @@ class _Question1State extends State<Question1> {
                 },
                 child: Container(
                   key: ValueKey(selectedDotIndex),
-                  width: 200,
-                  height: 210,
+                  width: 200.w,
+                  height: 210.h,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                   ),
@@ -69,12 +69,12 @@ class _Question1State extends State<Question1> {
                     alignment: Alignment.bottomCenter,
                     children: [
                       Positioned(
-                        bottom: 10,
+                        bottom: 10.h,
                         child: ClipOval(
                           child: Image.asset(
                             dogGifs[selectedDotIndex],
-                            width: 200,
-                            height: 200,
+                            width: 200.w,
+                            height: 200.h,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -85,15 +85,15 @@ class _Question1State extends State<Question1> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             AppTextWidget(
               text: "How would you rate your\noverall experience?",
-              fontSize: 22,
+              fontSize: 22.sp,
               textAlign: TextAlign.center,
               fontWeight: FontWeight.w500,
             ),
 
-            const SizedBox(height: 30),
+            SizedBox(height: 30.h),
 
             // Custom Progress Bar
             CustomProgressBar(

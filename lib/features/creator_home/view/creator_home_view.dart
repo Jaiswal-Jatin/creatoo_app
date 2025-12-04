@@ -81,8 +81,8 @@ class _CreatorHomeViewState extends State<CreatorHomeView> {
                       ),
                       Container(
                         margin: EdgeInsets.only(
-                          left: 20,
-                          right: 20,
+                          left: 20.w,
+                          right: 20.w,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -117,7 +117,7 @@ class _CreatorHomeViewState extends State<CreatorHomeView> {
                             ),
                             SizedBox(height: user?.bio == null ? 0 : 10.h),
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 30),
+                              padding: EdgeInsets.symmetric(horizontal: 30.w),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -175,8 +175,8 @@ class _CreatorHomeViewState extends State<CreatorHomeView> {
                       ),
                       SizedBox(height: 20.h),
                       Container(
-                        height: 50,
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        height: 50.h,
+                        margin: EdgeInsets.symmetric(horizontal: 20.w),
                         child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.pushNamed(
@@ -226,7 +226,7 @@ class _CreatorHomeViewState extends State<CreatorHomeView> {
           ],
         ),
         alignment: Alignment.center,
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.all(10.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -240,7 +240,7 @@ class _CreatorHomeViewState extends State<CreatorHomeView> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 10.h),
             Text(
               name,
               textAlign: TextAlign.center,

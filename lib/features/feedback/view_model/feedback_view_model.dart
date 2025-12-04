@@ -54,33 +54,56 @@ class FeedbackViewModel with ChangeNotifier {
 
   Future<bool> submitFeedback() async {
     feedbackAnswers["review_text"] = feedbackTextController.text;
+    
+    debugPrint('\n\n=== [${DateTime.now()}] Starting submitFeedback ===');
+    debugPrint('📤 Feedback Submission Details:');
+    debugPrint('🔹 User ID: $userId');
+    debugPrint('🔹 Business ID: $businessId');
+    debugPrint('🔹 Business Name: $businessName');
+    debugPrint('🔹 Order ID: $orderId');
+    debugPrint('🔹 Role ID: $roleId');
+    debugPrint('🔹 Feedback Answers: $feedbackAnswers');
+    
     setFeedbackResponse(ApiResponse.loading());
     notifyListeners();
 
-    var response = await _repo.sendFeedbackApi(
-      {
-        "user_id": userId,
-        "business_id": businessId,
-        "role_id": roleId,
-        "order_id": orderId,
-        ...feedbackAnswers,
-        "token": '$token',
-      },
-    );
+    var requestData = {
+      "user_id": userId,
+      "business_id": businessId,
+      "role_id": roleId,
+      "order_id": orderId,
+      ...feedbackAnswers,
+      "token": '$token',
+    };
+    
+    debugPrint('\n📦 API Request Payload:');
+    debugPrint(requestData.toString());
+    debugPrint('\n🔄 Sending feedback API request...');
+
+    var response = await _repo.sendFeedbackApi(requestData);
 
     return response.fold(
       (l) {
+        debugPrint('\n❌ Feedback API Error:');
+        debugPrint('🔴 Error Message: ${l.message}');
+        debugPrint('🔴 Status Code: ${l.statusCode}');
         setFeedbackResponse(ApiResponse.error(l.message));
         Utils.toastMessage(l.message.toString());
         notifyListeners();
+        debugPrint('\n🏁 Completed submitFeedback with error');
+        debugPrint('==================================================\n');
         return false;
       },
       (r) {
+        debugPrint('\n✅ Feedback API Success:');
+        debugPrint('🟢 Points Earned: ${r.pointsEarnerd}');
         earnedPoints = r.pointsEarnerd;
         setFeedbackResponse(ApiResponse.completed(r));
         Utils.toastMessage("Feedback submitted successfully!");
         feedbackTextController.clear();
         notifyListeners();
+        debugPrint('\n🏁 Completed submitFeedback successfully');
+        debugPrint('==================================================\n');
         return true;
       },
     );

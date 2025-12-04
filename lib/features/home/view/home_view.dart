@@ -50,14 +50,17 @@ class _HomeViewState extends State<HomeView> {
 
    Widget _buildBody() {
     final isBusiness = (roleId == Constants.businessUser);
+    final w = MediaQuery.of(navigatorKey.currentContext!).size.width;
+    final h = MediaQuery.of(navigatorKey.currentContext!).size.height;
+    final isSmall = h < 700;
     
     return AppScaffold(
       appBar: _buildHomeAppBarWidget(),
       body: Container(
-        width: SizeConfig.screenWidth,
+        width: double.infinity,
         margin: EdgeInsets.symmetric(
-          vertical: 10.h,
-          horizontal: 17.w,
+          vertical: isSmall ? h * 0.012 : 10.h,
+          horizontal: isSmall ? w * 0.04 : 17.w,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -66,9 +69,9 @@ class _HomeViewState extends State<HomeView> {
               (viewModel.homeResponse.data?.data?.banners == null || viewModel.homeResponse.data!.data!.banners!.isEmpty)
                   ? SizedBox.shrink()
                   : buildCarouselSlider(viewModel),
-              SizedBox(height: 10.h),
+              SizedBox(height: isSmall ? h * 0.012 : 10.h),
               buildDotIndicator(viewModel),
-              SizedBox(height: 10.h),
+              SizedBox(height: isSmall ? h * 0.012 : 10.h),
               Container(
                 color: AppColor.transparent,
                 child: LayoutBuilder(
@@ -76,7 +79,7 @@ class _HomeViewState extends State<HomeView> {
                     final isBusiness = (roleId == Constants.businessUser);
 
                     return Container(
-                      padding: EdgeInsets.symmetric(vertical: 20.h),
+                      padding: EdgeInsets.symmetric(vertical: isSmall ? h * 0.025 : 20.h),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +87,7 @@ class _HomeViewState extends State<HomeView> {
                           // First Button
                           Expanded(
                             child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 6.w),
+                              margin: EdgeInsets.symmetric(horizontal: isSmall ? w * 0.015 : 6.w),
                               child: _buildCustomCard(
                                 icon: isBusiness ? 'assets/icons/qr-code.png' : 'assets/icons/qr-code.png',
                                 isImage: true,
@@ -110,14 +113,19 @@ class _HomeViewState extends State<HomeView> {
                           // New Button
                           Expanded(
                             child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 6.w),
+                              margin: EdgeInsets.symmetric(horizontal: isSmall ? w * 0.015 : 6.w),
                               child: _buildCustomCard(
                                 icon: isBusiness ? Icons.location_on : 'assets/icons/credit-card.png',
                                 isImage: !isBusiness,
                                 title: isBusiness ? "Visit" : "Card",
                                 onPressed: () {
                                   if (isBusiness) {
-                                    _showVisitDialog();
+                                    // Check subscription before showing visit dialog
+                                    if (viewModel.businessSubscription == null) {
+                                      AppDialog.showSubscriptionRequiredDialog();
+                                    } else {
+                                      _showVisitDialog();
+                                    }
                                   } else {
                                     // Navigate to cards screen in bottom nav
                                     Provider.of<HomeViewModel>(context, listen: false).changeIndex(2, false);
@@ -129,7 +137,7 @@ class _HomeViewState extends State<HomeView> {
                           // Second Button
                           Expanded(
                             child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 6.w),
+                              margin: EdgeInsets.symmetric(horizontal: isSmall ? w * 0.015 : 6.w),
                               child: _buildCustomCard(
                                 icon: isBusiness ? 'assets/icons/wallet.png' : 'assets/icons/wallet.png',
                                 isImage: true,
@@ -251,16 +259,11 @@ class _HomeViewState extends State<HomeView> {
             SizedBox(
               height: 6.h,
             ),
-            Row( // This new Row will hold both discount and address
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Separates discount and address
-              children: [
-                Container( // Discount with gradient background
+            if (item.set_first_time_discount != null) // Only show discount if it exists
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
                   decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   colors: [AppColor.kPrimary, AppColor.primaryLight],
-                    //   begin: Alignment.topLeft,
-                    //   end: Alignment.bottomRight,
-                    // ),
                     color: AppColor.black,
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -276,7 +279,7 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         SizedBox(width: 4.w),
                         AppTextWidget(
-                          text: '20% OFF',
+                          text: '${item.set_first_time_discount}% OFF',
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -285,34 +288,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ),
                 ),
-                if (item.businessArea != null) // Address without yellow background, to the right
-                  Expanded( // Use Expanded to give it available space
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Align address to the right
-                      children: [
-                        SvgPicture.asset(
-                          height: 12.h,
-                          width: 12.h,
-                          AppIcon.location,
-                          color: Color(0xFF666666), // Use original address color for icon
-                        ),
-                        SizedBox(width: 4),
-                        Expanded( // Wrap AppTextWidget in Expanded to prevent overflow
-                          child: AppTextWidget(
-                            text: '${item.businessArea}',
-                            maxLines: 1,
-                            softWrap: true,
-                            textOverflow: TextOverflow.ellipsis,
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF666666),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
+              ),
             // SizedBox(
             //   height: 6.h,
             // ),
@@ -740,13 +716,13 @@ class _HomeViewState extends State<HomeView> {
             child: isImage 
               ? Image.asset(
                   icon,
-                  width: 35,
-                  height: 35,
+                  width: 35.w,
+                  height: 35.h,
                   color: Colors.white,
                 )
               : Icon(
                   icon,
-                  size: 35,
+                  size: 35.sp,
                   color: AppColor.white,
                 ),
           ),
@@ -1352,7 +1328,7 @@ class _HomeViewState extends State<HomeView> {
                   width: 50,
                   isProfile: true,
                   fit: BoxFit.cover,
-                  iconSize: 35,
+                  iconSize: 35.sp,
                   imageUrl: viewModel.user?.image ?? "",
                 ),
               ),

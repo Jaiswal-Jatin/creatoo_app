@@ -82,49 +82,126 @@ class BillPaymentViewModel with ChangeNotifier {
   }
 
   Future<void> paymentStatusApiCall(PaymentResult result) async {
+    debugPrint('\n\n=== [${DateTime.now()}] Starting paymentStatusApiCall ===');
+    debugPrint('📤 Payment Result:');
+    debugPrint('🔹 Is Success: ${result.isSuccess}');
+    debugPrint('🔹 Order ID: ${result.orderId}');
+    debugPrint('🔹 Message: ${result.message}');
+    debugPrint('🔹 Error Code: ${result.errorCode}');
+    
     setBusinessDetailsResponse(ApiResponse.loading());
     notifyListeners();
 
     var data = {
       "user_id": userId,
-      // "business_id": businessDescription?.id,
+      "business_id": businessDescription?.id,
       "token": token,
       "order_id": result.orderId,
       "payment_status": result.isSuccess ? "SUCCESS" : "FAILED",
       "payment_error_message": result.errorCode ?? "",
+      // Add all billSummary data for database
+      "bill_amount": billSummary?.originalBill,
+      "original_bill_amount": billSummary?.originalBill,
+      "discounted_bill": billSummary?.discountedBill,
+      "final_bill_amount": billSummary?.finalBillAmount,
+      "discount_percentage": billSummary?.discountPercentage,
+      "discount_applied": billSummary?.discountApplied,
+      "platform_fee": billSummary?.platformFee,
+      "convenience_fee": billSummary?.convenienceFee,
+      "loyalty_points_will_earn": billSummary?.pointsYouWillEarn,
+      "total_points_for_business": billSummary?.totalPointsForBusiness,
+      "points_redeemed_here": billSummary?.pointsRedeemedHere,
     };
+
+    debugPrint('\n📦 API Request Payload:');
+    debugPrint(data.toString());
 
     var response = await _myRepo.paymentStatusApi(data);
     response.fold(
       (l) {
+        debugPrint('\n❌ Payment Status API Error:');
+        debugPrint('🔴 Error Message: ${l.message}');
         Navigator.pop(navigatorKey.currentContext!);
         setBusinessDetailsResponse(ApiResponse.error(l.message));
         Utils.toastMessage(l.message.toString());
       },
       (r) async {
+        debugPrint('\n✅ Payment Status API Success:');
+        debugPrint('🟢 Response Data: ${r.data}');
+        debugPrint('🟢 Business Name: ${r.data?.businessName}');
+        debugPrint('🟢 Business ID: ${r.data?.businessId}');
+        debugPrint('🟢 Total Bill: ${r.data?.totalBill}');
+        debugPrint('🟢 Final Bill: ${r.data?.finalBill}');
+        debugPrint('🟢 Receipt Name: ${r.data?.receiptName}');
+        debugPrint('🟢 Created At: ${r.data?.createdAt}');
+        
+        // CRITICAL FIX: Set paymentData BEFORE navigation
+        paymentData = r.data;
+        
+        // FALLBACK: If API returns null data, use billSummary and businessDescription
+        if (paymentData != null) {
+          // Check if critical fields are null and populate from existing data
+          if (paymentData!.totalBill == null && billSummary?.originalBill != null) {
+            paymentData = PaymentData(
+              businessName: paymentData!.businessName ?? businessDescription?.businessName,
+              businessId: paymentData!.businessId ?? businessDescription?.id,
+              totalBill: billSummary?.originalBill?.toInt(),
+              finalBill: billSummary?.finalBillAmount,
+              createdAt: paymentData!.createdAt ?? DateTime.now(),
+              receiptName: paymentData!.receiptName ?? businessDescription?.businessName,
+              orderId: paymentData!.orderId ?? result.orderId,
+            );
+            debugPrint('\n⚠️ API returned null data, using fallback from billSummary');
+            debugPrint('🔄 Fallback totalBill: ${billSummary?.originalBill}');
+            debugPrint('🔄 Fallback finalBill: ${billSummary?.finalBillAmount}');
+            debugPrint('🔄 Fallback businessName: ${businessDescription?.businessName}');
+          }
+        }
+        
         if (result.isSuccess) {
           orderId = result.orderId;
-          businessName = r.data?.businessName;
+          businessName = r.data?.businessName ?? businessDescription?.businessName;
           businessId = r.data?.businessId;
+          
+          debugPrint('\n🔜 Data assigned to ViewModel:');
+          debugPrint('🔹 orderId: $orderId');
+          debugPrint('🔹 businessName: $businessName');
+          debugPrint('🔹 businessId: $businessId');
+          debugPrint('🔹 paymentData: $paymentData');
+          debugPrint('🔹 paymentData.totalBill: ${paymentData?.totalBill}');
+          debugPrint('🔹 paymentData.finalBill: ${paymentData?.finalBill}');
+          debugPrint('🔹 paymentData.receiptName: ${paymentData?.receiptName}');
+          debugPrint('🔹 paymentData.createdAt: ${paymentData?.createdAt}');
+          
+          debugPrint('\n🚀 Navigating to PaymentSuccessView...');
           Navigator.pushNamed(
             navigatorKey.currentContext!,
             RoutesName.paymentSuccessView,
           );
-        } else {}
+        } else {
+          debugPrint('\n⚠️ Payment was not successful, skipping navigation');
+        }
         setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-        paymentData = r.data;
       },
     );
     notifyListeners();
+    debugPrint('\n🏁 Completed paymentStatusApiCall');
+    debugPrint('==================================================\n');
   }
 
   Future<void> applyOffersApiCall() async {
-    debugPrint('=== Starting applyOffersApiCall ===');
-    debugPrint('Request Data: ');
-    debugPrint('- User ID: $userId');
-    debugPrint('- Business ID: ${businessDescription?.id}');
-    debugPrint('- Amount: $_amount');
-    debugPrint('- Has Referral Code: ${referralCodeController.text.isNotEmpty}');
+    // Print API call start with timestamp
+    debugPrint('\n\n=== [${DateTime.now()}] Starting applyOffersApiCall ===');
+    
+    // Print request details
+    debugPrint('📤 Request Details:');
+    debugPrint('🔹 API Endpoint: applyOffersApi');
+    debugPrint('🔹 User ID: $userId');
+    debugPrint('🔹 Business ID: ${businessDescription?.id}');
+    debugPrint('🔹 Business Name: ${businessDescription?.businessName}');
+    debugPrint('🔹 Amount: $_amount');
+    debugPrint('🔹 Referral Code: ${referralCodeController.text.isNotEmpty ? referralCodeController.text : 'Not provided'}');
+    debugPrint('🔹 Timestamp: ${DateTime.now().toIso8601String()}');
     
     setBusinessDetailsResponse(ApiResponse.loading());
     notifyListeners();
@@ -137,32 +214,50 @@ class BillPaymentViewModel with ChangeNotifier {
       "referrer_code": (referralCodeController.text.isNotEmpty) ? referralCodeController.text : null,
     };
     
-    debugPrint('Sending API request with data: $data');
+    debugPrint('\n📦 Request Payload:');
+    debugPrint(data.toString());
     
     try {
+      debugPrint('\n🔄 Sending API request...');
+      var startTime = DateTime.now();
       var response = await _myRepo.applyOffersApi(data);
+      var endTime = DateTime.now();
+      var duration = endTime.difference(startTime);
+      
+      debugPrint('\n⏱️ API Response Time: ${duration.inMilliseconds}ms');
       
       response.fold(
         (l) {
-          debugPrint('=== API Error ===');
-          debugPrint('Error Message: ${l.message}');
+          debugPrint('\n❌ API Error:');
+          debugPrint('🔴 Status Code: ${l.statusCode}');
+          debugPrint('🔴 Error Message: ${l.message}');
           if (l.data != null) {
-            debugPrint('Error Data: ${l.data}');
+            debugPrint('🔴 Error Data: ${l.data}');
           }
+          debugPrint('🔴 Timestamp: ${DateTime.now().toIso8601String()}');
           
           setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
           Utils.toastMessage(l.message.toString());
         },
         (r) async {
-          debugPrint('=== API Success ===');
-          debugPrint('Response Data: ${r.data?.toJson()}');
-          debugPrint('Merchant Transaction ID: ${r.data?.merchantTransactionId}');
+          debugPrint('\n✅ API Success:');
+          debugPrint('🟢 Status: Success');
+          debugPrint('🟢 Merchant Transaction ID: ${r.data?.merchantTransactionId}');
+          debugPrint('🟢 Original Bill: ${r.data?.originalBill}');
+          debugPrint('🟢 Discount Applied: ${r.data?.discountApplied} (${r.data?.discountPercentage}%)');
+          debugPrint('🟢 Final Bill Amount: ${r.data?.finalBillAmount}');
+          debugPrint('🟢 Points You Will Earn: ${r.data?.pointsYouWillEarn}');
+          debugPrint('🟢 Timestamp: ${DateTime.now().toIso8601String()}');
+          
+          // Print full response data
+          debugPrint('\n📥 Full Response Data:');
+          debugPrint(r.data?.toJson().toString() ?? 'No data in response');
           
           setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
           billSummary = r.data;
           merchantTransactionId = r.data?.merchantTransactionId;
           
-          debugPrint('Navigating to payment screen...');
+          debugPrint('\n🔜 Navigating to payment screen...');
           Navigator.pushNamed(
             navigatorKey.currentContext!,
             RoutesName.proceedToPay,
@@ -170,13 +265,15 @@ class BillPaymentViewModel with ChangeNotifier {
         },
       );
     } catch (e, stackTrace) {
-      debugPrint('=== Exception in applyOffersApiCall ===');
-      debugPrint('Error: $e');
-      debugPrint('Stack Trace: $stackTrace');
+      debugPrint('\n❗ Exception in applyOffersApiCall:');
+      debugPrint('🔴 Error: $e');
+      debugPrint('🔴 Stack Trace: $stackTrace');
+      debugPrint('🔴 Timestamp: ${DateTime.now().toIso8601String()}');
       Utils.toastMessage('An error occurred while processing your request');
     } finally {
       notifyListeners();
-      debugPrint('=== Completed applyOffersApiCall ===');
+      debugPrint('\n🏁 Completed applyOffersApiCall at ${DateTime.now().toIso8601String()}');
+      debugPrint('==================================================\n');
     }
   }
 

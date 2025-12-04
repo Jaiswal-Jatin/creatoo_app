@@ -2,6 +2,7 @@ import 'package:creatoo/widgets/app_text_widget.dart';
 import 'package:flutter/material.dart';
 
 import '../resources/color.dart';
+import '../utils/ui_config/app_size_config.dart';
 
 class RatingProgressBar extends StatelessWidget {
   final double percentage; // Value from 0 to 100
@@ -19,6 +20,10 @@ class RatingProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         double filledWidth = (percentage > 0) ? (percentage / 100) * constraints.maxWidth : 0;
@@ -26,44 +31,41 @@ class RatingProgressBar extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress Bar
             Container(
-              height: height,
+              height: isSmall ? h * 0.025 : height,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: backgroundColor.withOpacity(0.3), // Base color
-                borderRadius: BorderRadius.circular(4),
+                color: backgroundColor.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(isSmall ? 3 : 4),
               ),
               child: filledWidth > 0
                   ? Stack(
                       children: [
                         Container(
                           width: filledWidth,
-                          height: height,
+                          height: isSmall ? h * 0.025 : height,
                           decoration: BoxDecoration(
                             color: fillColor,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(isSmall ? 3 : 4),
                           ),
                         ),
                       ],
                     )
-                  : null, // No filled color if percentage is 0
+                  : null,
             ),
-            const SizedBox(height: 6),
-
-            // Percentage Label
+            SizedBox(height: isSmall ? h * 0.01 : 6.h),
             Align(
-              alignment: percentage == 100 ? Alignment.centerRight : Alignment.centerLeft, // ✅ Right align if 100%
+              alignment: percentage == 100 ? Alignment.centerRight : Alignment.centerLeft,
               child: Padding(
                 padding: EdgeInsets.only(
-                  left: percentage > 0 && percentage < 100 ? filledWidth - 30 : 0, // ✅ Keep inside bar when < 100
-                  right: percentage == 100 ? 4 : 0, // ✅ Right-aligned when 100%
+                  left: percentage > 0 && percentage < 100 ? filledWidth - (isSmall ? w * 0.05 : 30) : 0,
+                  right: percentage == 100 ? (isSmall ? w * 0.01 : 4) : 0,
                 ),
                 child: AppTextWidget(
                   text: '${percentage.toInt()}%',
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                  textAlign: TextAlign.right, // ✅ Ensures right alignment for 100%
+                  fontSize: isSmall ? w * 0.03 : 12.sp,
+                  textAlign: TextAlign.right,
                 ),
               ),
             ),

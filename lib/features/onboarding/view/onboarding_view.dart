@@ -92,11 +92,15 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isSmall = h < 700;
+    
     return AppScaffold(
       gradient: AppGradient.onboardingBg,
       body: SafeArea(
         child: Container(
-          margin: EdgeInsets.all(16),
+          margin: EdgeInsets.all(isSmall ? w * 0.04 : 16.w),
           child: Stack(
             children: [
               Container(
@@ -105,11 +109,11 @@ class _OnboardingViewState extends State<OnboardingView> {
                     Stack(
                       children: [
                         Container(
-                          height: 10,
-                          width: SizeConfig.screenWidth,
+                          height: isSmall ? h * 0.012 : 10.h,
+                          width: double.infinity,
                           decoration: BoxDecoration(
                             color: AppColor.white,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(isSmall ? 8 : 10),
                           ),
                         ),
                         AnimatedAlign(
@@ -121,61 +125,65 @@ class _OnboardingViewState extends State<OnboardingView> {
                           duration: Duration(milliseconds: 500),
                           curve: Curves.ease,
                           child: Container(
-                            height: 10,
-                            width: SizeConfig.screenWidth / OnboardingModel.data.length,
+                            height: isSmall ? h * 0.012 : 10.h,
+                            width: w / OnboardingModel.data.length,
                             decoration: BoxDecoration(
                               color: AppColor.mangoYellow,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(isSmall ? 8 : 10),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 32.h),
-                    Text(
-                      'Discover, Earn & Enjoy\nwith Creatoo!',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(
-                        textStyle: Theme.of(context).textTheme.displayLarge,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColor.black,
+                    SizedBox(height: isSmall ? h * 0.04 : 32.h),
+                    Flexible(
+                      child: Text(
+                        'Discover, Earn & Enjoy\nwith Creatoo!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          textStyle: Theme.of(context).textTheme.displayLarge,
+                          fontSize: isSmall ? w * 0.06 : 24.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.black,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 32.h),
-              PageView.builder(
-                controller: _pageController,
-                itemCount: OnboardingModel.data.length,
-                physics: NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return OnboardingSlide(
-                    description: OnboardingModel.data[index].description!,
-                    image: OnboardingModel.data[index].image!,
-                    isFirstSlide: index == 0,
-                    isLastSlide: index == OnboardingModel.data.length - 1,
-                    onNext: () async {
-                      if (_currentPageIndex < OnboardingModel.data.length - 1) {
-                        _currentPageIndex++;
-                        _pageController.nextPage(
-                          duration: Duration(milliseconds: 500),
-                          curve: Curves.ease,
-                        );
-                      } else {
-                        SharedPreferencesService _pref = SharedPreferencesService();
-                        await _pref.saveOnboarding(true);
-                        Navigator.pushReplacementNamed(context, RoutesName.startupView);
-                      }
-                    },
-                  );
-                },
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPageIndex = index;
-                  });
-                },
+              SizedBox(height: isSmall ? h * 0.04 : 32.h),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: OnboardingModel.data.length,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return OnboardingSlide(
+                      description: OnboardingModel.data[index].description!,
+                      image: OnboardingModel.data[index].image!,
+                      isFirstSlide: index == 0,
+                      isLastSlide: index == OnboardingModel.data.length - 1,
+                      onNext: () async {
+                        if (_currentPageIndex < OnboardingModel.data.length - 1) {
+                          _currentPageIndex++;
+                          _pageController.nextPage(
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.ease,
+                          );
+                        } else {
+                          SharedPreferencesService _pref = SharedPreferencesService();
+                          await _pref.saveOnboarding(true);
+                          Navigator.pushReplacementNamed(context, RoutesName.startupView);
+                        }
+                      },
+                    );
+                  },
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPageIndex = index;
+                    });
+                  },
+                ),
               ),
             ],
           ),
