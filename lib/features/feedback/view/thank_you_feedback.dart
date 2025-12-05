@@ -87,7 +87,7 @@ class _ThankYouFeedbackState extends State<ThankYouFeedback> {
                 onTap: () {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    RoutesName.homeView,
+                    RoutesName.homePage,
                     (route) => false,
                   );
                 },

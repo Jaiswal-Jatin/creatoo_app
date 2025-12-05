@@ -135,13 +135,19 @@ class _CardScreenState extends State<CardScreen>
 
           // Tab Bar View
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                CardsTabView(),
-                VisitTabView(),
-                AboutUsTabView(),
-              ],
+            child: Consumer<CardViewModel>(
+              builder: (context, cardViewModel, child) {
+                final isCardActive = cardViewModel.cardData?.status == 'active';
+                
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    CardsTabView(isCardActive: isCardActive),
+                    VisitTabView(isCardActive: isCardActive),
+                    AboutUsTabView(),
+                  ],
+                );
+              },
             ),
           ),
         ],

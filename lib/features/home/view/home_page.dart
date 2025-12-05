@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
           clipBehavior: Clip.hardEdge,
           child: SizedBox(
             height: kBottomNavigationBarHeight + 16,
-            child: Stack(
+            child: Column(
               children: [
                 AnimatedAlign(
                   alignment: _getAlignment(viewModel.selectedIndex),
@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                   curve: Curves.ease,
                   child: Container(
                     height: 2,
-                    margin: const EdgeInsets.only(bottom: 70),
+                    margin: const EdgeInsets.only(bottom: 2),
                     width: roleId == Constants.businessUser ? SizeConfig.screenWidth / 4 : SizeConfig.screenWidth / 5, // Adjusted width for business user tabs
                     decoration: BoxDecoration(
                       color: AppColor.primary,
@@ -98,40 +98,42 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    // Home button
-                    Expanded(child: buildGestureDetector(context, 0, AppIcon.home, "Home", isSvg: true)),
-                    
-                    // For Creator: Search, For Business: Visits
-                    if (roleId == Constants.creatorUser) 
-                      Expanded(child: buildGestureDetector(context, 1, AppIcon.search, "Search", isSvg: true))
-                    else
-                      Expanded(child: buildGestureDetector(context, 1, AppIcon.calender, "Visits", isSvg: true)),
-                    
-                    // Card button (only for creator)
-                    if (roleId == Constants.creatorUser)
-                      Expanded(child: buildGestureDetector(context, 2, AppIcon.creditCard, "Card", isSvg: false)),
-                    
-                    // Wallet button
-                    Expanded(child: buildGestureDetector(
-                      context, 
-                      roleId == Constants.creatorUser ? 3 : 2, 
-                      AppIcon.wallet, 
-                      "Wallet", 
-                      isSvg: true
-                    )),
-                    
-                    // Profile button
-                    Expanded(child: buildGestureDetector(
-                      context, 
-                      roleId == Constants.creatorUser ? 4 : 3, 
-                      AppIcon.profile, 
-                      "Profile", 
-                      isSvg: true
-                    )),
-                  ],
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      // Home button
+                      Expanded(child: buildGestureDetector(context, 0, AppIcon.home, "Home", isSvg: true)),
+                      
+                      // For Creator: Search, For Business: Visits
+                      if (roleId == Constants.creatorUser) 
+                        Expanded(child: buildGestureDetector(context, 1, AppIcon.search, "Search", isSvg: true))
+                      else
+                        Expanded(child: buildGestureDetector(context, 1, AppIcon.calender, "Visits", isSvg: true)),
+                      
+                      // Card button (only for creator)
+                      if (roleId == Constants.creatorUser)
+                        Expanded(child: buildGestureDetector(context, 2, AppIcon.creditCard, "Card", isSvg: false)),
+                      
+                      // Wallet button
+                      Expanded(child: buildGestureDetector(
+                        context, 
+                        roleId == Constants.creatorUser ? 3 : 2, 
+                        AppIcon.wallet, 
+                        "Wallet", 
+                        isSvg: true
+                      )),
+                      
+                      // Profile button
+                      Expanded(child: buildGestureDetector(
+                        context, 
+                        roleId == Constants.creatorUser ? 4 : 3, 
+                        AppIcon.profile, 
+                        "Profile", 
+                        isSvg: true
+                      )),
+                    ],
+                  ),
                 ),
               ],
             ),

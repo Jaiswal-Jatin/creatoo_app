@@ -7,7 +7,9 @@ import 'package:creatoo/utils/enums/status.dart'; // Correct and singular import
 import 'package:creatoo/features/card/data/user_tier_history_response_model.dart';
 
 class CardTierSection extends StatefulWidget {
-  const CardTierSection({super.key});
+  final bool isCardActive;
+  
+  const CardTierSection({super.key, required this.isCardActive});
 
   @override
   State<CardTierSection> createState() => _CardTierSectionState();
@@ -151,6 +153,53 @@ class _CardTierSectionState extends State<CardTierSection> {
 
   @override
   Widget build(BuildContext context) {
+    // Show empty state if card is not active
+    if (!widget.isCardActive) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColor.lightGrey.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.credit_card_off_rounded,
+                    size: 64,
+                    color: AppColor.grey,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Card Not Active',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Activate your Creatoo Card to view\nyour tier information and benefits',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColor.grey,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 20.0),

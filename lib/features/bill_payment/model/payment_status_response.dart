@@ -53,12 +53,16 @@ class PaymentData {
 
   factory PaymentData.fromJson(Map<String, dynamic> json) => PaymentData(
         businessName: json["business_name"],
-        totalBill: json["total_bill"],
-        businessId: json["business_id"],
+        totalBill: json["total_bill"] is int 
+            ? json["total_bill"] 
+            : int.tryParse(json["total_bill"]?.toString() ?? "0"),
+        businessId: json["business_id"] is int 
+            ? json["business_id"] 
+            : int.tryParse(json["business_id"]?.toString() ?? "0"),
         finalBill: json["final_bill"]?.toDouble(),
         createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
         receiptName: json["receipt_name"],
-        orderId: json["order_id"],
+        orderId: json["order_id"]?.toString(),
       );
 
   Map<String, dynamic> toJson() => {

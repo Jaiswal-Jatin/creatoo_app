@@ -233,6 +233,19 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
 
   TimeOfDay _parseTime(String time) {
     try {
+      // First, try parsing as 24-hour format (HH:mm)
+      if (!time.toLowerCase().contains('am') && !time.toLowerCase().contains('pm')) {
+        final parts = time.split(':');
+        if (parts.length == 2) {
+          final hour = int.tryParse(parts[0]);
+          final minute = int.tryParse(parts[1]);
+          if (hour != null && minute != null && hour >= 0 && hour < 24 && minute >= 0 && minute < 60) {
+            return TimeOfDay(hour: hour, minute: minute);
+          }
+        }
+      }
+      
+      // If that fails, try parsing as 12-hour format (hh:mm a)
       final DateFormat format = DateFormat("hh:mm a");
       final DateTime dateTime = format.parse(time);
       return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);

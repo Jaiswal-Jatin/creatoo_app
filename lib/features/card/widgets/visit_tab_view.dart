@@ -40,7 +40,9 @@ class RestaurantViewModel {
 }
 
 class VisitTabView extends StatefulWidget {
-  const VisitTabView({super.key});
+  final bool isCardActive;
+  
+  const VisitTabView({super.key, required this.isCardActive});
 
   @override
   State<VisitTabView> createState() => _VisitTabViewState();
@@ -53,10 +55,12 @@ class _VisitTabViewState extends State<VisitTabView> {
   void initState() {
     super.initState();
     _viewModel = Provider.of<CardVisitViewModel>(context, listen: false);
-    // Fetch data on init
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchVisitByRestaurant(token ?? '');
-    });
+    // Fetch data on init only if card is active
+    if (widget.isCardActive) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _viewModel.fetchVisitByRestaurant(token ?? '');
+      });
+    }
   }
 
   // Helper to convert API response to Visit model
@@ -121,6 +125,51 @@ class _VisitTabViewState extends State<VisitTabView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Show empty state if card is not active
+    if (!widget.isCardActive) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColor.lightGrey.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.history_rounded,
+                  size: 64,
+                  color: AppColor.grey,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Card Not Active',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Activate your Creatoo Card to view\nyour visit history',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColor.grey,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Consumer<CardVisitViewModel>(
       builder: (context, viewModel, _) {
