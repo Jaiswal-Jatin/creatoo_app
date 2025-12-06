@@ -47,38 +47,155 @@ class RecentRestaurantCard extends StatelessWidget {
     }
   }
 
+  IconData _tierIcon(String t) {
+    switch (t.toLowerCase()) {
+      case 'premium':
+      case 'gold':
+      case 'new':
+        return Icons.workspace_premium_rounded;
+      case 'elite':
+      case 'silver':
+        return Icons.stars_rounded;
+      case 'core':
+      case 'bronze':
+        return Icons.star_half_rounded;
+      default:
+        return Icons.star;
+    }
+  }
+
+  Color _tierIconColor(String t) {
+    switch (t.toLowerCase()) {
+      case 'premium':
+      case 'gold':
+      case 'new':
+        return const Color(0xFFD4AF37);
+      case 'elite':
+      case 'silver':
+        return const Color(0xFFC0C0C0);
+      case 'core':
+      case 'bronze':
+        return const Color(0xFFCD7F32);
+      default:
+        return AppColor.darkGrey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double cardPadding;
+    double cardMargin;
+    double imageSize;
+    double imageBorderRadius;
+    double nameFontSize;
+    double timeFontSize;
+    double timeIconSize;
+    double tierPaddingH;
+    double tierPaddingV;
+    double tierFontSize;
+    double tierIconSize;
+    double tierBorderRadius;
+    double cardBorderRadius;
+    
+    if (isVerySmall) {
+      cardPadding = 8;
+      cardMargin = 8;
+      imageSize = 40;
+      imageBorderRadius = 20;
+      nameFontSize = 13;
+      timeFontSize = 10;
+      timeIconSize = 10;
+      tierPaddingH = 8;
+      tierPaddingV = 5;
+      tierFontSize = 10;
+      tierIconSize = 12;
+      tierBorderRadius = 14;
+      cardBorderRadius = 10;
+    } else if (isSmall) {
+      cardPadding = 10;
+      cardMargin = 10;
+      imageSize = 46;
+      imageBorderRadius = 23;
+      nameFontSize = 14;
+      timeFontSize = 11;
+      timeIconSize = 11;
+      tierPaddingH = 9;
+      tierPaddingV = 5;
+      tierFontSize = 11;
+      tierIconSize = 13;
+      tierBorderRadius = 16;
+      cardBorderRadius = 11;
+    } else if (isMedium) {
+      cardPadding = 11;
+      cardMargin = 11;
+      imageSize = 50;
+      imageBorderRadius = 25;
+      nameFontSize = 15;
+      timeFontSize = 12;
+      timeIconSize = 12;
+      tierPaddingH = 9;
+      tierPaddingV = 5;
+      tierFontSize = 12;
+      tierIconSize = 14;
+      tierBorderRadius = 18;
+      cardBorderRadius = 11;
+    } else {
+      cardPadding = 12;
+      cardMargin = 12;
+      imageSize = 56;
+      imageBorderRadius = 28;
+      nameFontSize = 16;
+      timeFontSize = 13;
+      timeIconSize = 14;
+      tierPaddingH = 10;
+      tierPaddingV = 6;
+      tierFontSize = 13;
+      tierIconSize = 15;
+      tierBorderRadius = 20;
+      cardBorderRadius = 12;
+    }
+    
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(cardMargin),
       child: Card(
         elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardBorderRadius)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: cardPadding, horizontal: cardPadding + 4),
           child: Row(
             children: [
               // Left: Restaurant image or initials fallback
               ClipRRect(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(imageBorderRadius),
                 child: imageUrl != null && imageUrl!.isNotEmpty
                     ? AppImageWidget(
                         imageUrl: imageUrl!,
-                        height: 56,
-                        width: 56,
-                        iconSize: 56,
+                        height: imageSize,
+                        width: imageSize,
+                        iconSize: imageSize,
                       )
                     : CircleAvatar(
-                        radius: 28,
+                        radius: imageBorderRadius,
                         backgroundColor: _tierColor(tier).withOpacity(0.15),
                         child: Text(
                           (name.split(' ').map((s) => s.isNotEmpty ? s[0] : '').take(2).join()).toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: nameFontSize * 0.8,
+                          ),
                         ),
                       ),
               ),
       
-              const SizedBox(width: 12),
+              SizedBox(width: cardPadding),
       
               // Middle: name + date/time
               Expanded(
@@ -87,45 +204,59 @@ class RecentRestaurantCard extends StatelessWidget {
                   children: [
                     Text(
                       name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: nameFontSize,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
       
-                    const SizedBox(height: 6),
+                    SizedBox(height: cardPadding * 0.5),
       
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 14),
-                        const SizedBox(width: 6),
-                        Text(_formatTime(dateTime), style: Theme.of(context).textTheme.bodyMedium),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.calendar_today, size: 14),
-                        const SizedBox(width: 6),
-                        Text(_formatDate(dateTime), style: Theme.of(context).textTheme.bodyMedium),
+                        Icon(Icons.access_time, size: timeIconSize),
+                        SizedBox(width: cardPadding * 0.4),
+                        Text(
+                          _formatTime(dateTime), 
+                          style: TextStyle(fontSize: timeFontSize),
+                        ),
+                        SizedBox(width: cardPadding),
+                        Icon(Icons.calendar_today, size: timeIconSize),
+                        SizedBox(width: cardPadding * 0.4),
+                        Flexible(
+                          child: Text(
+                            _formatDate(dateTime), 
+                            style: TextStyle(fontSize: timeFontSize),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
       
-              // Right: tier chip
+              // Right: tier chip with Premium/Elite/Core styling
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: _getTierDecoration(tier),
+                padding: EdgeInsets.symmetric(horizontal: tierPaddingH, vertical: tierPaddingV),
+                decoration: _getTierDecoration(tier, tierBorderRadius),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.star,
-                      size: 16,
-                      color: _getTierTextColor(tier),
+                      _tierIcon(tier),
+                      size: tierIconSize,
+                      color: _tierIconColor(tier),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: cardPadding * 0.4),
                     Text(
-                      tier,
+                      _getTierDisplayName(tier),
                       style: TextStyle(
-                          color: _getTierTextColor(tier),
-                          fontWeight: FontWeight.w600),
+                        color: _getTierTextColor(tier),
+                        fontWeight: FontWeight.w700,
+                        fontSize: tierFontSize,
+                      ),
                     ),
                   ],
                 ),
@@ -137,7 +268,24 @@ class RecentRestaurantCard extends StatelessWidget {
     );
   }
 
-  BoxDecoration _getTierDecoration(String tier) {
+  String _getTierDisplayName(String tier) {
+    switch (tier.toLowerCase()) {
+      case 'premium':
+      case 'gold':
+      case 'new':
+        return 'Premium';
+      case 'elite':
+      case 'silver':
+        return 'Elite';
+      case 'core':
+      case 'bronze':
+        return 'Core';
+      default:
+        return tier;
+    }
+  }
+
+  BoxDecoration _getTierDecoration(String tier, double borderRadius) {
     List<Color> gradientColors;
     switch (tier.toLowerCase()) {
       case 'premium':
@@ -162,7 +310,14 @@ class RecentRestaurantCard extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(borderRadius),
+      boxShadow: [
+        BoxShadow(
+          color: gradientColors.first.withOpacity(0.3),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 
@@ -171,7 +326,13 @@ class RecentRestaurantCard extends StatelessWidget {
       case 'premium':
       case 'gold':
       case 'new':
-        return AppColor.black;
+        return Colors.black87;
+      case 'elite':
+      case 'silver':
+        return Colors.black87;
+      case 'core':
+      case 'bronze':
+        return Colors.black;
       default:
         return AppColor.white;
     }

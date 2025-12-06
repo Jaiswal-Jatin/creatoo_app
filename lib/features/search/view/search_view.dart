@@ -170,13 +170,78 @@ class _SearchViewState extends State<SearchView> {
     required String? priceRange,
     required int? discount,
   }) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double cardHeight;
+    double gradientHeight;
+    double discountHeight;
+    double titleFontSize;
+    double addressFontSize;
+    double discountFontSize;
+    double cardPadding;
+    double cardMargin;
+    double ratingWidth;
+    double ratingHeight;
+    
+    if (isVerySmall) {
+      cardHeight = 200;
+      gradientHeight = 80;
+      discountHeight = 30;
+      titleFontSize = 13;
+      addressFontSize = 12;
+      discountFontSize = 11;
+      cardPadding = 6;
+      cardMargin = 6;
+      ratingWidth = 42;
+      ratingHeight = 22;
+    } else if (isSmall) {
+      cardHeight = 230;
+      gradientHeight = 90;
+      discountHeight = 34;
+      titleFontSize = 14;
+      addressFontSize = 13;
+      discountFontSize = 12;
+      cardPadding = 7;
+      cardMargin = 7;
+      ratingWidth = 45;
+      ratingHeight = 23;
+    } else if (isMedium) {
+      cardHeight = 260;
+      gradientHeight = 100;
+      discountHeight = 36;
+      titleFontSize = 15;
+      addressFontSize = 14;
+      discountFontSize = 13;
+      cardPadding = 8;
+      cardMargin = 8;
+      ratingWidth = 48;
+      ratingHeight = 24;
+    } else {
+      cardHeight = 300;
+      gradientHeight = 120;
+      discountHeight = 40;
+      titleFontSize = 16;
+      addressFontSize = 15;
+      discountFontSize = 14;
+      cardPadding = 8;
+      cardMargin = 8;
+      ratingWidth = 50;
+      ratingHeight = 25;
+    }
+    
     return InkWell(
       onTap: () {
         Navigator.pushNamed(context, RoutesName.businessDescriptionView,
             arguments: businessId);
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8),
+        margin: EdgeInsets.symmetric(vertical: cardMargin),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -185,11 +250,11 @@ class _SearchViewState extends State<SearchView> {
             DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Colors.white, // White background for the image area
+                color: Colors.white,
               ),
               child: AppImageWidget(
                 imageUrl: imageUrl ?? '',
-                height: 300, // Increased height as requested
+                height: cardHeight,
                 width: double.maxFinite,
                 borderRadius: 16,
                 fit: BoxFit.cover,
@@ -197,10 +262,9 @@ class _SearchViewState extends State<SearchView> {
             ),
             Positioned.fill(
               child: Align(
-                alignment: Alignment
-                    .bottomCenter, // Dark gradient remains centered horizontally
+                alignment: Alignment.bottomCenter,
                 child: Container(
-                  height: 120, // Adjust height of the gradient as needed
+                  height: gradientHeight,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(16),
@@ -211,7 +275,7 @@ class _SearchViewState extends State<SearchView> {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8), // Dark black shadow
+                        Colors.black.withOpacity(0.8),
                       ],
                     ),
                   ),
@@ -219,35 +283,32 @@ class _SearchViewState extends State<SearchView> {
               ),
             ),
             Positioned(
-              bottom: 10,
+              bottom: cardPadding,
               left: 0,
               right: 0,
               child: IntrinsicHeight(
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  margin: EdgeInsets.symmetric(horizontal: cardPadding),
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.sizeOf(context).width * 0.8,
                   ),
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(cardPadding),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300), // Added border here
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (discount != null &&
-                          discount > 0) // Discount section moved here
+                      if (discount != null && discount > 0)
                         Container(
-                          height: 40, // Reduced height
-                          width: double
-                              .maxFinite, // Span full width within parent padding
-                          margin: EdgeInsets.only(
-                              bottom: 8), // Spacing below discount
+                          height: discountHeight,
+                          width: double.maxFinite,
+                          margin: EdgeInsets.only(bottom: cardPadding),
                           padding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 5), // Adjusted padding
+                              horizontal: cardPadding * 2, vertical: cardPadding * 0.6),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             gradient: LinearGradient(
@@ -266,9 +327,8 @@ class _SearchViewState extends State<SearchView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               AppTextWidget(
-                                // Only one text widget now
                                 text: "Flat ${discount}% OFF + 3 more",
-                                fontSize: 14,
+                                fontSize: discountFontSize,
                                 color: AppColor.white,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -283,40 +343,38 @@ class _SearchViewState extends State<SearchView> {
                             Flexible(
                               child: AppTextWidget(
                                 text: businessName,
-                                fontSize: 16,
+                                fontSize: titleFontSize,
                                 fontWeight: FontWeight.w600,
                                 softWrap: true,
                                 maxLines: 1,
                                 textOverflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            SizedBox(
-                              width: 18.w,
-                            ),
+                            SizedBox(width: 12.w),
                             if (ratings != null)
                               Container(
-                                width: 50,
-                                height: 25,
+                                width: ratingWidth,
+                                height: ratingHeight,
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     color: AppColor.rating),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0, vertical: 6),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 6.0, vertical: 4),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,
                                     children: [
                                       AppTextWidget(
                                         text: ratings,
-                                        fontSize: 12,
+                                        fontSize: addressFontSize - 3,
                                         color: AppColor.white,
                                         fontWeight: FontWeight.w500,
                                       ),
                                       Icon(
                                         Icons.star,
                                         color: AppColor.white,
-                                        size: 12,
+                                        size: addressFontSize - 3,
                                       )
                                     ],
                                   ),
@@ -324,8 +382,8 @@ class _SearchViewState extends State<SearchView> {
                               )
                             else
                               Container(
-                                width: 50,
-                                height: 25,
+                                width: ratingWidth,
+                                height: ratingHeight,
                               )
                           ],
                         ),
@@ -334,7 +392,7 @@ class _SearchViewState extends State<SearchView> {
                           (address != null && address.isNotEmpty))
                         Column(
                           children: [
-                            SizedBox(height: 6),
+                            SizedBox(height: cardPadding * 0.7),
                             Container(
                               child: Row(
                                 mainAxisAlignment:
@@ -348,14 +406,14 @@ class _SearchViewState extends State<SearchView> {
                                     ),
                                     child: AppTextWidget(
                                       text: address,
-                                      fontSize: 15,
+                                      fontSize: addressFontSize,
                                       textOverflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
                                   ),
                                   AppTextWidget(
                                     text: '$priceRange',
-                                    fontSize: 15,
+                                    fontSize: addressFontSize,
                                   )
                                 ],
                               ),

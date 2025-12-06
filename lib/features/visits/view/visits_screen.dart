@@ -74,6 +74,56 @@ class _VisitsScreenState extends State<VisitsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double screenPadding;
+    double tierCardPadding;
+    double tierCountFontSize;
+    double tierTitleFontSize;
+    double cardSpacing;
+    double sectionSpacing;
+    double dateFontSize;
+    
+    if (isVerySmall) {
+      screenPadding = 12;
+      tierCardPadding = 10;
+      tierCountFontSize = 22;
+      tierTitleFontSize = 9;
+      cardSpacing = 8;
+      sectionSpacing = 16;
+      dateFontSize = 13;
+    } else if (isSmall) {
+      screenPadding = 14;
+      tierCardPadding = 12;
+      tierCountFontSize = 24;
+      tierTitleFontSize = 10;
+      cardSpacing = 10;
+      sectionSpacing = 18;
+      dateFontSize = 14;
+    } else if (isMedium) {
+      screenPadding = 15;
+      tierCardPadding = 14;
+      tierCountFontSize = 26;
+      tierTitleFontSize = 11;
+      cardSpacing = 11;
+      sectionSpacing = 20;
+      dateFontSize = 15;
+    } else {
+      screenPadding = 16;
+      tierCardPadding = 16;
+      tierCountFontSize = 28;
+      tierTitleFontSize = 12;
+      cardSpacing = 12;
+      sectionSpacing = 24;
+      dateFontSize = 16;
+    }
+    
     return ChangeNotifierProvider<VisitsViewModel>.value(
       value: visitsViewModel,
       child: Scaffold(
@@ -102,7 +152,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
                     child: Text(
                       viewModel.visitsResponse.message ?? 'No visits history available.',
                       style: AppTextStyles.montserratStyle(
-                        fontSize: 16,
+                        fontSize: dateFontSize,
                         fontWeight: FontWeight.w500,
                         color: AppColor.darkGrey,
                       ),
@@ -111,57 +161,69 @@ class _VisitsScreenState extends State<VisitsScreen> {
                 }
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(screenPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Tier Summary Cards
-                      Row(
-                        children: [
-                          _buildTierCard(
-                            context,
-                            'Premium Users',
-                            goldCount.toString(),
-                            'assets/icons/gold_medal.svg',
-                            const Color(0xFFFFD700),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildTierCard(
-                            context,
-                            'Elite Users',
-                            silverCount.toString(),
-                            'assets/icons/silver_medal.svg',
-                            const Color(0xFFC0C0C0),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildTierCard(
-                            context,
-                            'Core Users',
-                            bronzeCount.toString(),
-                            'assets/icons/bronze_medal.svg',
-                            const Color(0xFFCD7F32),
-                          ),
-                        ],
+                      // Tier Summary Cards - All same size due to IntrinsicHeight
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildTierCard(
+                              context,
+                              'Premium',
+                              goldCount.toString(),
+                              'assets/icons/gold_medal.svg',
+                              const Color(0xFFFFD700),
+                              tierCardPadding,
+                              tierCountFontSize,
+                              tierTitleFontSize,
+                            ),
+                            SizedBox(width: cardSpacing),
+                            _buildTierCard(
+                              context,
+                              'Elite',
+                              silverCount.toString(),
+                              'assets/icons/silver_medal.svg',
+                              const Color(0xFFC0C0C0),
+                              tierCardPadding,
+                              tierCountFontSize,
+                              tierTitleFontSize,
+                            ),
+                            SizedBox(width: cardSpacing),
+                            _buildTierCard(
+                              context,
+                              'Core',
+                              bronzeCount.toString(),
+                              'assets/icons/bronze_medal.svg',
+                              const Color(0xFFCD7F32),
+                              tierCardPadding,
+                              tierCountFontSize,
+                              tierTitleFontSize,
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: sectionSpacing),
                       // Visits List
                       ...visitsByDate.entries.map((entry) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              padding: EdgeInsets.symmetric(vertical: screenPadding * 0.5),
                               child: Text(
                                 entry.key,
                                 style: AppTextStyles.montserratStyle(
-                                  fontSize: 16,
+                                  fontSize: dateFontSize,
                                   fontWeight: FontWeight.w600,
                                   color: AppColor.darkGrey,
                                 ),
                               ),
                             ),
-                            ...entry.value.map((visit) => _buildVisitCard(visit)),
-                            const SizedBox(height: 16),
+                            ...entry.value.map((visit) => _buildVisitCard(visit, context)),
+                            SizedBox(height: screenPadding),
                           ],
                         );
                       }).toList(),
@@ -184,6 +246,9 @@ class _VisitsScreenState extends State<VisitsScreen> {
     String count,
     String iconPath,
     Color color,
+    double padding,
+    double countFontSize,
+    double titleFontSize,
   ) {
     // Determine gradient based on color
     List<Color> gradientColors = [];
@@ -197,7 +262,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
 
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -217,26 +282,23 @@ class _VisitsScreenState extends State<VisitsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // SvgPicture.asset(
-            //   iconPath,
-            //   height: 28,
-            //   width: 28,
-            //   color: Colors.black87,
-            // ),
-            const SizedBox(height: 8),
+            SizedBox(height: padding * 0.5),
             Text(
               count,
               style: GoogleFonts.montserrat(
-                fontSize: 28,
+                fontSize: countFontSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: padding * 0.25),
             Text(
               title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
-                fontSize: 12,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
@@ -247,7 +309,67 @@ class _VisitsScreenState extends State<VisitsScreen> {
     );
   }
 
-  Widget _buildVisitCard(Visit visit) {
+  Widget _buildVisitCard(Visit visit, BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double cardPadding;
+    double cardMargin;
+    double borderRadius;
+    double indicatorHeight;
+    double nameFontSize;
+    double timeFontSize;
+    double tierPaddingH;
+    double tierPaddingV;
+    double tierFontSize;
+    
+    if (isVerySmall) {
+      cardPadding = 10;
+      cardMargin = 8;
+      borderRadius = 10;
+      indicatorHeight = 36;
+      nameFontSize = 13;
+      timeFontSize = 10;
+      tierPaddingH = 8;
+      tierPaddingV = 4;
+      tierFontSize = 9;
+    } else if (isSmall) {
+      cardPadding = 12;
+      cardMargin = 10;
+      borderRadius = 11;
+      indicatorHeight = 40;
+      nameFontSize = 14;
+      timeFontSize = 11;
+      tierPaddingH = 10;
+      tierPaddingV = 5;
+      tierFontSize = 10;
+    } else if (isMedium) {
+      cardPadding = 14;
+      cardMargin = 11;
+      borderRadius = 11;
+      indicatorHeight = 45;
+      nameFontSize = 15;
+      timeFontSize = 11;
+      tierPaddingH = 11;
+      tierPaddingV = 5;
+      tierFontSize = 11;
+    } else {
+      cardPadding = 16;
+      cardMargin = 12;
+      borderRadius = 12;
+      indicatorHeight = 50;
+      nameFontSize = 16;
+      timeFontSize = 12;
+      tierPaddingH = 12;
+      tierPaddingV = 6;
+      tierFontSize = 12;
+    }
+    
     final timeFormat = DateFormat('h:mm a');
     
     // Treat 'newTier' as 'premium' for display purposes
@@ -266,24 +388,23 @@ class _VisitsScreenState extends State<VisitsScreen> {
     }
     
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: cardMargin),
       elevation: 1,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          // color: AppColor.moreLighterDd,
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(cardPadding),
           child: Row(
             children: [
               // Tier indicator with gradient
               Container(
                 width: 4,
-                height: 50,
+                height: indicatorHeight,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(2),
                   gradient: LinearGradient(
@@ -293,7 +414,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: cardPadding),
               // User info
               Expanded(
                 child: Column(
@@ -302,16 +423,16 @@ class _VisitsScreenState extends State<VisitsScreen> {
                     Text(
                       visit.userName,
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                        fontSize: nameFontSize,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: cardPadding * 0.25),
                     Text(
                       timeFormat.format(visit.dateTime),
                       style: GoogleFonts.montserrat(
-                        fontSize: 12,
+                        fontSize: timeFontSize,
                         color: Colors.grey[600],
                       ),
                     ),
@@ -320,19 +441,19 @@ class _VisitsScreenState extends State<VisitsScreen> {
               ),
               // Tier badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: tierPaddingH, vertical: tierPaddingV),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: tierGradient,
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(borderRadius + 4),
                 ),
                 child: Text(
                   displayTier.toString().split('.').last.toUpperCase(),
                   style: GoogleFonts.montserrat(
-                    fontSize: 12,
+                    fontSize: tierFontSize,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),

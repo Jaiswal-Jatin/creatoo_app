@@ -98,7 +98,7 @@ class _CardTierSectionState extends State<CardTierSection> {
   // Define default tiers structure
   final List<Map<String, dynamic>> _defaultTiers = [
     {
-      'name': 'Premium Tier',
+      'name': 'Premium',
       'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.goldGradient,
@@ -110,7 +110,7 @@ class _CardTierSectionState extends State<CardTierSection> {
       'history': <VisitHistory>[],
     },
     {
-      'name': 'Elite Tier',
+      'name': 'Elite',
       'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.silverGradient,
@@ -122,7 +122,7 @@ class _CardTierSectionState extends State<CardTierSection> {
       'history': <VisitHistory>[],
     },
     {
-      'name': 'Core Tier',
+      'name': 'Core',
       'visits': 0,
       'gradient': const LinearGradient(
           colors: AppColor.bronzeGradient,
@@ -270,18 +270,83 @@ class TierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double cardPadding;
+    double cardMargin;
+    double borderRadius;
+    double iconContainerPadding;
+    double iconSize;
+    double tierNameFontSize;
+    double visitsFontSize;
+    double visitIconSize;
+    double arrowIconSize;
+    double shadowBlur;
+    
+    if (isVerySmall) {
+      cardPadding = 10;
+      cardMargin = 4;
+      borderRadius = 12;
+      iconContainerPadding = 5;
+      iconSize = 14;
+      tierNameFontSize = 12;
+      visitsFontSize = 9;
+      visitIconSize = 9;
+      arrowIconSize = 16;
+      shadowBlur = 8;
+    } else if (isSmall) {
+      cardPadding = 11;
+      cardMargin = 5;
+      borderRadius = 13;
+      iconContainerPadding = 6;
+      iconSize = 16;
+      tierNameFontSize = 13;
+      visitsFontSize = 10;
+      visitIconSize = 10;
+      arrowIconSize = 17;
+      shadowBlur = 9;
+    } else if (isMedium) {
+      cardPadding = 12;
+      cardMargin = 5;
+      borderRadius = 14;
+      iconContainerPadding = 6;
+      iconSize = 18;
+      tierNameFontSize = 14;
+      visitsFontSize = 10;
+      visitIconSize = 10;
+      arrowIconSize = 18;
+      shadowBlur = 10;
+    } else {
+      cardPadding = 14;
+      cardMargin = 6;
+      borderRadius = 16;
+      iconContainerPadding = 8;
+      iconSize = 20;
+      tierNameFontSize = 16;
+      visitsFontSize = 11;
+      visitIconSize = 11;
+      arrowIconSize = 20;
+      shadowBlur = 12;
+    }
+    
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24.0),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10.0),
+        margin: EdgeInsets.symmetric(vertical: cardMargin),
         decoration: BoxDecoration(
           gradient: gradient,
-          borderRadius: BorderRadius.circular(24.0),
+          borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
               color: iconColor.withOpacity(0.3),
-              blurRadius: 20,
+              blurRadius: shadowBlur,
               spreadRadius: 2,
               offset: const Offset(0, 10),
             ),
@@ -293,7 +358,7 @@ class TierCard extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24.0),
+          borderRadius: BorderRadius.circular(borderRadius),
           child: Stack(
             children: [
               Positioned(
@@ -316,16 +381,16 @@ class TierCard extends StatelessWidget {
               BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: EdgeInsets.all(cardPadding),
                   child: Column(
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(iconContainerPadding),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.3),
                                 width: 2,
@@ -341,10 +406,10 @@ class TierCard extends StatelessWidget {
                             child: Icon(
                               tierIcon,
                               color: iconColor,
-                              size: 32,
+                              size: iconSize,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: cardPadding * 0.6),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,26 +417,26 @@ class TierCard extends StatelessWidget {
                                 Text(
                                   tierName,
                                   style: TextStyle(
-                                    fontSize: 24,
+                                    fontSize: tierNameFontSize,
                                     fontWeight: FontWeight.bold,
                                     color: textColor,
                                     fontFamily: 'SFUIText',
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: cardPadding * 0.15),
                                 Row(
                                   children: [
                                     Icon(
                                       Icons.location_on_rounded,
-                                      size: 16,
+                                      size: visitIconSize,
                                       color: textColor.withOpacity(0.7),
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: cardPadding * 0.15),
                                     Text(
                                       '$visits Total Visits',
                                       style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: visitsFontSize,
                                         color: textColor.withOpacity(0.8),
                                         fontFamily: 'SFUIText',
                                         fontWeight: FontWeight.w500,
@@ -383,16 +448,16 @@ class TierCard extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(cardPadding * 0.3),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
                               isExpanded
                                   ? Icons.keyboard_arrow_up_rounded
                                   : Icons.keyboard_arrow_down_rounded,
-                              size: 28,
+                              size: arrowIconSize,
                               color: textColor,
                             ),
                           ),
@@ -400,7 +465,7 @@ class TierCard extends StatelessWidget {
                       ),
                       AnimatedCrossFade(
                         firstChild: Container(),
-                        secondChild: _buildVisitHistory(),
+                        secondChild: _buildVisitHistory(context),
                         crossFadeState: isExpanded
                             ? CrossFadeState.showSecond
                             : CrossFadeState.showFirst,
@@ -421,9 +486,79 @@ class TierCard extends StatelessWidget {
     );
   }
 
-  Widget _buildVisitHistory() {
+  Widget _buildVisitHistory(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = h < 600;
+    final isSmall = h < 700 && !isVerySmall;
+    final isMedium = h >= 700 && h < 850;
+    
+    // Responsive values
+    double topPadding;
+    double historyTitleFontSize;
+    double historyIconSize;
+    double itemPadding;
+    double itemMargin;
+    double storeIconSize;
+    double storeIconPadding;
+    double businessNameFontSize;
+    double dateFontSize;
+    double dateIconSize;
+    double borderRadius;
+    
+    if (isVerySmall) {
+      topPadding = 12;
+      historyTitleFontSize = 12;
+      historyIconSize = 14;
+      itemPadding = 8;
+      itemMargin = 8;
+      storeIconSize = 14;
+      storeIconPadding = 5;
+      businessNameFontSize = 11;
+      dateFontSize = 9;
+      dateIconSize = 9;
+      borderRadius = 8;
+    } else if (isSmall) {
+      topPadding = 14;
+      historyTitleFontSize = 13;
+      historyIconSize = 15;
+      itemPadding = 9;
+      itemMargin = 9;
+      storeIconSize = 15;
+      storeIconPadding = 6;
+      businessNameFontSize = 12;
+      dateFontSize = 10;
+      dateIconSize = 10;
+      borderRadius = 9;
+    } else if (isMedium) {
+      topPadding = 16;
+      historyTitleFontSize = 14;
+      historyIconSize = 16;
+      itemPadding = 10;
+      itemMargin = 10;
+      storeIconSize = 16;
+      storeIconPadding = 6;
+      businessNameFontSize = 13;
+      dateFontSize = 11;
+      dateIconSize = 10;
+      borderRadius = 10;
+    } else {
+      topPadding = 18;
+      historyTitleFontSize = 15;
+      historyIconSize = 18;
+      itemPadding = 10;
+      itemMargin = 10;
+      storeIconSize = 18;
+      storeIconPadding = 7;
+      businessNameFontSize = 14;
+      dateFontSize = 12;
+      dateIconSize = 11;
+      borderRadius = 10;
+    }
+    
     return Container(
-      padding: const EdgeInsets.only(top: 20.0),
+      padding: EdgeInsets.only(top: topPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -439,19 +574,19 @@ class TierCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: topPadding * 0.8),
           Row(
             children: [
               Icon(
                 Icons.history_rounded,
-                size: 20,
+                size: historyIconSize,
                 color: textColor.withOpacity(0.8),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: topPadding * 0.4),
               Text(
                 'Visit History',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: historyTitleFontSize,
                   fontWeight: FontWeight.bold,
                   color: textColor,
                   fontFamily: 'SFUIText',
@@ -459,14 +594,14 @@ class TierCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: topPadding * 0.6),
           ...visitHistory.map(
             (visit) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
+              margin: EdgeInsets.only(bottom: itemMargin),
+              padding: EdgeInsets.all(itemPadding),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.3),
                   width: 1,
@@ -475,18 +610,18 @@ class TierCard extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(storeIconPadding),
                     decoration: BoxDecoration(
                       color: textColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(borderRadius * 0.8),
                     ),
                     child: Icon(
                       Icons.store_rounded,
                       color: textColor,
-                      size: 20,
+                      size: storeIconSize,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: itemPadding),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,24 +631,24 @@ class TierCard extends StatelessWidget {
                           style: TextStyle(
                             color: textColor,
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontSize: businessNameFontSize,
                             fontFamily: 'SFUIText',
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: itemPadding * 0.15),
                         Row(
                           children: [
                             Icon(
                               Icons.calendar_today_rounded,
-                              size: 12,
+                              size: dateIconSize,
                               color: textColor.withOpacity(0.7),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: itemPadding * 0.3),
                             Text(
                               _formatDate(visit.time),
                               style: TextStyle(
                                 color: textColor.withOpacity(0.8),
-                                fontSize: 13,
+                                fontSize: dateFontSize,
                                 fontFamily: 'SFUIText',
                               ),
                             ),

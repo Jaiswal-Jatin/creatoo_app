@@ -177,20 +177,28 @@ class _HomeViewState extends State<HomeView> {
               
               // Show Top Businesses for regular users, Lottie animation for business users
               (roleId == Constants.businessUser)
-                  ? Container(
-                      height: 200.h,
-                      width: double.infinity,
-                      margin: EdgeInsets.only(bottom: 20.h, top: 10.h),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.transparent,
-                      ),
-                      child: Lottie.asset(
-                        'assets/lottie/Main menu.json',
-                        fit: BoxFit.cover,
-                        repeat: true,
-                        animate: true,
-                      ),
+                  ? Builder(
+                      builder: (context) {
+                        final h = MediaQuery.of(context).size.height;
+                        // 15% of screen height - adjusts automatically
+                        final lottieHeight = h * 0.35;
+                        
+                        return Container(
+                          height: lottieHeight,
+                          width: double.infinity,
+                          margin: EdgeInsets.only(bottom: 0, top: 5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.transparent,
+                          ),
+                          child: Lottie.asset(
+                            'assets/lottie/Main menu.json',
+                            fit: BoxFit.contain,
+                            repeat: true,
+                            animate: true,
+                          ),
+                        );
+                      },
                     )
                   : Column(
                       children: [
@@ -219,6 +227,53 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget buildBusinessCard(Business item) {
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
+    
+    // More granular responsive breakpoints for different screen sizes
+    final isVerySmall = h < 600; // Very small iPhones (SE, Mini)
+    final isSmall = h < 700 && !isVerySmall; // Small screens
+    final isMedium = h >= 700 && h < 850; // Medium screens
+    // Large screens are h >= 850
+    
+    // Calculate responsive values based on screen size
+    double cardWidth;
+    double imageHeight;
+    double cardPadding;
+    double titleFontSize;
+    double discountFontSize;
+    double borderRadius;
+    
+    if (isVerySmall) {
+      cardWidth = w * 0.38;
+      imageHeight = h * 0.08;
+      cardPadding = 6;
+      titleFontSize = 10.sp;
+      discountFontSize = 7.sp;
+      borderRadius = 12;
+    } else if (isSmall) {
+      cardWidth = w * 0.40;
+      imageHeight = h * 0.09;
+      cardPadding = 8;
+      titleFontSize = 11.sp;
+      discountFontSize = 8.sp;
+      borderRadius = 14;
+    } else if (isMedium) {
+      cardWidth = w * 0.42;
+      imageHeight = h * 0.10;
+      cardPadding = 9;
+      titleFontSize = 12.sp;
+      discountFontSize = 9.sp;
+      borderRadius = 15;
+    } else {
+      cardWidth = 180.w;
+      imageHeight = 110.h;
+      cardPadding = 10;
+      titleFontSize = 14.sp;
+      discountFontSize = 10.sp;
+      borderRadius = 16;
+    }
+    
     return InkWell(
       onTap: () {
         Navigator.pushNamed(
@@ -228,10 +283,10 @@ class _HomeViewState extends State<HomeView> {
         );
       },
       child: Container(
-        width: 180.w,
-        padding: EdgeInsets.all(10),
+        width: cardWidth,
+        padding: EdgeInsets.all(cardPadding),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(borderRadius),
           color: AppColor.moreLighterDd.withOpacity(0.3),
           border: Border.all(
             color: AppColor.moreLighterDd,
@@ -243,59 +298,58 @@ class _HomeViewState extends State<HomeView> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Image with constrained height
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: AppImageWidget(
-                height: 110.h, // Reduced height for the image
+                height: imageHeight,
                 width: double.infinity,
                 imageUrl: item.businessImage!,
               ),
             ),
-            SizedBox(
-              height: 8.h,
-            ),
+            SizedBox(height: cardPadding * 0.5),
+            // Title
             AppTextWidget(
               text: '${item.businessName}',
               textOverflow: TextOverflow.ellipsis,
-              fontSize: 14.sp,
+              maxLines: 1,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
             ),
-            SizedBox(
-              height: 6.h,
-            ),
-            if (item.set_first_time_discount != null) // Only show discount if it exists
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColor.black,
-                    borderRadius: BorderRadius.circular(8),
+            if (item.set_first_time_discount != null) ...[
+              SizedBox(height: cardPadding * 0.3),
+              // Discount tag
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColor.black,
+                  borderRadius: BorderRadius.circular(borderRadius * 0.5),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: cardPadding * 0.8, 
+                    vertical: cardPadding * 0.25
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.local_offer,
-                          size: 12.sp,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 4.w),
-                        AppTextWidget(
-                          text: '${item.set_first_time_discount}% OFF',
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.local_offer,
+                        size: discountFontSize,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: cardPadding * 0.3),
+                      AppTextWidget(
+                        text: '${item.set_first_time_discount}% OFF',
+                        fontSize: discountFontSize,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        textOverflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ),
-            // SizedBox(
-            //   height: 6.h,
-            // ),
+            ],
           ],
         ),
       ),
@@ -544,22 +598,61 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget buildBusiness({required String name, required List<Business> data}) {
+    final h = MediaQuery.of(context).size.height;
+    
+    // More granular responsive breakpoints for different screen sizes
+    final isVerySmall = h < 600; // Very small iPhones (SE, Mini)
+    final isSmall = h < 700 && !isVerySmall; // Small screens
+    final isMedium = h >= 700 && h < 850; // Medium screens
+    // Large screens are h >= 850
+    
+    // Calculate responsive values based on screen size
+    double sectionHeight;
+    double cardHeight;
+    double titleSpacing;
+    double titleFontSize;
+    double bottomSpacing;
+    
+    if (isVerySmall) {
+      sectionHeight = h * 0.20;
+      cardHeight = h * 0.14;
+      titleSpacing = h * 0.008;
+      titleFontSize = 14.sp;
+      bottomSpacing = h * 0.012;
+    } else if (isSmall) {
+      sectionHeight = h * 0.22;
+      cardHeight = h * 0.16;
+      titleSpacing = h * 0.01;
+      titleFontSize = 15.sp;
+      bottomSpacing = h * 0.015;
+    } else if (isMedium) {
+      sectionHeight = h * 0.23;
+      cardHeight = h * 0.17;
+      titleSpacing = h * 0.012;
+      titleFontSize = 17.sp;
+      bottomSpacing = h * 0.018;
+    } else {
+      sectionHeight = 220.h;
+      cardHeight = 160.h;
+      titleSpacing = 18.h;
+      titleFontSize = 18.sp;
+      bottomSpacing = 20.h;
+    }
+    
     return Column(
       children: [
         Container(
-          height: 220.h, // Adjusted height for the section containing business cards
+          height: sectionHeight,
           width: SizeConfig.screenWidth,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppTextWidget(
                 text: name,
-                fontSize: 18.sp,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w700,
               ),
-              SizedBox(
-                height: 18.h,
-              ),
+              SizedBox(height: titleSpacing),
               Expanded(
                 child: ListView.builder(
                   itemCount: data.length,
@@ -570,7 +663,7 @@ class _HomeViewState extends State<HomeView> {
                         right: Utils.getValueBasedOnIndex(index, data.length),
                       ),
                       child: SizedBox(
-                        height: 160.h, // Constrain the height of each business card item
+                        height: cardHeight,
                         child: buildBusinessCard(data[index]),
                       ),
                     );
@@ -580,7 +673,7 @@ class _HomeViewState extends State<HomeView> {
             ],
           ),
         ),
-        SizedBox(height: 20.h),
+        SizedBox(height: bottomSpacing),
       ],
     );
   }

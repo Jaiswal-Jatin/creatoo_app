@@ -963,7 +963,7 @@ Widget _buildTierFeatureSection() {
           // Show Premium Tier only if business has premium offers
           if (exclusiveOffers.premiumOffers?.isNotEmpty ?? false)
             _buildTierItem(
-              title: "Premium Tier",
+              title: "Premium",
               gradientColors: AppColor.goldGradient,
               controller: _goldTierPageController,
               images: exclusiveOffers.premiumOffers!,
@@ -977,7 +977,7 @@ Widget _buildTierFeatureSection() {
           // Show Elite Tier only if business has elite offers
           if (exclusiveOffers.eliteOffers?.isNotEmpty ?? false)
             _buildTierItem(
-              title: "Elite Tier",
+              title: "Elite",
               gradientColors: AppColor.silverGradient,
               controller: _silverTierPageController,
               images: exclusiveOffers.eliteOffers!,
@@ -991,7 +991,7 @@ Widget _buildTierFeatureSection() {
           // Show Core Tier only if business has core offers
           if (exclusiveOffers.coreOffers?.isNotEmpty ?? false)
             _buildTierItem(
-              title: "Core Tier",
+              title: "Core",
               gradientColors: AppColor.bronzeGradient,
               controller: _bronzeTierPageController,
               images: exclusiveOffers.coreOffers!,
@@ -1052,22 +1052,35 @@ Widget _buildTierItem({
                 _startTierSlidersAutoSlide();
               },
               itemBuilder: (context, index) {
-                return CachedNetworkImage(
-                  imageUrl: images[index],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[100],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(gradientColors.first),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FullScreenImageCarouselView(
+                          imageUrls: images,
+                          initialIndex: index,
+                        ),
+                      ),
+                    );
+                  },
+                  child: CachedNetworkImage(
+                    imageUrl: images[index],
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[100],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(gradientColors.first),
+                        ),
                       ),
                     ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[100],
-                    child: Icon(Icons.broken_image_rounded, color: Colors.grey),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[100],
+                      child: Icon(Icons.broken_image_rounded, color: Colors.grey),
+                    ),
                   ),
                 );
               },

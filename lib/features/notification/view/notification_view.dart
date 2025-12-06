@@ -72,11 +72,16 @@ class _NotificationViewState extends State<NotificationView> {
     // This method will only be called if there are notifications to display.
     // final notifications = viewModel.notificationResponse.data?.data?.data ?? [];
     final notifications = viewModel.notifications;
+    
+    // Get screen dimensions for responsive UI
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
+    final isSmall = h < 700;
 
     return AppScaffold(
       appBar: AppBarWidget(title: "Notification"),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmall ? 12.0 : 16.0),
         child: Form(
           key: viewModel.formKey,
           child: ListView.builder(
@@ -87,7 +92,7 @@ class _NotificationViewState extends State<NotificationView> {
                 if (viewModel.isLoading) {
                   return Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: EdgeInsets.all(isSmall ? 8.0 : 10.0),
                       child: CircularProgressIndicator(),
                     ),
                   );
@@ -100,9 +105,9 @@ class _NotificationViewState extends State<NotificationView> {
 
               return Card(
                 elevation: 2,
-                margin: const EdgeInsets.only(bottom: 10.0),
+                margin: EdgeInsets.only(bottom: isSmall ? 8.0 : 10.0),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(isSmall ? 6 : 8),
                   side: BorderSide(color: AppColor.moreLighterDd, width: 1), // Added border here
                 ),
                 child: InkWell(
@@ -114,16 +119,16 @@ class _NotificationViewState extends State<NotificationView> {
                     }
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: EdgeInsets.all(isSmall ? 10.0 : 12.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.notifications,
                           color: AppColor.kPrimary,
-                          size: 24,
+                          size: isSmall ? 20 : 24,
                         ),
-                        SizedBox(width: 12.w),
+                        SizedBox(width: isSmall ? 10.w : 12.w),
                         Expanded(
                           flex: 2,
                           child: Column(
@@ -132,20 +137,20 @@ class _NotificationViewState extends State<NotificationView> {
                               if (roleId == Constants.creatorUser)
                                 AppTextWidget(
                                   text: notification.notificationSubject ?? "Feedback Review",
-                                  fontSize: 16,
+                                  fontSize: isSmall ? 14 : 16,
                                   fontWeight: FontWeight.bold,
                                 ),
-                              SizedBox(height: 4.h),
+                              SizedBox(height: isSmall ? 3.h : 4.h),
                               AppTextWidget(
                                 text: notification.notificationText ?? " ",
-                                fontSize: 13,
+                                fontSize: isSmall ? 11 : 13,
                                 color: AppColor.darkGrey,
                               ),
                               if (notification.createdAt != null) ...[
-                                SizedBox(height: 6.h),
+                                SizedBox(height: isSmall ? 4.h : 6.h),
                                 AppTextWidget(
                                   text: "Received: ${notification.createdAt}", // Assuming createdAt exists
-                                  fontSize: 10,
+                                  fontSize: isSmall ? 9 : 10,
                                   color: AppColor.grey,
                                 ),
                               ],
@@ -153,11 +158,11 @@ class _NotificationViewState extends State<NotificationView> {
                           ),
                         ),
                         if (roleId == Constants.creatorUser) ...[
-                          SizedBox(width: 10.w),
+                          SizedBox(width: isSmall ? 8.w : 10.w),
                           if (notification.isRedeemed == "0")
                             SizedBox(
-                              width: 80,
-                              height: 30,
+                              width: isSmall ? 70 : 80,
+                              height: isSmall ? 26 : 30,
                               child: AppRoundButton(
                                 title: 'Complete',
                                 onPress: () {

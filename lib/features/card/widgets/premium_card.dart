@@ -99,13 +99,82 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Responsive breakpoints
+    final isVerySmall = screenHeight < 600;
+    final isSmall = screenHeight < 700 && !isVerySmall;
+    final isMedium = screenHeight >= 700 && screenHeight < 850;
+    
+    // Responsive values - made smaller overall
+    double cardHeight;
+    double cardWidthRatio;
+    double cardPadding;
+    double brandFontSize;
+    double cardNumberFontSize;
+    double maskedFontSize;
+    double labelFontSize;
+    double nameFontSize;
+    double iconSize;
+    double borderRadius;
+    double verticalMargin;
+    
+    if (isVerySmall) {
+      cardHeight = 150;
+      cardWidthRatio = 0.88;
+      cardPadding = 14;
+      brandFontSize = 16;
+      cardNumberFontSize = 20;
+      maskedFontSize = 18;
+      labelFontSize = 8;
+      nameFontSize = 12;
+      iconSize = 16;
+      borderRadius = 18;
+      verticalMargin = 10;
+    } else if (isSmall) {
+      cardHeight = 170;
+      cardWidthRatio = 0.88;
+      cardPadding = 18;
+      brandFontSize = 18;
+      cardNumberFontSize = 22;
+      maskedFontSize = 20;
+      labelFontSize = 9;
+      nameFontSize = 13;
+      iconSize = 17;
+      borderRadius = 20;
+      verticalMargin = 12;
+    } else if (isMedium) {
+      cardHeight = 185;
+      cardWidthRatio = 0.88;
+      cardPadding = 20;
+      brandFontSize = 20;
+      cardNumberFontSize = 24;
+      maskedFontSize = 22;
+      labelFontSize = 9;
+      nameFontSize = 14;
+      iconSize = 18;
+      borderRadius = 22;
+      verticalMargin = 14;
+    } else {
+      cardHeight = 200;
+      cardWidthRatio = 0.9;
+      cardPadding = 22;
+      brandFontSize = 22;
+      cardNumberFontSize = 26;
+      maskedFontSize = 24;
+      labelFontSize = 10;
+      nameFontSize = 15;
+      iconSize = 20;
+      borderRadius = 24;
+      verticalMargin = 16;
+    }
 
     return Container(
-      height: 220,
-      width: screenWidth * 0.9,
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      height: cardHeight,
+      width: screenWidth * cardWidthRatio,
+      margin: EdgeInsets.symmetric(vertical: verticalMargin),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(borderRadius),
         gradient: LinearGradient(
           colors: AppColor.premiumCardGradient,
           begin: Alignment.topLeft,
@@ -127,7 +196,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Stack(
           children: [
             // Particle Animation Background
@@ -139,7 +208,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(borderRadius),
                   border: Border.all(
                     color: AppColor.white.withOpacity(0.15),
                     width: 1.5,
@@ -148,28 +217,9 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
               ),
             ),
 
-            // Shimmer Effect Overlay
-            // Positioned.fill(
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(24),
-            //       gradient: LinearGradient(
-            //         begin: Alignment.topLeft,
-            //         end: Alignment.bottomRight,
-            //         colors: [
-            //           AppColor.white.withOpacity(0.1),
-            //           AppColor.transparent,
-            //           AppColor.white.withOpacity(0.05),
-            //         ],
-            //         stops: const [0.0, 0.5, 1.0],
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             // Main Content
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -180,22 +230,22 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: EdgeInsets.all(cardPadding * 0.25),
                             decoration: BoxDecoration(
                               color: AppColor.white.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.credit_card_rounded,
                               color: AppColor.white,
-                              size: 20,
+                              size: iconSize,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
+                          SizedBox(width: cardPadding * 0.5),
+                          Text(
                             "CREATOO",
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: brandFontSize,
                               fontWeight: FontWeight.w800,
                               color: AppColor.white,
                               letterSpacing: 3,
@@ -204,15 +254,15 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(cardPadding * 0.15),
                         decoration: BoxDecoration(
                           color: Colors.greenAccent.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.verified_rounded,
                           color: Colors.greenAccent,
-                          size: 24,
+                          size: iconSize + 2,
                         ),
                       ),
                     ],
@@ -237,9 +287,9 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                                   child: ScaleTransition(
                                     scale: _scaleAnimation,
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 12,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: cardPadding * 0.8,
+                                        vertical: cardPadding * 0.5,
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColor.white.withOpacity(0.1),
@@ -250,8 +300,8 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                                       ),
                                       child: Text(
                                         _cardNumber!,
-                                        style: const TextStyle(
-                                          fontSize: 28,
+                                        style: TextStyle(
+                                          fontSize: cardNumberFontSize,
                                           fontWeight: FontWeight.w700,
                                           color: AppColor.white,
                                           letterSpacing: 4,
@@ -265,7 +315,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                                 Text(
                                   "•••• •••• •••• ••••",
                                   style: TextStyle(
-                                    fontSize: 26,
+                                    fontSize: maskedFontSize,
                                     fontWeight: FontWeight.w600,
                                     color: AppColor.white.withOpacity(0.7),
                                     letterSpacing: 3,
@@ -282,7 +332,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                       child: Text(
                         "•••• •••• •••• ••••",
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: maskedFontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColor.white.withOpacity(0.7),
                           letterSpacing: 3,
@@ -305,17 +355,17 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
                           Text(
                             "CARD HOLDER",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: labelFontSize,
                               fontWeight: FontWeight.w500,
                               color: AppColor.white.withOpacity(0.5),
                               letterSpacing: 2,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: cardPadding * 0.15),
                           Text(
                             _userName?.toUpperCase() ?? "YOUR NAME",
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: nameFontSize,
                               fontWeight: FontWeight.w600,
                               color: AppColor.white.withOpacity(0.95),
                               letterSpacing: 1.5,
