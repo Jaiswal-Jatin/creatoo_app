@@ -26,7 +26,7 @@ void main() async {
 
   runApp(
     DevicePreview(
-      enabled: true, // Device preview enabled
+      enabled: false, // Device preview enabled
       builder: (context) => MultiProvider(
         providers: [
           ...Providers.getAllProviders(),
