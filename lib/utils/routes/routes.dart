@@ -49,6 +49,30 @@ import '../../features/startup/view/startup_view.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    print('🔵 [ROUTES] Requested route: "${settings.name}" with arguments: ${settings.arguments}');
+    
+    // Handle deep link URL pattern: /api/scan?businessId=XXX
+    // This happens when app resumes from background via deep link
+    if (settings.name != null && settings.name!.contains('/api/scan')) {
+      print('🟡 [ROUTES] Detected deep link URL pattern, extracting businessId');
+      try {
+        final uri = Uri.parse('https://api.tapbill.in${settings.name}');
+        final businessIdStr = uri.queryParameters['businessId'];
+        if (businessIdStr != null) {
+          final businessId = int.tryParse(businessIdStr);
+          if (businessId != null) {
+            print('🟢 [ROUTES] Extracted businessId: $businessId, navigating to BusinessDescriptionView');
+            return _buildRoute(
+              settings,
+              BusinessDescriptionView(businessId: businessId),
+            );
+          }
+        }
+      } catch (e) {
+        print('🔴 [ROUTES] Error parsing deep link URL: $e');
+      }
+    }
+    
     switch (settings.name) {
       case RoutesName.onboardingView:
         return _buildRoute(settings, OnboardingView());
@@ -279,6 +303,7 @@ class Routes {
         );
 
       default:
+        print('🔴 [ROUTES] NO ROUTE FOUND for: "${settings.name}"');
         return _buildRoute(
           settings,
           const Scaffold(

@@ -76,11 +76,13 @@ class DeepLinkService {
           final parsedBusinessId = int.tryParse(businessId);
           
           if (parsedBusinessId != null) {
-            log('Navigating to ProceedToCart with businessId: $parsedBusinessId');
+            log('Deep link received with businessId: $parsedBusinessId');
+            
+            // Store the business ID for later use
+            _pendingBusinessId = parsedBusinessId;
             
             if (isInitialLink) {
-              // For cold start, store the pending business ID and use longer delay with retry
-              _pendingBusinessId = parsedBusinessId;
+              // For cold start, use longer delay with retry to wait for app initialization
               _navigateToProceedToCartWithRetry(parsedBusinessId);
             } else {
               // For warm start, navigate immediately with short delay
@@ -121,37 +123,67 @@ class DeepLinkService {
   /// This sets up proper navigation stack with home screen as base
   static void _navigateToProceedToCartWithRetry(int businessId, [int attempt = 0]) {
     const maxAttempts = 10;
-    const delayMs = 500;
+    // First attempt waits longer to let app initialization complete
+    // Subsequent attempts use shorter delay
+    final delayMs = attempt == 0 ? 2000 : 300;
     
-    Future.delayed(Duration(milliseconds: delayMs), () {
+    Future.delayed(Duration(milliseconds: delayMs), () async {
       final context = navigatorKey.currentContext;
       
       if (context != null) {
+        // Check if user is logged in (token is set)
+        if (token == null) {
+          log('User not logged in, skipping deep link navigation. Business ID stored for later: $businessId');
+          // Keep _pendingBusinessId so it can be used after login
+          return;
+        }
+        
         // Clear pending business ID since we're navigating now
         _pendingBusinessId = null;
         
         // For cold start, set up proper navigation stack:
-        // 1. First navigate to home page and clear everything
-        // 2. Then push ProceedToCart on top
+        // HomePage → BusinessDescriptionView → ProceedToCart
+        // This ensures back button from ProceedToCart goes to BusinessDescriptionView
+        print('🟢 [DEEPLINK] Step 1: Pushing HomePage');
         Navigator.pushNamedAndRemoveUntil(
           context,
           RoutesName.homePage,
           (route) => false, // Remove all previous routes
         );
         
-        // Add a small delay before pushing ProceedToCart
-        Future.delayed(const Duration(milliseconds: 100), () {
-          final ctx = navigatorKey.currentContext;
-          if (ctx != null) {
+        // Wait for HomePage to fully load
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Push BusinessDescriptionView
+        final ctx1 = navigatorKey.currentContext;
+        print('🟢 [DEEPLINK] Step 2: Context after HomePage: $ctx1');
+        if (ctx1 != null) {
+          print('🟢 [DEEPLINK] Step 2: Pushing BusinessDescriptionView with businessId: $businessId');
+          print('🟢 [DEEPLINK] Step 2: Route name: ${RoutesName.businessDescriptionView}');
+          Navigator.pushNamed(
+            ctx1,
+            RoutesName.businessDescriptionView,
+            arguments: businessId,
+          );
+          
+          // Wait for BusinessDescriptionView to load
+          await Future.delayed(const Duration(milliseconds: 500));
+          
+          // Then push ProceedToCart on top
+          final ctx2 = navigatorKey.currentContext;
+          print('🟢 [DEEPLINK] Step 3: Context after BusinessDescriptionView: $ctx2');
+          if (ctx2 != null) {
+            print('🟢 [DEEPLINK] Step 3: Pushing ProceedToCart with businessId: $businessId');
+            print('🟢 [DEEPLINK] Step 3: Route name: ${RoutesName.proceedToCart}');
             Navigator.pushNamed(
-              ctx,
+              ctx2,
               RoutesName.proceedToCart,
               arguments: businessId,
             );
           }
-        });
+        }
         
-        log('Navigation to ProceedToCart completed on attempt ${attempt + 1}');
+        log('Navigation stack created: HomePage → BusinessDescriptionView → ProceedToCart on attempt ${attempt + 1}');
       } else if (attempt < maxAttempts) {
         log('Navigator context is null, retrying... (attempt ${attempt + 1}/$maxAttempts)');
         _navigateToProceedToCartWithRetry(businessId, attempt + 1);
