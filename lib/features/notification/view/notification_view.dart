@@ -40,7 +40,12 @@ class _NotificationViewState extends State<NotificationView> {
 
     switch (viewModel.notificationResponse.status) {
       case Status.loading:
-        return AppLoadingWidget();
+        // Show loading only if notifications list is empty (initial load)
+        if (viewModel.notifications.isEmpty) {
+          return AppLoadingWidget();
+        }
+        // If loading more and we have data, show the list
+        return _buildBody();
       case Status.error:
         return _buildEmptyNotificationWidget(viewModel.notificationResponse.message.toString());
       case Status.completed:

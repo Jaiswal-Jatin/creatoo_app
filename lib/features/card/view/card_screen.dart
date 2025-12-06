@@ -99,6 +99,7 @@ class _CardScreenState extends State<CardScreen>
                     name: recentVisit.restaurantName,
                     dateTime: recentVisit.date,
                     tier: recentVisit.tier,
+                    imageUrl: recentVisit.imageUrl,
                   ),
                 ],
               );

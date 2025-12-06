@@ -63,6 +63,55 @@ class _BusinessProfileViewState extends State<BusinessProfileView> {
                       fontWeight: FontWeight.w400,
                     ),
                   ),
+                  SizedBox(height: 15.h),
+                  
+                  // QR Code Button
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        RoutesName.businessQrView,
+                        arguments: {
+                          'businessId': item.id ?? 0,
+                          'businessName': item.businessName ?? 'Business',
+                        },
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                      decoration: BoxDecoration(
+                        color: AppColor.primary,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColor.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.qr_code,
+                            color: AppColor.white,
+                            size: 24.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'View QR Code',
+                            style: TextStyle(
+                              color: AppColor.white,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
                   SizedBox(height: 10.h),
                   buildProfileContainer(item),
                   SizedBox(height: 10.h),

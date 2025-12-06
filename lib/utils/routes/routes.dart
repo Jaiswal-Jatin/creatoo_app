@@ -4,6 +4,7 @@ import 'package:creatoo/features/add_post_payment_summary/view/add_post_payment_
 import 'package:creatoo/features/bill_payment/view/payment_success_view.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_cart.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_pay.dart';
+import 'package:creatoo/features/business/qr_code/view/business_qr_view.dart';
 import 'package:creatoo/features/business_profile/view/business_profile.dart';
 import 'package:creatoo/features/business_profile/view/edit_business_profile.dart';
 import 'package:creatoo/features/coming_soon/view/coming_soon_view.dart';
@@ -266,6 +267,16 @@ class Routes {
 
       case RoutesName.cardView:
         return _buildRoute(settings, const CardScreen());
+
+      case RoutesName.businessQrView:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          settings,
+          BusinessQrView(
+            businessId: args['businessId'] as int,
+            businessName: args['businessName'] as String,
+          ),
+        );
 
       default:
         return _buildRoute(

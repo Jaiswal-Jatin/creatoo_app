@@ -94,12 +94,15 @@ class _HomeViewState extends State<HomeView> {
                                 title: isBusiness ? "Show QR" : "Scan",
                                 onPressed: () async {
                                   if (isBusiness) {
-                                    await Navigator.pushNamed(context, RoutesName.scannerView, arguments: {
-                                      'qrUrl':
-                                          '${viewModel.homeResponse.data?.data?.roleSpecificData?.qrCode ?? ''}?t=${DateTime.now().millisecondsSinceEpoch}',
-                                      'businessName': viewModel.user?.name ?? '',
-                                    });
-                                    await viewModel.init();
+                                    // Navigate to new QR view that generates QR locally
+                                    Navigator.pushNamed(
+                                      context,
+                                      RoutesName.businessQrView,
+                                      arguments: {
+                                        'businessId': userId ?? 0,
+                                        'businessName': viewModel.user?.name ?? 'Business',
+                                      },
+                                    );
                                   } else {
                                     Navigator.pushNamed(
                                       context,
@@ -142,8 +145,9 @@ class _HomeViewState extends State<HomeView> {
                                 icon: isBusiness ? 'assets/icons/wallet.png' : 'assets/icons/wallet.png',
                                 isImage: true,
                                 title: isBusiness ? "Today's Settlement" : "Balance",
+                                // Only show balance for creator, not for business
                                 balance: isBusiness
-                                    ? "${viewModel.roundToTwoDecimalPlaces(viewModel.homeResponse.data?.data?.roleSpecificData?.todayWalletPoints?.toDouble() ?? 0.0).toCommaSeparated()}"
+                                    ? null  // Hide balance for business
                                     : "${viewModel.roundToTwoDecimalPlaces(viewModel.homeResponse.data?.data?.roleSpecificData?.userCreatooPoints?.toDouble() ?? 0.0).toCommaSeparated()}",
                                 onPressed: () {
                                   if (isBusiness) {

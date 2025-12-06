@@ -1,7 +1,9 @@
 import 'package:creatoo/features/card/view_model/card_view_model.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/services.dart';
 
 import 'features/card/view_model/card_visit_view_model.dart';
+import 'utils/deep_link_service.dart';
 import 'core.dart';
 
 void main() async {
@@ -14,6 +16,7 @@ void main() async {
     NotificationService.initialize(),
     dotenv.load(fileName: Constants.dotEnv),
     FirebaseMessagingService.initialise(),
+    DeepLinkService.initialize(), // Initialize deep link handling
   ]);
 
   SystemChrome.setPreferredOrientations([
@@ -22,13 +25,16 @@ void main() async {
   ]);
 
   runApp(
-    MultiProvider(
-      providers: [
-        ...Providers.getAllProviders(),
-        ChangeNotifierProvider(create: (_) => CardViewModel()),
-        ChangeNotifierProvider(create: (_) => CardVisitViewModel()),
-      ],
-      child: MyApp(),
+    DevicePreview(
+      enabled: true, // Set to false in production
+      builder: (context) => MultiProvider(
+        providers: [
+          ...Providers.getAllProviders(),
+          ChangeNotifierProvider(create: (_) => CardViewModel()),
+          ChangeNotifierProvider(create: (_) => CardVisitViewModel()),
+        ],
+        child: MyApp(),
+      ),
     ),
   );
 }
@@ -51,6 +57,8 @@ class MyApp extends StatelessWidget {
               initialRoute: RoutesName.onboardingView,
               onGenerateRoute: Routes.generateRoute,
               navigatorKey: navigatorKey,
+              locale: DevicePreview.locale(context),
+              builder: DevicePreview.appBuilder,
             );
           },
         );

@@ -1,4 +1,5 @@
 class RoutesName {
+  static const String businessQrView = 'businessQrView';
   static const String onboardingView = 'onboardingView';
   static const String startupView = 'startUpView';
   static const String authView = 'authView';

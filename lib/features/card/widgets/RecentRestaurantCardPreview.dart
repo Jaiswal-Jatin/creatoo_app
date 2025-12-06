@@ -5,11 +5,14 @@ class RecentRestaurantCard extends StatelessWidget {
   final String name;
   final DateTime dateTime;
   final String tier;
+  final String? imageUrl;
+  
   const RecentRestaurantCard({
     Key? key,
     required this.name,
     required this.dateTime,
     required this.tier,
+    this.imageUrl,
   }) : super(key: key);
 
   String _formatDate(DateTime dt) {    
@@ -55,14 +58,24 @@ class RecentRestaurantCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
             children: [
-              // Left: circle avatar with initials
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: _tierColor(tier).withOpacity(0.15),
-                child: Text(
-                  (name.split(' ').map((s) => s.isNotEmpty ? s[0] : '').take(2).join()).toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+              // Left: Restaurant image or initials fallback
+              ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: imageUrl != null && imageUrl!.isNotEmpty
+                    ? AppImageWidget(
+                        imageUrl: imageUrl!,
+                        height: 56,
+                        width: 56,
+                        iconSize: 56,
+                      )
+                    : CircleAvatar(
+                        radius: 28,
+                        backgroundColor: _tierColor(tier).withOpacity(0.15),
+                        child: Text(
+                          (name.split(' ').map((s) => s.isNotEmpty ? s[0] : '').take(2).join()).toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
               ),
       
               const SizedBox(width: 12),

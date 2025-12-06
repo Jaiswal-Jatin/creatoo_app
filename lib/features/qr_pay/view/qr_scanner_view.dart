@@ -271,8 +271,76 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
     );
   }
 
-  //TODO: Need to change this
+  /// Validate and extract data from scanned QR code
+  /// Supports both:
+  /// 1. New URL format: https://api.tapbill.in/api/scan?businessId=123
+  /// 2. Legacy Base64 format: qr_123 (base64 encoded)
   bool _validateAndExtractData(String qrCodeData) {
+    try {
+      // First, try to parse as URL (new format)
+      if (qrCodeData.startsWith('http://') || qrCodeData.startsWith('https://')) {
+        return _validateUrlFormat(qrCodeData);
+      }
+      
+      // Fallback to Base64 format (legacy support)
+      return _validateBase64Format(qrCodeData);
+    } catch (e) {
+      log("Error validating QR code data: $e");
+      return false;
+    }
+  }
+
+  /// Validate URL-based QR format
+  bool _validateUrlFormat(String url) {
+    try {
+      final uri = Uri.parse(url);
+      
+      log("Validating URL QR - Host: ${uri.host}, Path: ${uri.path}");
+      
+      // Validate scheme
+      if (uri.scheme != 'https') {
+        log("Invalid scheme: ${uri.scheme}");
+        return false;
+      }
+      
+      // Validate domain
+      if (uri.host != 'api.tapbill.in') {
+        log("Invalid domain: ${uri.host}");
+        return false;
+      }
+      
+      // Validate path contains /api/scan
+      if (!uri.path.contains('/api/scan')) {
+        log("Invalid path: ${uri.path}");
+        return false;
+      }
+      
+      // Extract and validate businessId
+      final businessIdStr = uri.queryParameters['businessId'];
+      if (businessIdStr == null || businessIdStr.isEmpty) {
+        log("businessId parameter is missing");
+        return false;
+      }
+      
+      final parsedBusinessId = int.tryParse(businessIdStr);
+      if (parsedBusinessId == null) {
+        log("businessId is not a valid number: $businessIdStr");
+        return false;
+      }
+      
+      // Set the businessId in viewModel
+      viewModel.businessId = parsedBusinessId;
+      log("✅ Valid Creatoo URL QR - Business ID: $parsedBusinessId");
+      return true;
+      
+    } catch (e) {
+      log("Error parsing URL QR: $e");
+      return false;
+    }
+  }
+
+  /// Validate Base64-based QR format (legacy)
+  bool _validateBase64Format(String qrCodeData) {
     try {
       // Decode the Base64-encoded string
       final decodedData = utf8.decode(base64.decode(qrCodeData));
@@ -280,15 +348,17 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
       // Check if the decoded string starts with "qr_" (case-insensitive)
       if (decodedData.toLowerCase().startsWith('qr_')) {
         final parts = decodedData.split('_');
-        viewModel.businessId = int.tryParse(parts[1]);
+        if (parts.length >= 2) {
+          viewModel.businessId = int.tryParse(parts[1]);
 
-        log("Decoded Data: $decodedData");
-        log("Business ID: ${viewModel.businessId}");
+          log("✅ Valid Legacy Base64 QR - Decoded Data: $decodedData");
+          log("Business ID: ${viewModel.businessId}");
 
-        return true;
+          return viewModel.businessId != null;
+        }
       }
     } catch (e) {
-      log("Error decoding or parsing QR code data: $e");
+      log("Error decoding or parsing Base64 QR code data: $e");
     }
 
     return false;

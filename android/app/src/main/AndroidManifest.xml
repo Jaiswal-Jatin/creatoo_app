@@ -8,65 +8,78 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:node="remove" />
     <uses-permission android:name="android.permission.INTERNET"/>
-<uses-permission android:name="android.permission.CAMERA"/>
-<uses-permission android:name="android.permission.FLASHLIGHT"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
 
-<application
-    android:label="Creatoo"
-    android:name="${applicationName}"
-    android:enableOnBackInvokedCallback="true"
-    android:usesCleartextTraffic="true"
-    android:icon="@mipmap/launcher_icon">
+    <application
+        android:label="Creatoo"
+        android:name="${applicationName}"
+        android:enableOnBackInvokedCallback="true"
+        android:usesCleartextTraffic="true"
+        android:icon="@mipmap/launcher_icon">
 
-    <meta-data
-        android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/ic_stat_ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_ic_notification" />
 
-    <activity
-        android:name=".MainActivity"
-        android:exported="true"
-        android:launchMode="singleTop"
-        android:theme="@style/LaunchTheme"
-        android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-        android:hardwareAccelerated="true"
-        android:windowSoftInputMode="adjustResize">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
 
-        <!-- Launcher Intent -->
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN"/>
-            <category android:name="android.intent.category.LAUNCHER"/>
-        </intent-filter>
+            <!-- Launcher Intent -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
 
-        <!-- Deep Link Intent for PhonePe Callback -->
-        <intent-filter>
+            <!-- PhonePe Callback Deep Link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="creatoo" android:host="payment-response"/>
+            </intent-filter>
+
+            <!-- 🔥 Android App Links (QR Scan Deep Linking) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <!-- Creatoo API domain -->
+                <data
+                    android:scheme="https"
+                    android:host="api.tapbill.in"
+                    android:pathPrefix="/api/scan" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- Flutter Plugin Support -->
+        <meta-data android:name="flutterEmbedding" android:value="2"/>
+
+        <!-- PhonePe SDK Config -->
+        <meta-data android:name="com.phonepe.android.sdk.isUAT" android:value="false"/>
+        <meta-data android:name="com.phonepe.android.sdk.isSimulator" android:value="true"/>
+        <meta-data android:name="com.phonepe.android.sdk.MerchantId" android:value="M22EFNQGYNH1V"/>
+
+    </application>
+
+    <!-- Required to query UPI apps -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
             <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="creatoo" android:host="payment-response"/>
-        </intent-filter>
-
-    </activity>
-
-    <!-- Flutter Plugin Support -->
-    <meta-data android:name="flutterEmbedding" android:value="2"/>
-
-    <!-- PhonePe SDK Configuration -->
-    <meta-data android:name="com.phonepe.android.sdk.isUAT" android:value="false"/> <!-- Set to "false" for production -->
-    <meta-data android:name="com.phonepe.android.sdk.isSimulator" android:value="true"/>
-    <meta-data android:name="com.phonepe.android.sdk.MerchantId" android:value="M22EFNQGYNH1V"/> <!-- Change this in production -->
-
-</application>
-
-<!-- Required to query UPI apps -->
-<queries>
-    <intent>
-        <action android:name="android.intent.action.PROCESS_TEXT"/>
-        <data android:mimeType="text/plain"/>
-    </intent>
-    <intent>
-        <action android:name="android.intent.action.VIEW"/>
-        <data android:scheme="upi"/>
-    </intent>
-</queries>
+            <data android:scheme="upi"/>
+        </intent>
+    </queries>
 
 </manifest>
