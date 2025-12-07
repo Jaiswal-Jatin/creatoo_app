@@ -2,7 +2,10 @@ String baseUrl = "${AppUrl.host}/storage/app/";
 
 class AppUrl {
   // Base URLs
-  static const String host = 'https://api.tapbill.in';
+ 
+    static const String host = 'https://api.creatoo.co.in';
+
+  // static const String host = 'https://api.tapbill.in';
   // static const String host = 'https://portal.creatoo.co.in';
 
   static const String baseUrl = '$host/api';
