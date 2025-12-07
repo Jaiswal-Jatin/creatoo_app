@@ -1117,6 +1117,198 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // Check if customer visited within last 6 hours
+  bool _hasRecentVisit(List<VisitHistoryItem>? visitHistory) {
+    if (visitHistory == null || visitHistory.isEmpty) return false;
+    
+    final now = DateTime.now();
+    for (var visit in visitHistory) {
+      if (visit.time != null) {
+        try {
+          final visitTime = DateTime.parse(visit.time!);
+          final difference = now.difference(visitTime);
+          if (difference.inHours < 6) {
+            return true;
+          }
+        } catch (e) {
+          print("❌ Error parsing visit time: ${visit.time}");
+        }
+      }
+    }
+    return false;
+  }
+
+  // Get next allowed visit time (most recent visit + 6 hours)
+  DateTime? _getNextAllowedVisitTime(List<VisitHistoryItem>? visitHistory) {
+    if (visitHistory == null || visitHistory.isEmpty) return null;
+    
+    DateTime? mostRecentVisit;
+    for (var visit in visitHistory) {
+      if (visit.time != null) {
+        try {
+          final visitTime = DateTime.parse(visit.time!);
+          if (mostRecentVisit == null || visitTime.isAfter(mostRecentVisit)) {
+            mostRecentVisit = visitTime;
+          }
+        } catch (e) {
+          print("❌ Error parsing visit time: ${visit.time}");
+        }
+      }
+    }
+    
+    return mostRecentVisit?.add(const Duration(hours: 6));
+  }
+
+  // Show dialog when customer has already visited within 6 hours
+  void _showAlreadyVisitedDialog(String customerName, DateTime nextVisitTime) {
+    final now = DateTime.now();
+    final difference = nextVisitTime.difference(now);
+    final hoursRemaining = difference.inHours;
+    final minutesRemaining = difference.inMinutes % 60;
+    
+    // Format next visit time
+    final formattedTime = '${nextVisitTime.hour}:${nextVisitTime.minute.toString().padLeft(2, '0')} ${nextVisitTime.hour >= 12 ? 'PM' : 'AM'}';
+    final formattedDate = '${nextVisitTime.day} ${_getMonthName(nextVisitTime.month)}, ${nextVisitTime.year}';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 8,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Warning Icon
+                Container(
+                  width: 80.w,
+                  height: 80.w,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.access_time_rounded,
+                      color: Colors.orange,
+                      size: 45.sp,
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Title
+                Text(
+                  'Already Visited',
+                  style: TextStyle(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[800],
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Message
+                Text(
+                  'This customer has already visited recently.',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColor.darkGrey,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Next Visit Time Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.orange.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Next visit allowed in',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColor.darkGrey,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        '${hoursRemaining}h ${minutesRemaining}m',
+                        style: TextStyle(
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[800],
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        '$formattedDate at $formattedTime',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: AppColor.darkGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // OK Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48.h,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _callAddVisitAPI(String cardNumber, String token) {
     // Run in background without blocking UI
     Future.microtask(() async {
@@ -1353,17 +1545,29 @@ class _HomeViewState extends State<HomeView> {
                                   },
                                 );
                               }, (visitResponse) {
-                                // success - show verified popup with data
+                                // success - check if customer visited within 6 hours
                                 print("✅ VISITCHECK Success: Card ${visitResponse.card?.cardNumber}");
                                 log("visitCheck success: ${visitResponse.card?.name}");
                                 
-                                // Call addVisit API with card number
-                                _callAddVisitAPI(code, token);
-                                
-                                Navigator.of(context).pop(); // close the input dialog
-                                Future.delayed(const Duration(milliseconds: 150), () {
-                                  _showVerificationSuccessDialogWithData(visitResponse);
-                                });
+                                // Check for 6-hour restriction
+                                if (_hasRecentVisit(visitResponse.visitHistory)) {
+                                  // Customer already visited within 6 hours
+                                  final nextVisitTime = _getNextAllowedVisitTime(visitResponse.visitHistory);
+                                  Navigator.of(context).pop(); // close the input dialog
+                                  Future.delayed(const Duration(milliseconds: 150), () {
+                                    _showAlreadyVisitedDialog(
+                                      visitResponse.card?.name ?? 'Customer',
+                                      nextVisitTime ?? DateTime.now().add(const Duration(hours: 6)),
+                                    );
+                                  });
+                                } else {
+                                  // No recent visit - proceed with adding visit
+                                  _callAddVisitAPI(code, token);
+                                  Navigator.of(context).pop(); // close the input dialog
+                                  Future.delayed(const Duration(milliseconds: 150), () {
+                                    _showVerificationSuccessDialogWithData(visitResponse);
+                                  });
+                                }
                               });
                             } catch (e) {
                               Navigator.of(context).pop();
