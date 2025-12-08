@@ -245,32 +245,32 @@ class _HomeViewState extends State<HomeView> {
     double borderRadius;
     
     if (isVerySmall) {
-      cardWidth = w * 0.38;
-      imageHeight = h * 0.08;
+      cardWidth = w * 0.42;
+      imageHeight = h * 0.09;
       cardPadding = 6;
-      titleFontSize = 10.sp;
-      discountFontSize = 7.sp;
+      titleFontSize = 12.sp;
+      discountFontSize = 11.sp;
       borderRadius = 12;
     } else if (isSmall) {
-      cardWidth = w * 0.40;
-      imageHeight = h * 0.09;
+      cardWidth = w * 0.44;
+      imageHeight = h * 0.10;
       cardPadding = 8;
-      titleFontSize = 11.sp;
-      discountFontSize = 8.sp;
+      titleFontSize = 13.sp;
+      discountFontSize = 12.sp;
       borderRadius = 14;
     } else if (isMedium) {
-      cardWidth = w * 0.42;
-      imageHeight = h * 0.10;
+      cardWidth = w * 0.46;
+      imageHeight = h * 0.12;
       cardPadding = 9;
-      titleFontSize = 12.sp;
-      discountFontSize = 9.sp;
+      titleFontSize = 14.sp;
+      discountFontSize = 13.sp;
       borderRadius = 15;
     } else {
-      cardWidth = 180.w;
-      imageHeight = 110.h;
+      cardWidth = 210.w;
+      imageHeight = 130.h;
       cardPadding = 10;
-      titleFontSize = 14.sp;
-      discountFontSize = 10.sp;
+      titleFontSize = 16.sp;
+      discountFontSize = 14.sp;
       borderRadius = 16;
     }
     
@@ -294,8 +294,8 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image with constrained height
@@ -307,7 +307,7 @@ class _HomeViewState extends State<HomeView> {
                 imageUrl: item.businessImage!,
               ),
             ),
-            SizedBox(height: cardPadding * 0.5),
+            SizedBox(height: cardPadding * 0.8),
             // Title
             AppTextWidget(
               text: '${item.businessName}',
@@ -317,7 +317,7 @@ class _HomeViewState extends State<HomeView> {
               fontWeight: FontWeight.w600,
             ),
             if (item.set_first_time_discount != null) ...[
-              SizedBox(height: cardPadding * 0.3),
+              SizedBox(height: cardPadding * 1.0),
               // Discount tag
               Container(
                 decoration: BoxDecoration(
@@ -345,10 +345,20 @@ class _HomeViewState extends State<HomeView> {
                         color: Colors.white,
                         textOverflow: TextOverflow.ellipsis,
                       ),
+                      
                     ],
                   ),
                 ),
               ),
+                          SizedBox(height: cardPadding * 0.8),
+
+            ] else ...[
+              // Empty placeholder to maintain consistent card height
+              SizedBox(height: cardPadding * 1.0),
+              SizedBox(
+                height: discountFontSize + (cardPadding * 0.5),
+              ),
+              SizedBox(height: cardPadding * 0.8),
             ],
           ],
         ),
@@ -378,7 +388,7 @@ class _HomeViewState extends State<HomeView> {
   CarouselSlider buildCarouselSlider(HomeViewModel homeViewModel) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 150.0.h,
+        height: 180.0.h,
         autoPlay: true,
         enableInfiniteScroll: true,
         aspectRatio: 2.0,
@@ -614,26 +624,26 @@ class _HomeViewState extends State<HomeView> {
     double bottomSpacing;
     
     if (isVerySmall) {
-      sectionHeight = h * 0.20;
-      cardHeight = h * 0.14;
+      sectionHeight = h * 0.23;
+      cardHeight = h * 0.17;
       titleSpacing = h * 0.008;
       titleFontSize = 14.sp;
       bottomSpacing = h * 0.012;
     } else if (isSmall) {
-      sectionHeight = h * 0.22;
-      cardHeight = h * 0.16;
+      sectionHeight = h * 0.25;
+      cardHeight = h * 0.19;
       titleSpacing = h * 0.01;
       titleFontSize = 15.sp;
       bottomSpacing = h * 0.015;
     } else if (isMedium) {
-      sectionHeight = h * 0.23;
-      cardHeight = h * 0.17;
+      sectionHeight = h * 0.27;
+      cardHeight = h * 0.21;
       titleSpacing = h * 0.012;
       titleFontSize = 17.sp;
       bottomSpacing = h * 0.018;
     } else {
-      sectionHeight = 220.h;
-      cardHeight = 160.h;
+      sectionHeight = 260.h;
+      cardHeight = 200.h;
       titleSpacing = 18.h;
       titleFontSize = 18.sp;
       bottomSpacing = 20.h;

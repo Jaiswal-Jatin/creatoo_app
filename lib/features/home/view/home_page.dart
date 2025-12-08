@@ -146,19 +146,22 @@ class _HomePageState extends State<HomePage> {
   Alignment _getAlignment(int selectedIndex) {
     if (roleId == Constants.businessUser) {
       // Business user with 4 items: Home, Visits, Wallet, Profile
+      // For 4 items, indicator width is 1/4 of screen
+      // Alignment -1 = left edge at 0%, Alignment 1 = right edge at 100%
       if (selectedIndex == 0) return Alignment(-1, 0); // Home
-      if (selectedIndex == 1) return Alignment(-0.3, 0); // Visits
-      if (selectedIndex == 2) return Alignment(0.3, 0); // Wallet
+      if (selectedIndex == 1) return Alignment(-0.333, 0); // Visits
+      if (selectedIndex == 2) return Alignment(0.333, 0); // Wallet
       if (selectedIndex == 3) return Alignment(1, 0); // Profile
     } else {
       // Creator user with 5 items: Home, Search, Card, Wallet, Profile
+      // For 5 items, indicator width is 1/5 of screen
       if (selectedIndex == 0) return Alignment(-1, 0); // Home
-      if (selectedIndex == 1) return Alignment(-0.6, 0); // Search
-      if (selectedIndex == 2) return Alignment(-0.0, 0); // Card
-      if (selectedIndex == 3) return Alignment(0.6, 0); // Wallet
+      if (selectedIndex == 1) return Alignment(-0.5, 0); // Search
+      if (selectedIndex == 2) return Alignment(0, 0); // Card
+      if (selectedIndex == 3) return Alignment(0.5, 0); // Wallet
       if (selectedIndex == 4) return Alignment(1, 0); // Profile
     }
-    return Alignment(1, 0); // Default, should not be reached with proper indices
+    return Alignment(1, 0); // Default
   }
 
   InkWell buildGestureDetector(BuildContext context, int index, String iconPath, String name, {bool isSvg = true}) {
