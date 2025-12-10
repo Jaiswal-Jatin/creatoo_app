@@ -237,7 +237,15 @@ class BillPaymentViewModel with ChangeNotifier {
           debugPrint('🔴 Timestamp: ${DateTime.now().toIso8601String()}');
           
           setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-          Utils.toastMessage(l.message.toString());
+          
+          // Check for discount not set error
+          String errorMsg = l.message.toString().toLowerCase();
+          if (errorMsg.contains('discountpercentage') || 
+              errorMsg.contains('discount') && errorMsg.contains('not a function')) {
+            Utils.toastMessage("This business has not set discount. You can't pay right now. Please contact the business.");
+          } else {
+            Utils.toastMessage(l.message.toString());
+          }
         },
         (r) async {
           debugPrint('\n✅ API Success:');
