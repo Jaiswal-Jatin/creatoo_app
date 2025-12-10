@@ -16,7 +16,10 @@
         android:name="${applicationName}"
         android:enableOnBackInvokedCallback="true"
         android:usesCleartextTraffic="true"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        tools:targetApi="35"
+        android:appCategory="productivity"
+        android:pageSizeCompat="enabled">
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
@@ -30,6 +33,10 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
+
+            <meta-data
+                android:name="io.flutter.embedding.android.SplashScreenDrawable"
+                android:resource="@drawable/launch_background" />
 
             <!-- Launcher Intent -->
             <intent-filter>
@@ -45,16 +52,27 @@
                 <data android:scheme="creatoo" android:host="payment-response"/>
             </intent-filter>
 
-            <!-- 🔥 Android App Links (QR Scan Deep Linking) -->
+            <!-- 🔥 CURRENT QR Domain (Tapbill) - Verified -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <!-- Creatoo API domain -->
                 <data
                     android:scheme="https"
                     android:host="api.tapbill.in"
+                    android:pathPrefix="/api/scan" />
+            </intent-filter>
+
+            <!-- 🔥 FUTURE QR Domain (Creatoo) - Optional, not yet verified -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:scheme="https"
+                    android:host="api.creatoo.co.in"
                     android:pathPrefix="/api/scan" />
             </intent-filter>
 
