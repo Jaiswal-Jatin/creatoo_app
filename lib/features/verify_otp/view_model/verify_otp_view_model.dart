@@ -119,6 +119,15 @@ class VerifyOtpViewModel with ChangeNotifier {
             Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerCreatorView, arguments: phone);
           }
         } else {
+          // Check if user (business or creator) is inactive
+          if (r.data!.isActive == 0) {
+            print('User is inactive - Login blocked');
+            Utils.toastMessage("Account is not active, please contact admin");
+            setVerifyOtpResponse(ApiResponse.initial()); // Reset loading state
+            notifyListeners();
+            return; // Don't proceed with login
+          }
+          
           print('User Already Registered - Navigating to Home');
           await saveUserData(r.data!);
           

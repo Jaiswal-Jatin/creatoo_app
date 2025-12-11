@@ -93,7 +93,7 @@ class SearchViewModel with ChangeNotifier {
     // Change to use the new API for fetching business list
     var data = {
       "role_id": userRole,
-      "per_page": 10,
+      "per_page": 30,
       "page": currentPage + 1,
     };
     var response = await _myRepo.searchBusinessUserApi(data);
@@ -106,13 +106,21 @@ class SearchViewModel with ChangeNotifier {
       },
       (r) {
         print("SearchViewModel: searchBusinessUser completed");
+        print("SearchViewModel: Total businesses from API: ${r.data?.length ?? 0}");
+        r.data?.forEach((b) {
+          print("Business: ${b.businessName}, isActive: ${b.isActive}, type: ${b.isActive.runtimeType}");
+        });
         setBusinessResponse(ApiResponse.completed(r));
 
+        // Only show businesses where is_active: true (isActive == 1)
+        final activeBusinesses = r.data?.where((b) => b.isActive == 1).toList() ?? [];
+        print("SearchViewModel: Active businesses after filter: ${activeBusinesses.length}");
+
         if (currentPage == 0) {
-          businessSearchList = r.data;
-          _originalBusinessList = List.from(r.data ?? []);
+          businessSearchList = activeBusinesses;
+          _originalBusinessList = List.from(activeBusinesses);
         } else {
-          businessSearchList?.addAll(r.data ?? []);
+          businessSearchList?.addAll(activeBusinesses);
         }
 
         totalPages = r.pagination?.lastPage ?? 1;
@@ -130,7 +138,7 @@ class SearchViewModel with ChangeNotifier {
 
     var data = {
       "role_id": userRole,
-      "per_page": 10,
+      "per_page": 30,
       "page": currentPage + 1,
     };
     var response = await _myRepo.searchBusinessUserApi(data);
@@ -144,8 +152,10 @@ class SearchViewModel with ChangeNotifier {
       },
       (r) {
         print("SearchViewModel: loadMoreBusinessUsers completed");
-        if (r.data != null && r.data!.isNotEmpty) {
-          businessSearchList?.addAll(r.data ?? []);
+        // Only show businesses where is_active: true (isActive == 1)
+        final activeBusinesses = r.data?.where((b) => b.isActive == 1).toList() ?? [];
+        if (activeBusinesses.isNotEmpty) {
+          businessSearchList?.addAll(activeBusinesses);
           currentPage++;
         }
 
@@ -159,7 +169,7 @@ class SearchViewModel with ChangeNotifier {
   Future<void> searchBusinessUserByNameApi({String searchQuery = ""}) async {
     var data = {
       "role_id": userRole,
-      "per_page": 10,
+      "per_page": 30,
       "page": 1,
       "key": searchQuery, // Corrected typo from "k,ey" to "key"
     };
@@ -177,8 +187,10 @@ class SearchViewModel with ChangeNotifier {
     }, (r) {
       print("SearchViewModel: searchBusinessUserByNameApi completed");
       setBusinessResponse(ApiResponse.completed(r)); // Set completed status
-      businessSearchList = r.data; // Update businessSearchList with search results
-      _originalBusinessList = List.from(r.data ?? []); // Update original list
+      // Only show businesses where is_active: true (isActive == 1)
+      final activeBusinesses = r.data?.where((b) => b.isActive == 1).toList() ?? [];
+      businessSearchList = activeBusinesses; // Update businessSearchList with active search results
+      _originalBusinessList = List.from(activeBusinesses); // Update original list
       currentPage = 1; // Reset current page for search results
       totalPages = r.pagination?.lastPage ?? 1; // Update total pages
     });

@@ -12,12 +12,21 @@ class DeepLinkService {
   
   // Store pending deep link business ID for cold start navigation
   static int? _pendingBusinessId;
+  
+  // Track last processed initial link to avoid duplicate processing on restart
+  static String? _lastProcessedInitialLink;
+  
+  // Session counter to cancel stale futures on hot restart
+  static int _sessionId = 0;
 
   /// Initialize deep link listener
   /// Call this in main() before runApp()
   static Future<void> initialize() async {
+    // Increment session ID to invalidate any pending futures from previous session
+    _sessionId++;
+    
     if (_isInitialized) {
-      log('DeepLinkService already initialized');
+      log('DeepLinkService already initialized, session: $_sessionId');
       return;
     }
 
@@ -27,8 +36,15 @@ class DeepLinkService {
       // Handle initial deep link (app was opened from terminated state)
       final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
-        log('Initial deep link: $initialLink');
-        _handleDeepLink(initialLink.toString(), isInitialLink: true);
+        final linkStr = initialLink.toString();
+        // Skip if we've already processed this exact link (prevents duplicate on restart)
+        if (_lastProcessedInitialLink == linkStr) {
+          log('Initial deep link already processed, skipping: $linkStr');
+        } else {
+          _lastProcessedInitialLink = linkStr;
+          log('Initial deep link: $initialLink');
+          _handleDeepLink(linkStr, isInitialLink: true);
+        }
       }
 
       // Listen for deep links when app is running or in background
@@ -63,7 +79,7 @@ class DeepLinkService {
       log('Parsed URI - Host: ${uri.host}, Path: ${uri.path}, Query: ${uri.queryParameters}');
 
       // Validate domain
-      if (uri.host != 'api.tapbill.in') {
+      if (uri.host != 'api.creatoo.co.in') {
         log('Invalid domain: ${uri.host}');
         return;
       }
@@ -127,7 +143,16 @@ class DeepLinkService {
     // Subsequent attempts use shorter delay
     final delayMs = attempt == 0 ? 2000 : 300;
     
+    // Capture current session ID to detect hot restart
+    final currentSessionId = _sessionId;
+    
     Future.delayed(Duration(milliseconds: delayMs), () async {
+      // Check if session changed (hot restart happened) - cancel this stale future
+      if (_sessionId != currentSessionId) {
+        log('Session changed (hot restart detected), cancelling stale navigation');
+        return;
+      }
+      
       final context = navigatorKey.currentContext;
       
       if (context != null) {
@@ -225,7 +250,7 @@ class DeepLinkService {
       final uri = Uri.parse(url);
       
       // Validate domain and path
-      if (uri.host != 'api.tapbill.in' || !uri.path.contains('/api/scan')) {
+      if (uri.host != 'api.creatoo.co.in' || !uri.path.contains('/api/scan')) {
         return null;
       }
 
@@ -252,7 +277,7 @@ class DeepLinkService {
       }
       
       // Check domain
-      if (uri.host != 'api.tapbill.in') {
+      if (uri.host != 'api.creatoo.co.in') {
         return false;
       }
       

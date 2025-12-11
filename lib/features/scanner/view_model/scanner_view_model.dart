@@ -27,7 +27,15 @@ class ScannerViewModel with ChangeNotifier {
   setResponse(ApiResponse<ScannerModelResponse> response) => scannerResponse = response;
 
   init(String value) async {
-    qrValue = "$baseUrl$value";
+    // Check if the value is already a complete URL
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      qrValue = value;
+    } else {
+      // Remove leading slash from value if present to avoid double slashes
+      final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+      qrValue = "$baseUrl$cleanValue";
+    }
+    print("ScannerViewModel: qrValue set to: $qrValue");
     // expDateController = TextEditingController(text: selectedValue);
     // businessSettings = BusinessSettings();
     // await fetchBusinessSettings();
@@ -140,9 +148,21 @@ class ScannerViewModel with ChangeNotifier {
 
   Future<File?> getImage() async {
     try {
+      // Validate QR URL
+      if (qrValue.isEmpty) {
+        print("ScannerViewModel: getImage() - qrValue is empty");
+        Utils.snackBar("QR code URL not found.", result: Result.error);
+        return null;
+      }
+      
+      print("ScannerViewModel: getImage() - Downloading from: $qrValue");
+      
       isDownloading = true;
       notifyListeners();
+      
       Dio dio = Dio();
+      dio.options.connectTimeout = Duration(seconds: 30);
+      dio.options.receiveTimeout = Duration(seconds: 30);
 
       // Fetch the image bytes from the URL
       Response<ResponseBody> response = await dio.get<ResponseBody>(
@@ -150,20 +170,34 @@ class ScannerViewModel with ChangeNotifier {
         options: Options(responseType: ResponseType.stream),
       );
 
+      print("ScannerViewModel: getImage() - Response status: ${response.statusCode}");
+
       // Collect bytes from the response stream
       List<int> imageBytes = [];
       await for (var chunk in response.data!.stream) {
         imageBytes.addAll(chunk);
       }
 
+      print("ScannerViewModel: getImage() - Image bytes received: ${imageBytes.length}");
+
+      if (imageBytes.isEmpty) {
+        print("ScannerViewModel: getImage() - No image bytes received");
+        Utils.snackBar("Failed to download QR code - no data received.", result: Result.error);
+        isDownloading = false;
+        notifyListeners();
+        return null;
+      }
+
       // Save the image directly to the gallery
       final result = await ImageGallerySaverPlus.saveImage(
         Uint8List.fromList(imageBytes), // Convert to Uint8List
         quality: 100, // High quality
-        name: "creatoo_business_qr", // Custom file name
+        name: "creatoo_business_qr_${DateTime.now().millisecondsSinceEpoch}", // Unique file name
       );
 
-      if (result['isSuccess']) {
+      print("ScannerViewModel: getImage() - Save result: $result");
+
+      if (result['isSuccess'] == true) {
         print("Image saved successfully to gallery: ${result['filePath']}");
 
         if (Platform.isAndroid) {
@@ -172,6 +206,7 @@ class ScannerViewModel with ChangeNotifier {
           Utils.snackBar("QR code added to your Photos app.", result: Result.success);
         }
       } else {
+        print("ScannerViewModel: getImage() - Failed to save: ${result['errorMessage'] ?? 'Unknown error'}");
         Utils.snackBar("Failed to save QR code to gallery.", result: Result.error);
       }
 
@@ -179,10 +214,17 @@ class ScannerViewModel with ChangeNotifier {
       notifyListeners();
 
       return null;
+    } on DioException catch (e) {
+      isDownloading = false;
+      notifyListeners();
+      print('ScannerViewModel: getImage() - DioException: ${e.type} - ${e.message}');
+      print('ScannerViewModel: getImage() - Response: ${e.response?.statusCode} - ${e.response?.data}');
+      Utils.snackBar("Failed to download QR code. Please try again.", result: Result.error);
+      return null;
     } catch (e) {
       isDownloading = false;
       notifyListeners();
-      print('Error downloading image: $e');
+      print('ScannerViewModel: getImage() - Error: $e');
       Utils.snackBar("Failed to download QR code.", result: Result.error);
       return null;
     }

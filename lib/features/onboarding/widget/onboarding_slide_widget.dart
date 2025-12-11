@@ -17,52 +17,61 @@ class OnboardingSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[
-        Container(
-          height: SizeConfig.screenWidth - 50,
-          width: SizeConfig.screenWidth,
-          child: SvgPicture.asset(
-            image,
-          ),
-        ),
-        SizedBox(height: 20.h),
-        Container(
-          margin: EdgeInsets.symmetric(vertical: 20.h),
-          height: MediaQuery.sizeOf(context).height * 0.3,
-          width: MediaQuery.sizeOf(context).width,
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    description,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.montserrat(
-                      textStyle: Theme.of(context).textTheme.displayLarge,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-                  // if (isLastSlide)
-                  AppButton(
-                    onTap: onNext,
-                    isIconEnabled: false,
-                    text: isLastSlide ? "Get Started" : "Next",
-                  ),
-                ],
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          Expanded(
+            flex: 5,
+            child: Container(
+              width: SizeConfig.screenWidth,
+              child: SvgPicture.asset(
+                image,
+                fit: BoxFit.contain,
               ),
             ),
           ),
-        ),
-      ],
+          SizedBox(height: 16.h),
+          Expanded(
+            flex: 4,
+            child: Container(
+              margin: EdgeInsets.only(bottom: 16.h),
+              width: MediaQuery.sizeOf(context).width,
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          description,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            textStyle: Theme.of(context).textTheme.displayLarge,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      AppButton(
+                        onTap: onNext,
+                        isIconEnabled: false,
+                        text: isLastSlide ? "Get Started" : "Next",
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

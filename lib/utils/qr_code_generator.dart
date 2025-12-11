@@ -4,9 +4,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 /// Utility class for generating QR codes for business deep links
 class QrCodeGenerator {
   /// Generate QR code URL for a business
-  /// Format: https://api.tapbill.in/api/scan?businessId={businessId}
+  /// Format: https://api.creatoo.co.in/api/scan?businessId={businessId}
   static String generateQrUrl(int businessId) {
-    return 'https://api.tapbill.in/api/scan?businessId=$businessId';
+    return 'https://api.creatoo.co.in/api/scan?businessId=$businessId';
   }
 
   /// Generate QR code widget for a business

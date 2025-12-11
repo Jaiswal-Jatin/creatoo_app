@@ -177,40 +177,53 @@ class _HomeViewState extends State<HomeView> {
               
               // Show Top Businesses for regular users, Lottie animation for business users
               (roleId == Constants.businessUser)
-                  ? Builder(
-                      builder: (context) {
-                        final h = MediaQuery.of(context).size.height;
-                        // 15% of screen height - adjusts automatically
-                        final lottieHeight = h * 0.35;
-                        
-                        return Container(
-                          height: lottieHeight,
-                          width: double.infinity,
-                          margin: EdgeInsets.only(bottom: 0, top: 5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.transparent,
-                          ),
-                          child: Lottie.asset(
-                            'assets/lottie/Main menu.json',
-                            fit: BoxFit.contain,
-                            repeat: true,
-                            animate: true,
-                          ),
-                        );
-                      },
-                    )
+                  ? SizedBox.shrink() // Lottie animation commented out
+                  // ? Builder(
+                  //     builder: (context) {
+                  //       final h = MediaQuery.of(context).size.height;
+                  //       // 15% of screen height - adjusts automatically
+                  //       final lottieHeight = h * 0.35;
+                  //       
+                  //       return Container(
+                  //         height: lottieHeight,
+                  //         width: double.infinity,
+                  //         margin: EdgeInsets.only(bottom: 0, top: 5),
+                  //         decoration: BoxDecoration(
+                  //           borderRadius: BorderRadius.circular(12),
+                  //           color: Colors.transparent,
+                  //         ),
+                  //         child: Lottie.asset(
+                  //           'assets/lottie/Main menu.json',
+                  //           fit: BoxFit.contain,
+                  //           repeat: true,
+                  //           animate: true,
+                  //         ),
+                  //       );
+                  //     },
+                  //   )
                   : Column(
                       children: [
-                        // Show Top Businesses for regular users
-                        (viewModel.homeResponse.data!.data!.topBusiness == null || viewModel.homeResponse.data!.data!.topBusiness!.isEmpty)
-                            ? const SizedBox.shrink()
-                            : buildBusiness(name: "Top Businesses", data: viewModel.homeResponse.data!.data!.topBusiness!),
+                        // Show Top Businesses for regular users (only active businesses)
+                        Builder(
+                          builder: (context) {
+                            final activeTopBusinesses = viewModel.homeResponse.data!.data!.topBusiness
+                                ?.where((b) => b.isActive == 1).toList() ?? [];
+                            return activeTopBusinesses.isEmpty
+                                ? const SizedBox.shrink()
+                                : buildBusiness(name: "Top Businesses", data: activeTopBusinesses);
+                          },
+                        ),
                         
-                        // Show New Businesses for regular users
-                        (viewModel.homeResponse.data!.data!.newBusiness == null || viewModel.homeResponse.data!.data!.newBusiness!.isEmpty)
-                            ? const SizedBox.shrink()
-                            : buildBusiness(name: "New Businesses", data: viewModel.homeResponse.data!.data!.newBusiness!),
+                        // Show New Businesses for regular users (only active businesses)
+                        Builder(
+                          builder: (context) {
+                            final activeNewBusinesses = viewModel.homeResponse.data!.data!.newBusiness
+                                ?.where((b) => b.isActive == 1).toList() ?? [];
+                            return activeNewBusinesses.isEmpty
+                                ? const SizedBox.shrink()
+                                : buildBusiness(name: "New Businesses", data: activeNewBusinesses);
+                          },
+                        ),
                       ],
                     ),
                   

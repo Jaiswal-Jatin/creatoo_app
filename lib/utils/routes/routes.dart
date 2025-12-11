@@ -56,7 +56,7 @@ class Routes {
     if (settings.name != null && settings.name!.contains('/api/scan')) {
       print('🟡 [ROUTES] Detected deep link URL pattern, extracting businessId');
       try {
-        final uri = Uri.parse('https://api.tapbill.in${settings.name}');
+        final uri = Uri.parse('https://api.creatoo.co.in${settings.name}');
         final businessIdStr = uri.queryParameters['businessId'];
         if (businessIdStr != null) {
           final businessId = int.tryParse(businessIdStr);

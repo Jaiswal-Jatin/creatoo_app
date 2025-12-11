@@ -165,30 +165,48 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
                     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
                     if (image != null) {
                       log("Selected image path from gallery: ${image.path}");
-                      // TODO: Implement QR code analysis from the selected image.
-                      // The MobileScannerController does not have a direct method for analyzing static images.
-                      // Consider using a separate package or a custom implementation for image-based QR scanning.
-                      // Example of how you would call if _scannerController had the method:
-                      // final BarcodeCapture? barcodeCapture = await _scannerController.analyzeImageFromPath(image.path);
-                      // if (barcodeCapture != null) {
-                      //   final barcode = barcodeCapture.barcodes.first;
-                      //   final qrCodeData = barcode.rawValue ?? "";
-                      //   log("Scanned result from gallery: \$qrCodeData");
-                      //
-                      //   if (_validateAndExtractData(qrCodeData)) {
-                      //     isScanned = true;
-                      //     Navigator.pushReplacementNamed(
-                      //       context,
-                      //       RoutesName.proceedToCart,
-                      //       arguments: viewModel.businessId,
-                      //     );
-                      //   } else {
-                      //     await _showInvalidScanDialog();
-                      //   }
-                      // } else {
-                      //   log("No QR code detected in the selected image.");
-                      //   await _showInvalidScanDialog();
-                      // }
+                      
+                      // Show loading indicator
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      );
+                      
+                      try {
+                        // Use MobileScannerController to analyze image from path
+                        final BarcodeCapture? barcodeCapture = await _scannerController.analyzeImage(image.path);
+                        
+                        // Close loading dialog
+                        if (context.mounted) Navigator.of(context).pop();
+                        
+                        if (barcodeCapture != null && barcodeCapture.barcodes.isNotEmpty) {
+                          final barcode = barcodeCapture.barcodes.first;
+                          final qrCodeData = barcode.rawValue ?? "";
+                          log("Scanned result from gallery: $qrCodeData");
+                        
+                          if (_validateAndExtractData(qrCodeData)) {
+                            isScanned = true;
+                            Navigator.pushReplacementNamed(
+                              context,
+                              RoutesName.proceedToCart,
+                              arguments: viewModel.businessId,
+                            );
+                          } else {
+                            await _showInvalidScanDialog();
+                          }
+                        } else {
+                          log("No QR code detected in the selected image.");
+                          _showNoQrFoundDialog();
+                        }
+                      } catch (e) {
+                        log("Error analyzing image: $e");
+                        // Close loading dialog if still open
+                        if (context.mounted) Navigator.of(context).pop();
+                        _showNoQrFoundDialog();
+                      }
                     } else {
                       log("No image selected from gallery.");
                     }
@@ -273,7 +291,7 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
 
   /// Validate and extract data from scanned QR code
   /// Supports both:
-  /// 1. New URL format: https://api.tapbill.in/api/scan?businessId=123
+  /// 1. New URL format: https://api.creatoo.co.in/api/scan?businessId=123
   /// 2. Legacy Base64 format: qr_123 (base64 encoded)
   bool _validateAndExtractData(String qrCodeData) {
     try {
@@ -304,7 +322,7 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
       }
       
       // Validate domain
-      if (uri.host != 'api.tapbill.in') {
+      if (uri.host != 'api.creatoo.co.in') {
         log("Invalid domain: ${uri.host}");
         return false;
       }
@@ -388,6 +406,30 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
     );
     _scannerController.start();
     //cameraDirection: CameraFacing.front
+  }
+
+  Future<void> _showNoQrFoundDialog() async {
+    _scannerController.stop();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: AppTextWidget(text: "No QR Found"),
+          content: AppTextWidget(text: "No QR code was found in the selected image. Please try with another image."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: AppTextWidget(text: "OK"),
+            ),
+          ],
+        );
+      },
+    );
+    _scannerController.start();
   }
 }
 
