@@ -35,16 +35,16 @@ android {
     namespace "com.creatoo.app"
 //    compileSdk flutter.compileSdkVersion
     compileSdk 36
-    ndkVersion "27.0.12077973"
+    ndkVersion "27.1.12297006"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 
     sourceSets {
@@ -63,9 +63,16 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         
-        // 16KB page size support - NDK configuration
+        // 16KB page size support - NDK configuration for Android 15+
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+        
+        // Enable 16KB page size alignment
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
         }
     }
 
@@ -93,10 +100,10 @@ android {
         }
     }
     
-    // 16KB page size support - packaging options
+    // 16KB page size support - packaging options (useLegacyPackaging=false enables 16KB alignment)
     packagingOptions {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
     }
 }

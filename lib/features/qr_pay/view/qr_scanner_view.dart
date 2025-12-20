@@ -98,6 +98,29 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
           // 3. Corner markers
           _buildCornerMarkers(scanWindow),
 
+          // Back button in top left
+          Positioned(
+            top: 50,
+            left: 20,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+
           // NEW: Text above QR box
           Positioned(
             top: scanWindow.top - 90, // Position above the scan window, moved further up

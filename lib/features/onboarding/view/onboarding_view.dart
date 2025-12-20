@@ -18,7 +18,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   void initState() {
     super.initState();
-    _checkVersionAndInitialize();
+    initialization(); // Directly call initialization without force update check
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom]);
     _pageController = PageController();
   }
