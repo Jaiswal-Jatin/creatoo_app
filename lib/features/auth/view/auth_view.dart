@@ -175,10 +175,11 @@ class _AuthViewState extends State<AuthView> {
                           onTap: () async {
                             if (viewModel.formKey.currentState!.validate()) {
                               // Send minimal payloads: creator -> only mobile, business -> businessMobile + remember token
-                              final Map<String, dynamic> creatorPayload = {
-                                "mobile": viewModel.phoneController.text,
-                                "is_verified": 0,
-                              };
+                                final Map<String, dynamic> creatorPayload = {
+                                  "mobile": viewModel.phoneController.text,
+                                  "is_verified": 0,
+                                  "remember_token": fcmToken,
+                                };
                               AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
                                 businessMobile: "${viewModel.phoneController.text}",
                                 rememberToken: fcmToken,

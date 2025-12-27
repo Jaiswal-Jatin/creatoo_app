@@ -14,12 +14,14 @@ class Visit {
   final DateTime date;
   final String tier;
   final String imageUrl;
+  final int? businessId;
 
   Visit({
     required this.restaurantName,
     required this.date,
     required this.tier,
     required this.imageUrl,
+    this.businessId,
   });
 }
 
@@ -28,11 +30,13 @@ class RestaurantViewModel {
   final String name;
   final String imageUrl;
   final List<Visit> visits;
+  final int? businessId;
 
   RestaurantViewModel({
     required this.name,
     required this.imageUrl,
     required this.visits,
+    this.businessId,
   });
 
   // Get the most recent visit date for sorting
@@ -83,6 +87,7 @@ class _VisitTabViewState extends State<VisitTabView> {
                 imageUrl: restaurant.businessImage?.isNotEmpty == true
                     ? restaurant.businessImage!
                     : 'assets/images/logo.png',
+                businessId: restaurant.businessId,
               ),
             );
           }
@@ -97,6 +102,7 @@ class _VisitTabViewState extends State<VisitTabView> {
                   ? restaurant.businessImage!
                   : 'assets/images/logo.png',
               visits: visits,
+              businessId: restaurant.businessId,
             ),
           );
         }

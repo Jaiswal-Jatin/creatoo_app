@@ -120,9 +120,8 @@ class EditBusinessProfileViewModel with ChangeNotifier {
       businessEmailController = TextEditingController(text: item.businessEmail ?? "");
       businessMobileController = TextEditingController(text: item.businessMobile ?? "");
       businessGstNoController = TextEditingController(text: item.gstNumber == null ? '' : item.gstNumber.toString().toUpperCase());
-      if (item.setFirstTimeDiscount != null)
-        setFirstTimeDiscountController = TextEditingController(text: item.setFirstTimeDiscount.toString());
-      if (item.setRegularDiscount != null) setRegularDiscountController = TextEditingController(text: item.setRegularDiscount.toString());
+      setFirstTimeDiscountController = TextEditingController(text: item.setFirstTimeDiscount?.toString() ?? "");
+      setRegularDiscountController = TextEditingController(text: item.setRegularDiscount?.toString() ?? "");
       if (item.setExpiry != null) {
         if (item.setExpiry == 15 || item.setExpiry == 30 || item.setExpiry == 365) {
           selectedExpiryDays = item.setExpiry.toString();
@@ -136,7 +135,7 @@ class EditBusinessProfileViewModel with ChangeNotifier {
         showOtherField = false;
         selectedExpiryDays = null;
       }
-      if (item.minOrder != null) minOrderValueController = TextEditingController(text: item.minOrder.toString());
+      minOrderValueController = TextEditingController(text: item.minOrder?.toString() ?? "");
       toTimeController = TextEditingController(text: item.timeTo ?? "");
       fromTimeController = TextEditingController(text: item.timeFrom ?? "");
       priceRangeController = TextEditingController(text: item.pricingRangeText ?? '');
@@ -201,22 +200,34 @@ class EditBusinessProfileViewModel with ChangeNotifier {
   }
 
   void extractPricingDetails(String? pricingText) {
+    debugPrint("extractPricingDetails called with: $pricingText");
+    
     if (pricingText == null || pricingText.isEmpty) {
       amountController = TextEditingController(text: '');
       noOfPeopleController = TextEditingController(text: '');
       return;
     }
 
-    RegExp regex = RegExp(r'(\d+)\s*for\s*(\d+)');
+    // Updated regex to handle formats like "₹1,000.00 for 2 people", "₹0.00 for 2 people", or "1000 for 2"
+    RegExp regex = RegExp(r'₹?\s*([\d,.]+)\s*for\s*(\d+)');
     Match? match = regex.firstMatch(pricingText);
 
+    debugPrint("Regex match result: $match");
+
     if (match != null) {
-      String amount = match.group(1) ?? '';
+      // Remove commas and decimal parts from amount (keep only integer part)
+      String amountStr = (match.group(1) ?? '').replaceAll(',', '');
+      // Parse as double and convert to integer to remove decimal
+      double? amountDouble = double.tryParse(amountStr);
+      String amount = amountDouble != null ? amountDouble.toInt().toString() : '';
       String people = match.group(2) ?? '';
+      
+      debugPrint("Extracted amount: $amount, people: $people");
 
       amountController = TextEditingController(text: amount);
       noOfPeopleController = TextEditingController(text: people);
     } else {
+      debugPrint("No regex match found for: $pricingText");
       amountController = TextEditingController(text: '');
       noOfPeopleController = TextEditingController(text: '');
     }

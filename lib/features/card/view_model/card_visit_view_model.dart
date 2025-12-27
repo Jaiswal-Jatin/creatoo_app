@@ -62,6 +62,7 @@ class CardVisitViewModel with ChangeNotifier {
                   date: _parseDate(visit.time),
                   tier: visit.tier ?? 'new',
                   imageUrl: restaurant.businessImage ?? '',
+                  businessId: restaurant.businessId,
                 ),
               );
             }

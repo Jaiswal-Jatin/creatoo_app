@@ -78,9 +78,17 @@ class DeepLinkService {
       final uri = Uri.parse(link);
       log('Parsed URI - Host: ${uri.host}, Path: ${uri.path}, Query: ${uri.queryParameters}');
 
-      // Validate domain
-      if (uri.host != 'api.creatoo.co.in') {
-        log('Invalid domain: ${uri.host}');
+      // Validate domain/scheme
+      if (uri.scheme == 'creatoo') {
+        log('Custom scheme detected: ${uri.scheme}://${uri.host}');
+        // Handle custom scheme specific logic here if needed
+        if (uri.host == 'payment-response') {
+          log('Handling payment response custom scheme');
+          // Add navigation for payment response if necessary
+          return;
+        }
+      } else if (uri.host != 'api.creatoo.co.in') {
+        log('Invalid domain: ${uri.host}. Only api.creatoo.co.in and creatoo:// are supported.');
         return;
       }
 

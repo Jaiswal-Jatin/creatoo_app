@@ -14,7 +14,7 @@ class AppTransactionTileWidget extends StatelessWidget {
   });
 
   String _formatDate(String inputDate) {
-    DateTime dateTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(inputDate);
+    DateTime dateTime = DateTime.parse(inputDate).toLocal();
     String formattedDate = DateFormat("dd-MMM-yyyy h:mm a").format(dateTime);
     return formattedDate;
   }

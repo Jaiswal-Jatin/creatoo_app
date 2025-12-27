@@ -82,6 +82,7 @@ class Transaction {
   String? totalBill;
   String? receivedFrom;
   double? discountPercentage;
+  double? settlementAmount;
   DateTime? created_at;
   String? referenceNumber;
 
@@ -89,6 +90,7 @@ class Transaction {
     this.totalBill,
     this.receivedFrom,
     this.discountPercentage,
+    this.settlementAmount,
     this.created_at,
     this.referenceNumber,
   });
@@ -101,6 +103,7 @@ class Transaction {
         totalBill: json["total_bill"],
         receivedFrom: json["received_from"],
         discountPercentage: _round(json["discount_percentage"]),
+        settlementAmount: _round(json["settlement_amount"]),
         created_at: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
         referenceNumber: json["order_id"],
       );
@@ -109,6 +112,7 @@ class Transaction {
         "total_bill": totalBill,
         "received_from": receivedFrom,
         "discount_percentage": discountPercentage,
+        "settlement_amount": settlementAmount,
         "created_at": created_at?.toIso8601String(),
         "order_id": referenceNumber,
       };

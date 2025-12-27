@@ -165,7 +165,7 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
   }
 
   Widget _buildTransactionCard(Transactions transaction) {
-    DateTime createdAt = transaction.createdAt!;
+    DateTime createdAt = transaction.createdAt!.toLocal();
     String formattedTime = DateFormat('hh:mm a').format(createdAt);
 
     return Container(

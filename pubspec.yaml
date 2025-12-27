@@ -2,7 +2,7 @@ name: creatoo
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.2.2+59
+version: 1.2.2+61
 # ios version update command: flutter build ios --no-codesign
 
 
@@ -58,6 +58,7 @@ dependencies:
   animated_button: ^0.2.0
   app_links: ^6.3.2
   qr_flutter: ^4.1.0
+  table_calendar: ^3.1.2
 
 dev_dependencies:
   flutter_test:

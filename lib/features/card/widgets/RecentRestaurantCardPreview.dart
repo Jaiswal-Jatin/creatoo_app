@@ -6,6 +6,8 @@ class RecentRestaurantCard extends StatelessWidget {
   final DateTime dateTime;
   final String tier;
   final String? imageUrl;
+  final int? businessId;
+  final VoidCallback? onTap;
   
   const RecentRestaurantCard({
     Key? key,
@@ -13,6 +15,8 @@ class RecentRestaurantCard extends StatelessWidget {
     required this.dateTime,
     required this.tier,
     this.imageUrl,
+    this.businessId,
+    this.onTap,
   }) : super(key: key);
 
   String _formatDate(DateTime dt) {    
@@ -163,14 +167,16 @@ class RecentRestaurantCard extends StatelessWidget {
       cardBorderRadius = 12;
     }
     
-    return Padding(
-      padding: EdgeInsets.all(cardMargin),
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardBorderRadius)),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: cardPadding, horizontal: cardPadding + 4),
-          child: Row(
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.all(cardMargin),
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardBorderRadius)),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: cardPadding, horizontal: cardPadding + 4),
+            child: Row(
             children: [
               // Left: Restaurant image or initials fallback
               ClipRRect(
@@ -265,6 +271,7 @@ class RecentRestaurantCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 

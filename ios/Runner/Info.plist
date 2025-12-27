@@ -108,5 +108,20 @@
         <string>indusmobile</string>
         <string>whatsapp</string>
     </array>
+    <key>FlutterDeepLinkingEnabled</key>
+    <true/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.creatoo.creatooapp</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>creatoo</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

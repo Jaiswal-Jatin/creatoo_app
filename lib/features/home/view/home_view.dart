@@ -1150,7 +1150,7 @@ class _HomeViewState extends State<HomeView> {
         try {
           final visitTime = DateTime.parse(visit.time!);
           final difference = now.difference(visitTime);
-          if (difference.inHours < 6) {
+          if (difference.inHours < 1) {
             return true;
           }
         } catch (e) {
@@ -1178,8 +1178,7 @@ class _HomeViewState extends State<HomeView> {
         }
       }
     }
-    
-    return mostRecentVisit?.add(const Duration(hours: 6));
+    return mostRecentVisit?.add(const Duration(hours: 1));
   }
 
   // Show dialog when customer has already visited within 6 hours
@@ -1580,7 +1579,7 @@ class _HomeViewState extends State<HomeView> {
                                   Future.delayed(const Duration(milliseconds: 150), () {
                                     _showAlreadyVisitedDialog(
                                       visitResponse.card?.name ?? 'Customer',
-                                      nextVisitTime ?? DateTime.now().add(const Duration(hours: 6)),
+                                      nextVisitTime ?? DateTime.now().add(const Duration(hours: 1)),
                                     );
                                   });
                                 } else {

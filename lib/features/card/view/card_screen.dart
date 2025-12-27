@@ -53,6 +53,11 @@ class _CardScreenState extends State<CardScreen>
     super.dispose();
   }
 
+  Future<void> _onRefresh() async {
+    await viewModel.checkCard(context);
+    await visitViewModel.fetchVisitByRestaurant(token ?? '');
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -62,8 +67,13 @@ class _CardScreenState extends State<CardScreen>
         elevation: 0,
         centerTitle: true,
       ),
-      body: Column(
-        children: [
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           // Premium Glass Card Design
           Consumer<CardViewModel>(
             builder: (context, cardViewModel, child) {
@@ -100,6 +110,16 @@ class _CardScreenState extends State<CardScreen>
                     dateTime: recentVisit.date,
                     tier: recentVisit.tier,
                     imageUrl: recentVisit.imageUrl,
+                    businessId: recentVisit.businessId,
+                    onTap: () {
+                      if (recentVisit.businessId != null) {
+                        Navigator.pushNamed(
+                          context,
+                          RoutesName.businessDescriptionView,
+                          arguments: recentVisit.businessId,
+                        );
+                      }
+                    },
                   ),
                 ],
               );
@@ -135,7 +155,8 @@ class _CardScreenState extends State<CardScreen>
           SizedBox(height: 5.h),
 
           // Tab Bar View
-          Expanded(
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
             child: Consumer<CardViewModel>(
               builder: (context, cardViewModel, child) {
                 final isCardActive = cardViewModel.cardData?.status == 'active';
@@ -151,7 +172,9 @@ class _CardScreenState extends State<CardScreen>
               },
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

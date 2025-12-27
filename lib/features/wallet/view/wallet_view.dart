@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/creator_wallet/model/transaction_details.dart';
 import 'package:creatoo/features/wallet/view_model/wallet_view_model.dart';
+import 'package:creatoo/features/wallet/widgets/wallet_calendar_dialog.dart';
+import 'package:creatoo/features/wallet/model/business_wallet_transaction_response.dart';
 
 class WalletView extends StatefulWidget {
   const WalletView({super.key});
@@ -30,21 +32,17 @@ class _WalletViewState extends State<WalletView> {
   }
 
   Future<void> _selectDateRange(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTimeRange? picked = await showDateRangePicker(
+    showDialog(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      initialDateRange: walletViewModel.fromDate != null && walletViewModel.toDate != null
-          ? DateTimeRange(start: walletViewModel.fromDate!, end: walletViewModel.toDate!)
-          : null,
+      builder: (context) => WalletCalendarDialog(
+        viewModel: walletViewModel,
+        onDateRangeSelected: (startDate, endDate) async {
+          walletViewModel.selectedDate = startDate;
+          walletViewModel.selectedEndDate = endDate;
+          setState(() {});
+        },
+      ),
     );
-
-    if (picked != null) {
-      walletViewModel.fromDate = picked.start;
-      walletViewModel.toDate = picked.end;
-      await walletViewModel.fetchBusinessWalletTransactions();
-    }
   }
 
   @override
@@ -78,7 +76,11 @@ class _WalletViewState extends State<WalletView> {
                         width: SizeConfig.screenWidth,
                         AppIcon.walletBg,
                       ),
-                      AppWalletCard(value: double.parse(walletViewModel.walletBalance!)),
+                      AppWalletCard(
+                        value: walletViewModel.selectedDate != null && walletViewModel.selectedEndDate != null
+                          ? walletViewModel.getSettlementForDateRange(walletViewModel.selectedDate!, walletViewModel.selectedEndDate!)
+                          : 0.0,
+                      ),
                     ],
                   ),
                   SizedBox(height: 20.h),
@@ -137,31 +139,12 @@ class _WalletViewState extends State<WalletView> {
                           children: [
                             Padding(
                               padding: EdgeInsets.only(top: 3.5.h),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  if (walletViewModel.fromDate != null)
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _formatDateForDisplay(walletViewModel.fromDate),
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                                        ),
-                                        if (_formatDateForDisplay(walletViewModel.fromDate) !=
-                                            _formatDateForDisplay(walletViewModel.toDate))
-                                          Text(
-                                            " - ",
-                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                                          ),
-                                      ],
-                                    ),
-                                  if (walletViewModel.toDate != null &&
-                                      _formatDateForDisplay(walletViewModel.fromDate) != _formatDateForDisplay(walletViewModel.toDate))
-                                    Text(
-                                      _formatDateForDisplay(walletViewModel.toDate),
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                                    ),
-                                ],
+                              child: Text(
+                                walletViewModel.selectedEndDate != null && 
+                                    walletViewModel.selectedDate != walletViewModel.selectedEndDate
+                                  ? '${_formatDateForDisplay(walletViewModel.selectedDate)} - ${_formatDateForDisplay(walletViewModel.selectedEndDate)}'
+                                  : _formatDateForDisplay(walletViewModel.selectedDate),
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
                               ),
                             ),
                             SizedBox(width: 6),
@@ -186,33 +169,38 @@ class _WalletViewState extends State<WalletView> {
                   ),
                   SizedBox(height: 10.h),
                   Visibility(
-                    visible: walletViewModel.walletResponse.data?.data?.transactions?.isNotEmpty ?? false,
+                    visible: walletViewModel.selectedDate != null && walletViewModel.selectedEndDate != null && 
+                             walletViewModel.getTransactionsForDateRange(walletViewModel.selectedDate!, walletViewModel.selectedEndDate!).isNotEmpty,
                     replacement: Container(
                       height: SizeConfig.screenHeight / 5,
                       width: SizeConfig.screenWidth,
                       alignment: Alignment.center,
-                      child: Text('No Transaction data!'),
+                      child: Text('No Transaction data for selected date range!'),
                     ),
-                    child: ListView.separated(
-                      itemCount: walletViewModel.walletResponse.data?.data?.transactions?.length ?? 0,
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      separatorBuilder: (context, index) {
-                        return Divider();
-                      },
-                      itemBuilder: (context, index) {
-                        var item = walletViewModel.walletResponse.data?.data?.transactions?[index];
-                        if (item == null) {
-                          return SizedBox.shrink(); // Handle null item gracefully
-                        }
-                        return AppTransactionTileWidget(
-                          item: TransactionDetails(
-                            receivedFrom: item.receivedFrom,
-                            totalBill: item.totalBill,
-                            dateTime: item.created_at,
-                            orderId: item.referenceNumber,
-                            discountPercentage: item.discountPercentage,
-                          ),
+                    child: Builder(
+                      builder: (context) {
+                        final transactions = walletViewModel.selectedDate != null && walletViewModel.selectedEndDate != null
+                            ? walletViewModel.getTransactionsForDateRange(walletViewModel.selectedDate!, walletViewModel.selectedEndDate!)
+                            : <Transaction>[];
+                        return ListView.separated(
+                          itemCount: transactions.length,
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          separatorBuilder: (context, index) {
+                            return Divider();
+                          },
+                          itemBuilder: (context, index) {
+                            var item = transactions[index];
+                            return AppTransactionTileWidget(
+                              item: TransactionDetails(
+                                receivedFrom: item.receivedFrom,
+                                totalBill: item.totalBill,
+                                dateTime: item.created_at,
+                                orderId: item.referenceNumber,
+                                discountPercentage: item.discountPercentage,
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

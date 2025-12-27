@@ -213,11 +213,13 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                                 "mobile": viewModel.phone,
                                 "otp": viewModel.pinController.text,
                                 "device_id": viewModel.deviceId,
+                                "remember_token": fcmToken,
                               };
                               final businessVerifyPayload = {
                                 "business_mobile": viewModel.phone,
                                 "otp": viewModel.pinController.text,
                                 "device_id": viewModel.deviceId,
+                                "remember_token": fcmToken,
                               };
                               await viewModel.verifyOtpFromServer(
                                 roleId == Constants.creatorUser ? creatorVerifyPayload : businessVerifyPayload,

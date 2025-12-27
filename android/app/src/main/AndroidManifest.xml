@@ -64,18 +64,6 @@
                     android:pathPrefix="/api/scan" />
             </intent-filter>
 
-            <!-- Legacy QR Domain (Tapbill) - Fallback for old QR codes -->
-            <intent-filter android:autoVerify="false">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                    android:scheme="https"
-                    android:host="api.tapbill.in"
-                    android:pathPrefix="/api/scan" />
-            </intent-filter>
-
         </activity>
 
         <!-- Flutter Plugin Support -->
