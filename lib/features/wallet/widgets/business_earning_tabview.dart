@@ -1,3 +1,5 @@
+import 'package:creatoo/features/wallet/model/business_wallet_transaction_response.dart';
+
 import '../../../core.dart';
 import '../../creator_wallet/model/transaction_details.dart';
 import '../view_model/business_wallet_earning_view_model.dart';
@@ -140,7 +142,7 @@ class _BusinessEarningTabviewState extends State<BusinessEarningTabview> {
                 ],
               ),
             ),
-          ),
+          
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
           floatingActionButton: Container(
             margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),

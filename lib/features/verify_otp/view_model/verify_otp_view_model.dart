@@ -2,6 +2,7 @@ import 'package:smart_auth/smart_auth.dart';
 
 import '../../../core.dart';
 import '../../../data/services/sms_retriver_service.dart';
+import '../../../utils/deep_link_service.dart';
 import '../../auth/model/otp_reponse_model.dart';
 import '../../home/view_model/home_view_model.dart';
 import '../model/verify_otp_model.dart';
@@ -73,28 +74,32 @@ class VerifyOtpViewModel with ChangeNotifier {
     print('OTP: $otp');
     print('Device ID: $deviceId');
     print('Pin Controller Value: ${pinController.text}');
-    
+
     setVerifyOtpResponse(ApiResponse.loading());
     notifyListeners();
     var response = await _myRepo.verifyOtp(data);
-    
+
     print('Response Received: $response');
-    
+
     response.fold(
       (l) {
         print('ERROR Response: ${l.message}');
         print('Error Details: $l');
         setVerifyOtpResponse(ApiResponse.error(l.message));
-        
+
         // Check if error message indicates user doesn't exist
         if (l.message?.toLowerCase().contains('user not exist') == true) {
           print('User Not Found - Redirecting to Registration');
           if (roleId == Constants.businessUser) {
             print('Redirecting to Business Registration');
-            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerBusinessView, arguments: phone);
+            Navigator.pushNamed(
+                navigatorKey.currentContext!, RoutesName.registerBusinessView,
+                arguments: phone);
           } else if (roleId == Constants.creatorUser) {
             print('Redirecting to Creator Registration');
-            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerCreatorView, arguments: phone);
+            Navigator.pushNamed(
+                navigatorKey.currentContext!, RoutesName.registerCreatorView,
+                arguments: phone);
           }
         } else {
           Utils.toastMessage(l.message.toString());
@@ -106,17 +111,21 @@ class VerifyOtpViewModel with ChangeNotifier {
         print('Response Data: ${r.data}');
         print('Is Registered: ${r.data!.isRegistered}');
         print('User Data: ${r.data}');
-        
+
         setVerifyOtpResponse(ApiResponse.completed(r));
         stopTimer();
         if (r.data!.isRegistered == 0) {
           print('User Not Registered - Redirecting to Registration Screen');
           if (roleId == Constants.businessUser) {
             print('Redirecting to Business Registration');
-            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerBusinessView, arguments: phone);
+            Navigator.pushNamed(
+                navigatorKey.currentContext!, RoutesName.registerBusinessView,
+                arguments: phone);
           } else if (roleId == Constants.creatorUser) {
             print('Redirecting to Creator Registration');
-            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.registerCreatorView, arguments: phone);
+            Navigator.pushNamed(
+                navigatorKey.currentContext!, RoutesName.registerCreatorView,
+                arguments: phone);
           }
         } else {
           // Check if user (business or creator) is inactive
@@ -127,17 +136,25 @@ class VerifyOtpViewModel with ChangeNotifier {
             notifyListeners();
             return; // Don't proceed with login
           }
-          
+
           print('User Already Registered - Navigating to Home');
           await saveUserData(r.data!);
-          
+
           // Check subscription for business users before navigating
           if (roleId == Constants.businessUser) {
-            final homeViewModel = Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false);
+            final homeViewModel = Provider.of<HomeViewModel>(
+                navigatorKey.currentContext!,
+                listen: false);
             await homeViewModel.checkBusinessSubscription();
           }
-          
-          Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, RoutesName.homePage, (route) => false);
+
+          Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!,
+              RoutesName.homePage, (route) => false);
+
+          // Check for pending deep link navigation after successful login
+          // This handles the case where user opened a bill payment link but wasn't logged in
+          await Future.delayed(const Duration(milliseconds: 500));
+          DeepLinkService.checkPendingNavigation();
         }
         Utils.toastMessage(r.message.toString());
       },

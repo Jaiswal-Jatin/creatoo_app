@@ -1,8 +1,9 @@
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/register_creator/model/register_creator_model.dart';
-import 'package:creatoo/features/register_creator/model/register_creator_response%20_model.dart';
+import 'package:creatoo/features/register_creator/model/register_creator_response _model.dart';
 import 'package:creatoo/features/register_creator/repository/register_creator_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
+import 'package:creatoo/utils/deep_link_service.dart';
 
 class RegisterCreatorViewModel with ChangeNotifier {
   final RegisterCreatorRepository _myRepo = RegisterCreatorRepository();
@@ -48,8 +49,13 @@ class RegisterCreatorViewModel with ChangeNotifier {
       (r) async {
         setResponse(ApiResponse.completed(r));
         Utils.toastMessage(r.message.toString());
-        Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, RoutesName.homePage, (route) => false);
+        Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!,
+            RoutesName.homePage, (route) => false);
         await saveUserData(r.data!);
+
+        // Check for pending deep link navigation after successful registration
+        await Future.delayed(const Duration(milliseconds: 500));
+        DeepLinkService.checkPendingNavigation();
       },
     );
     notifyListeners();
@@ -59,7 +65,8 @@ class RegisterCreatorViewModel with ChangeNotifier {
     isLoading = true;
     // setResponse(ApiResponse.loading());
     notifyListeners();
-    var response = await _myRepo.fetchInstaUser({"username": instaUserController.text});
+    var response =
+        await _myRepo.fetchInstaUser({"username": instaUserController.text});
     response.fold(
       (l) {
         // setResponse(ApiResponse.error(l.message));

@@ -10,7 +10,7 @@ class QrCodeGenerator {
   }
 
   /// Generate QR code widget for a business
-  /// 
+  ///
   /// Parameters:
   /// - businessId: The unique ID of the business
   /// - size: Size of the QR code (default: 280)
@@ -24,7 +24,7 @@ class QrCodeGenerator {
     bool embeddedImage = false,
   }) {
     final qrUrl = generateQrUrl(businessId);
-    
+
     return QrImageView(
       data: qrUrl,
       version: QrVersions.auto,
@@ -84,15 +84,15 @@ class QrCodeGenerator {
             ),
           ),
           const SizedBox(height: 20),
-          
+
           // QR Code
           generateQrWidget(
             businessId: businessId,
             size: size,
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Footer text
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

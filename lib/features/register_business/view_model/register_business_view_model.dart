@@ -4,6 +4,7 @@ import 'package:creatoo/features/register_business/model/register_business_model
 import 'package:creatoo/features/register_business/model/register_business_response_model.dart';
 import 'package:creatoo/features/register_business/repository/register_business_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
+import 'package:creatoo/utils/deep_link_service.dart';
 
 class RegisterBusinessViewModel with ChangeNotifier {
   final RegisterBusinessRepository _myRepo = RegisterBusinessRepository();
@@ -12,11 +13,14 @@ class RegisterBusinessViewModel with ChangeNotifier {
   bool isValidating = false;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  ApiResponse<RegisterBusinessResponse> businessResponse = ApiResponse.initial();
+  ApiResponse<RegisterBusinessResponse> businessResponse =
+      ApiResponse.initial();
 
-  setResponse(ApiResponse<RegisterBusinessResponse> response) => businessResponse = response;
+  setResponse(ApiResponse<RegisterBusinessResponse> response) =>
+      businessResponse = response;
 
-  ApiResponse<BusinessTypeResponse> businessTypesResponse = ApiResponse.initial();
+  ApiResponse<BusinessTypeResponse> businessTypesResponse =
+      ApiResponse.initial();
 
   setBusinessTypeResponse(ApiResponse<BusinessTypeResponse> response) {
     businessTypesResponse = response;
@@ -48,7 +52,12 @@ class RegisterBusinessViewModel with ChangeNotifier {
         setResponse(ApiResponse.completed(r));
         Utils.toastMessage(r.message.toString());
         await saveUserData(businessResponse.data!.data!);
-        Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, RoutesName.homePage, (route) => false);
+        Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!,
+            RoutesName.homePage, (route) => false);
+
+        // Check for pending deep link navigation after successful registration
+        await Future.delayed(const Duration(milliseconds: 500));
+        DeepLinkService.checkPendingNavigation();
       },
     );
     notifyListeners();

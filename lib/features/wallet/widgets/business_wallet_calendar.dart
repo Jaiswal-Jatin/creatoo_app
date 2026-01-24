@@ -1,7 +1,7 @@
+import 'package:creatoo/utils/ui_config/app_size_config.dart' show SizeExtension;
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../view_model/business_wallet_earning_view_model.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BusinessWalletCalendar extends StatefulWidget {
   final BusinessWalletEarningViewModel viewModel;

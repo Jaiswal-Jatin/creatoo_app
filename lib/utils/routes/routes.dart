@@ -49,19 +49,22 @@ import '../../features/startup/view/startup_view.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    print('🔵 [ROUTES] Requested route: "${settings.name}" with arguments: ${settings.arguments}');
-    
+    print(
+        '🔵 [ROUTES] Requested route: "${settings.name}" with arguments: ${settings.arguments}');
+
     // Handle deep link URL pattern: /api/scan?businessId=XXX
     // This happens when app resumes from background via deep link
     if (settings.name != null && settings.name!.contains('/api/scan')) {
-      print('🟡 [ROUTES] Detected deep link URL pattern, extracting businessId');
+      print(
+          '🟡 [ROUTES] Detected deep link URL pattern, extracting businessId');
       try {
         final uri = Uri.parse('https://api.creatoo.co.in${settings.name}');
         final businessIdStr = uri.queryParameters['businessId'];
         if (businessIdStr != null) {
           final businessId = int.tryParse(businessIdStr);
           if (businessId != null) {
-            print('🟢 [ROUTES] Extracted businessId: $businessId, navigating to BusinessDescriptionView');
+            print(
+                '🟢 [ROUTES] Extracted businessId: $businessId, navigating to BusinessDescriptionView');
             return _buildRoute(
               settings,
               BusinessDescriptionView(businessId: businessId),
@@ -72,7 +75,7 @@ class Routes {
         print('🔴 [ROUTES] Error parsing deep link URL: $e');
       }
     }
-    
+
     switch (settings.name) {
       case RoutesName.onboardingView:
         return _buildRoute(settings, OnboardingView());
@@ -148,12 +151,15 @@ class Routes {
         return _buildRoute(
           settings,
           EditBusinessProfile(
-            initialTab: settings.arguments == null ? "My Profile" : settings.arguments as String,
+            initialTab: settings.arguments == null
+                ? "My Profile"
+                : settings.arguments as String,
           ),
         );
 
       case RoutesName.webView:
-        return _buildRoute(settings, AppWebView(data: settings.arguments as WebViewData));
+        return _buildRoute(
+            settings, AppWebView(data: settings.arguments as WebViewData));
 
       case RoutesName.addPostPaymentSummary:
         return _buildRoute(
@@ -192,7 +198,8 @@ class Routes {
         return _buildRoute(settings, CreatorWalletView());
 
       case RoutesName.applicationView:
-        return _buildRoute(settings, OpportunityView(searchKey: settings.arguments as String));
+        return _buildRoute(
+            settings, OpportunityView(searchKey: settings.arguments as String));
 
       case RoutesName.earnCreatooPointsView:
         return _buildRoute(settings, EarnCreatooPointsView());
@@ -201,7 +208,8 @@ class Routes {
         return _buildRoute(settings, AppLoadingWidget());
 
       case RoutesName.postDetailView:
-        return _buildRoute(settings, PostDetailView(postId: settings.arguments as int));
+        return _buildRoute(
+            settings, PostDetailView(postId: settings.arguments as int));
 
       case RoutesName.paymentDetail:
         return _buildRoute(settings, PaymentDetailView());
@@ -323,7 +331,8 @@ class Routes {
         const end = Offset.zero;
         const curve = Curves.ease;
 
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
 
         return SlideTransition(

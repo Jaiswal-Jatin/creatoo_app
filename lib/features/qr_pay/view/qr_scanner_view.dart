@@ -14,7 +14,8 @@ class QrScannerView extends StatefulWidget {
   State<QrScannerView> createState() => _QrScannerViewState();
 }
 
-class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserver {
+class _QrScannerViewState extends State<QrScannerView>
+    with WidgetsBindingObserver {
   String result = "";
   bool isScanned = false;
   late QrPayViewModel viewModel;
@@ -123,7 +124,8 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
 
           // NEW: Text above QR box
           Positioned(
-            top: scanWindow.top - 90, // Position above the scan window, moved further up
+            top: scanWindow.top -
+                90, // Position above the scan window, moved further up
             left: 0,
             right: 0,
             child: const Center(
@@ -157,7 +159,8 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
 
           // NEW: Torch and Gallery icons, now positioned below the "Align QR code" text
           Positioned(
-            top: scanWindow.bottom + 70, // Positioned below the "Align QR code" text
+            top: scanWindow.bottom +
+                70, // Positioned below the "Align QR code" text
             left: 0,
             right: 0,
             child: Row(
@@ -185,10 +188,11 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
                 GestureDetector(
                   onTap: () async {
                     final ImagePicker picker = ImagePicker();
-                    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                    final XFile? image =
+                        await picker.pickImage(source: ImageSource.gallery);
                     if (image != null) {
                       log("Selected image path from gallery: ${image.path}");
-                      
+
                       // Show loading indicator
                       showDialog(
                         context: context,
@@ -197,19 +201,21 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
                           child: CircularProgressIndicator(color: Colors.white),
                         ),
                       );
-                      
+
                       try {
                         // Use MobileScannerController to analyze image from path
-                        final BarcodeCapture? barcodeCapture = await _scannerController.analyzeImage(image.path);
-                        
+                        final BarcodeCapture? barcodeCapture =
+                            await _scannerController.analyzeImage(image.path);
+
                         // Close loading dialog
                         if (context.mounted) Navigator.of(context).pop();
-                        
-                        if (barcodeCapture != null && barcodeCapture.barcodes.isNotEmpty) {
+
+                        if (barcodeCapture != null &&
+                            barcodeCapture.barcodes.isNotEmpty) {
                           final barcode = barcodeCapture.barcodes.first;
                           final qrCodeData = barcode.rawValue ?? "";
                           log("Scanned result from gallery: $qrCodeData");
-                        
+
                           if (_validateAndExtractData(qrCodeData)) {
                             isScanned = true;
                             Navigator.pushReplacementNamed(
@@ -259,7 +265,8 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
           child: Container(
-            color: Colors.black.withOpacity(0.5), // Semi-transparent overlay to darken blurred area
+            color: Colors.black.withOpacity(
+                0.5), // Semi-transparent overlay to darken blurred area
           ),
         ),
       ),
@@ -319,10 +326,11 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
   bool _validateAndExtractData(String qrCodeData) {
     try {
       // First, try to parse as URL (new format)
-      if (qrCodeData.startsWith('http://') || qrCodeData.startsWith('https://')) {
+      if (qrCodeData.startsWith('http://') ||
+          qrCodeData.startsWith('https://')) {
         return _validateUrlFormat(qrCodeData);
       }
-      
+
       // Fallback to Base64 format (legacy support)
       return _validateBase64Format(qrCodeData);
     } catch (e) {
@@ -335,45 +343,44 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
   bool _validateUrlFormat(String url) {
     try {
       final uri = Uri.parse(url);
-      
+
       log("Validating URL QR - Host: ${uri.host}, Path: ${uri.path}");
-      
+
       // Validate scheme
       if (uri.scheme != 'https') {
         log("Invalid scheme: ${uri.scheme}");
         return false;
       }
-      
+
       // Validate domain
       if (uri.host != 'api.creatoo.co.in') {
         log("Invalid domain: ${uri.host}");
         return false;
       }
-      
+
       // Validate path contains /api/scan
       if (!uri.path.contains('/api/scan')) {
         log("Invalid path: ${uri.path}");
         return false;
       }
-      
+
       // Extract and validate businessId
       final businessIdStr = uri.queryParameters['businessId'];
       if (businessIdStr == null || businessIdStr.isEmpty) {
         log("businessId parameter is missing");
         return false;
       }
-      
+
       final parsedBusinessId = int.tryParse(businessIdStr);
       if (parsedBusinessId == null) {
         log("businessId is not a valid number: $businessIdStr");
         return false;
       }
-      
+
       // Set the businessId in viewModel
       viewModel.businessId = parsedBusinessId;
       log("✅ Valid Creatoo URL QR - Business ID: $parsedBusinessId");
       return true;
-      
     } catch (e) {
       log("Error parsing URL QR: $e");
       return false;
@@ -414,7 +421,8 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
       builder: (context) {
         return AlertDialog(
           title: AppTextWidget(text: "Invalid Scanner"),
-          content: AppTextWidget(text: "Scanner is not valid. Please scan again."),
+          content:
+              AppTextWidget(text: "Scanner is not valid. Please scan again."),
           actions: [
             TextButton(
               onPressed: () {
@@ -440,7 +448,9 @@ class _QrScannerViewState extends State<QrScannerView> with WidgetsBindingObserv
       builder: (context) {
         return AlertDialog(
           title: AppTextWidget(text: "No QR Found"),
-          content: AppTextWidget(text: "No QR code was found in the selected image. Please try with another image."),
+          content: AppTextWidget(
+              text:
+                  "No QR code was found in the selected image. Please try with another image."),
           actions: [
             TextButton(
               onPressed: () {
