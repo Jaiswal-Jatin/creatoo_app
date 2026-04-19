@@ -51,7 +51,8 @@ class _CreatooTabViewState extends State<CreatooTabView> {
       case Status.loading:
         return AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.creatooTransactionResponse.message!);
+        return AppErrorWidget(
+            message: viewModel.creatooTransactionResponse.message!);
       case Status.completed:
         return _buildMobileBody();
       default:
@@ -66,93 +67,108 @@ class _CreatooTabViewState extends State<CreatooTabView> {
   }
 
   Widget _buildMobileBody() {
-    final businessTransactions = viewModel.creatooTransactionResponse.data!.data!.businessTransactions;
+    final businessTransactions =
+        viewModel.creatooTransactionResponse.data!.data!.businessTransactions;
 
-    return AppScaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                children: [
-                  SvgPicture.asset(
-                    width: SizeConfig.screenWidth,
-                    AppIcon.walletBg,
+    return Container(
+      color: Colors.transparent,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                SvgPicture.asset(
+                  width: SizeConfig.screenWidth,
+                  AppIcon.walletBg,
+                ),
+                AppWalletCard(
+                  value: viewModel.roundToTwoDecimalPlaces(
+                      viewModel.creatooWalletBalance.toDouble()),
+                  showPoints: true,
+                ),
+              ],
+            ),
+            SizedBox(height: 10.h),
+            Row(
+              children: [
+                Text(
+                  'Recent transactions',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.premiumTextPrimary,
                   ),
-                  AppWalletCard(
-                    value: viewModel.roundToTwoDecimalPlaces(viewModel.creatooWalletBalance.toDouble()),
-                    showPoints: true,
+                ),
+                // SizedBox(
+                //   width: 5.w,
+                // ),
+                Tooltip(
+                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColor.premiumCardBg,
+                    border: Border.all(
+                        color: AppColor.premiumAccent.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              ),
-              SizedBox(height: 20.h),
-              Row(
-                children: [
-                  Text(
-                    'Recent transactions',
-                    style: AppTextStyles.body(fontWeight: FontWeight.w700),
-                  ),
-                  SizedBox(
-                    width: 5.w,
-                  ),
-                  Tooltip(
-                    margin: EdgeInsets.symmetric(horizontal: 20),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColor.white,
-                      border: Border.all(color: AppColor.lightGrey),
-                      borderRadius: BorderRadius.circular(10),
+                  enableTapToDismiss: true,
+                  showDuration: Duration(seconds: 100),
+                  enableFeedback: true,
+                  triggerMode: TooltipTriggerMode.tap,
+                  preferBelow: true,
+                  richMessage: TextSpan(
+                    text: Constants.walletInfo,
+                    style: TextStyle(
+                      color: AppColor.premiumTextPrimary,
+                      fontSize: 14.sp,
                     ),
-                    enableTapToDismiss: true,
-                    showDuration: Duration(seconds: 100),
-                    enableFeedback: true,
-                    triggerMode: TooltipTriggerMode.tap,
-                    preferBelow: true,
-                    richMessage: TextSpan(
-                      text: Constants.walletInfo,
-                      style: TextStyle(
-                        color: AppColor.black,
-                        fontSize: 14.sp,
-                      ),
-                      children: [],
-                    ),
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 20.h,
-                      color: AppColor.primary,
-                    ),
+                    children: [],
                   ),
-                ],
-              ),
-              SizedBox(height: 20.h),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: businessTransactions?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final businessTransaction = businessTransactions![index];
-                  return _buildBusinessTransactionCard(index, businessTransaction);
-                },
-              ),
-              SizedBox(height: 100.h),
-            ],
-          ),
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 20.h,
+                    color: AppColor.premiumAccent,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20.h),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: businessTransactions?.length ?? 0,
+              itemBuilder: (context, index) {
+                final businessTransaction = businessTransactions![index];
+                return _buildBusinessTransactionCard(
+                    index, businessTransaction);
+              },
+            ),
+            SizedBox(height: 100.h),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildBusinessTransactionCard(int index, BusinessTransaction businessTransaction) {
+  Widget _buildBusinessTransactionCard(
+      int index, BusinessTransaction businessTransaction) {
     return AnimatedContainer(
       margin: EdgeInsets.symmetric(vertical: 8.h),
       duration: Duration(milliseconds: 300),
       width: SizeConfig.screenWidth,
       decoration: BoxDecoration(
-        color: AppColor.lightGrey.withOpacity(0.1),
+        color: AppColor.premiumCardBg,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColor.premiumAccent.withOpacity(0.15)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          )
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -175,20 +191,30 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          businessTransaction.businessName ?? 'Unknown Business',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColor.black),
+                          businessTransaction.businessName ??
+                              'Unknown Business',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.premiumTextPrimary),
                         ),
                         SizedBox(height: 10),
                         Row(
                           children: [
                             Text(
                               'Available Balance',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColor.black),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.premiumTextSecondary),
                             ),
                             SizedBox(width: 10),
                             Text(
                               '${businessTransaction.totalPoints?.isNegative == true ? 0.0 : viewModel.roundToTwoDecimalPlaces(businessTransaction.totalPoints?.toDouble() ?? 0.0).toCommaSeparated()} Points',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColor.premiumTextPrimary),
                             ),
                           ],
                         ),
@@ -202,13 +228,14 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColor.kPrimary.withOpacity(0.2)),
+                        border: Border.all(
+                            color: AppColor.premiumAccent.withOpacity(0.2)),
                         shape: BoxShape.circle,
-                        color: AppColor.white,
+                        color: AppColor.premiumAccent.withOpacity(0.15),
                       ),
                       child: Icon(
                         Icons.keyboard_arrow_down,
-                        color: Colors.grey,
+                        color: AppColor.premiumAccent,
                         size: 24,
                       ),
                     ),
@@ -230,20 +257,29 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                   thickness: 1.h,
                   indent: 15.w,
                   endIndent: 15.w,
+                  color: AppColor.premiumAccent.withOpacity(0.1),
                 ),
                 itemBuilder: (context, index) {
                   if (businessTransaction.transactions == null) {
                     return SizedBox.shrink();
                   } else {
-                    final transaction = businessTransaction.transactions![index];
-                    String status = _getTransactionLabel(transaction.creditDebitRemainingStatus);
+                    final transaction =
+                        businessTransaction.transactions![index];
+                    String status = _getTransactionLabel(
+                        transaction.creditDebitRemainingStatus);
                     return _buildTransactionRow(
                       label1: status,
-                      value1: '${viewModel.roundToTwoDecimalPlaces(transaction.points?.toDouble() ?? 0.0).toCommaSeparated()} points',
+                      value1:
+                          '${viewModel.roundToTwoDecimalPlaces(transaction.points?.toDouble() ?? 0.0).toCommaSeparated()} points',
                       label2: (status == "Earned")
-                          ? ((transaction.expiryDate != null) ? _formatDate(transaction.expiryDate.toString()) : '')
-                          : ((transaction.createdAt != null) ? _formatDate(transaction.createdAt.toString()) : ''),
-                      value2: _getTransactionSecondLabel(transaction.creditDebitRemainingStatus),
+                          ? ((transaction.expiryDate != null)
+                              ? _formatDate(transaction.expiryDate.toString())
+                              : '')
+                          : ((transaction.createdAt != null)
+                              ? _formatDate(transaction.createdAt.toString())
+                              : ''),
+                      value2: _getTransactionSecondLabel(
+                          transaction.creditDebitRemainingStatus),
                       label3: (transaction.isExpired ?? false) ? "Expired" : "",
                       value3: 10,
                       isExpired: transaction.isExpired ?? false,
@@ -275,14 +311,17 @@ class _CreatooTabViewState extends State<CreatooTabView> {
     if (isEarned && value3 != null && value3 > 0) {
       final DateTime currentDate = DateTime.now();
       final DateTime expirationDate = currentDate.add(Duration(days: value3));
-      formattedExpirationDate = DateFormat('dd-MMM-yyyy').format(expirationDate);
+      formattedExpirationDate =
+          DateFormat('dd-MMM-yyyy').format(expirationDate);
     }
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
       width: double.maxFinite,
       decoration: BoxDecoration(
-        color: (isEarned && label3 == "Expired") ? AppColor.lightGrey.withOpacity(0.4) : AppColor.transparent,
+        color: (isEarned && label3 == "Expired")
+            ? AppColor.lightGrey.withOpacity(0.4)
+            : AppColor.transparent,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -295,7 +334,7 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColor.white,
+                  color: AppColor.premiumAccent.withOpacity(0.15),
                 ),
                 child: Icon(
                   isEarned
@@ -307,13 +346,13 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                               : Icons.arrow_upward,
                   color: isEarned
                       ? (isExpired)
-                          ? AppColor.lightGrey
-                          : AppColor.green
+                          ? AppColor.premiumTextSecondary
+                          : AppColor.premiumAccent
                       : isRejected
                           ? AppColor.darkRed
                           : isPending
                               ? AppColor.mangoYellow
-                              : AppColor.darkRed,
+                              : AppColor.premiumAccent,
                   size: 24,
                 ),
               ),
@@ -325,20 +364,41 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(label1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                        Text(value1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                        Text(label1,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppColor.premiumTextSecondary)),
+                        Text(value1,
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColor.premiumTextPrimary)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 5),
-                        if (isEarned) Text("Valid Through:", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                        if (isEarned)
+                          Text("Valid Through:",
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.premiumTextSecondary)),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(label2, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                            Text(value2, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                            Text(label2,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColor.premiumTextSecondary)),
+                            Text(value2,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColor.premiumTextSecondary)),
                           ],
                         ),
                       ],
@@ -350,8 +410,16 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Valid till', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                              Text(formattedExpirationDate, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                              Text('Valid till',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColor.premiumTextSecondary)),
+                              Text(formattedExpirationDate,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColor.premiumTextSecondary)),
                             ],
                           ),
                         ],
@@ -360,7 +428,11 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                       Column(
                         children: [
                           SizedBox(height: 5),
-                          Text('Expired', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                          Text('Expired',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.darkRed)),
                         ],
                       )
                   ],

@@ -21,21 +21,30 @@ class SearchBusinessResponse {
     this.pagination,
   });
 
-  factory SearchBusinessResponse.fromRawJson(String str) => SearchBusinessResponse.fromJson(json.decode(str));
+  factory SearchBusinessResponse.fromRawJson(String str) =>
+      SearchBusinessResponse.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory SearchBusinessResponse.fromJson(Map<String, dynamic> json) => SearchBusinessResponse(
+  factory SearchBusinessResponse.fromJson(Map<String, dynamic> json) =>
+      SearchBusinessResponse(
         status: json["status"],
         message: json["message"]?.toString(), // Ensure message is a String
-        data: json["data"] == null ? [] : List<BusinessSearchData>.from(json["data"]!.map((x) => BusinessSearchData.fromJson(x))),
-        pagination: json["pagination"] == null ? null : Pagination.fromJson(json["pagination"]),
+        data: json["data"] == null
+            ? []
+            : List<BusinessSearchData>.from(
+                json["data"]!.map((x) => BusinessSearchData.fromJson(x))),
+        pagination: json["pagination"] == null
+            ? null
+            : Pagination.fromJson(json["pagination"]),
       );
 
   Map<String, dynamic> toJson() => {
         "status": status,
         "message": message,
-        "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
+        "data": data == null
+            ? []
+            : List<dynamic>.from(data!.map((x) => x.toJson())),
         "pagination": pagination?.toJson(),
       };
 }
@@ -72,25 +81,27 @@ class BusinessSearchData {
       this.set_first_time_discount,
       this.set_regular_discount});
 
-  factory BusinessSearchData.fromRawJson(String str) => BusinessSearchData.fromJson(json.decode(str));
+  factory BusinessSearchData.fromRawJson(String str) =>
+      BusinessSearchData.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory BusinessSearchData.fromJson(Map<String, dynamic> json) => BusinessSearchData(
-      id: json["id"],
-      businessFullname: json["business_fullname"]?.toString(),
-      businessName: json["business_name"]?.toString(),
-      businessEmail: json["business_email"]?.toString(),
-      businessMobile: json["business_mobile"]?.toString(),
-      businessArea: json["business_area"]?.toString(),
-      businessSiteUrl: json["business_site_url"]?.toString(),
-      businessImage: json["business_image"]?.toString(),
-      isActive: _toInt(json["is_active"]),
-      roleId: json["role_id"],
-      pricingRangeText: json["pricing_range_text"]?.toString(),
-      avgExperience: json["avg_experience"]?.toString(),
-      set_first_time_discount: json["set_first_time_discount"],
-      set_regular_discount: json["set_regular_discount"]);
+  factory BusinessSearchData.fromJson(Map<String, dynamic> json) =>
+      BusinessSearchData(
+          id: json["id"],
+          businessFullname: json["business_fullname"]?.toString(),
+          businessName: json["business_name"]?.toString(),
+          businessEmail: json["business_email"]?.toString(),
+          businessMobile: json["business_mobile"]?.toString(),
+          businessArea: json["business_area"]?.toString(),
+          businessSiteUrl: json["business_site_url"]?.toString(),
+          businessImage: json["business_image"]?.toString(),
+          isActive: _toInt(json["is_active"]),
+          roleId: json["role_id"],
+          pricingRangeText: json["pricing_range_text"]?.toString(),
+          avgExperience: json["avg_experience"]?.toString(),
+          set_first_time_discount: json["set_first_time_discount"],
+          set_regular_discount: json["set_regular_discount"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -123,7 +134,8 @@ class Pagination {
     this.total,
   });
 
-  factory Pagination.fromRawJson(String str) => Pagination.fromJson(json.decode(str));
+  factory Pagination.fromRawJson(String str) =>
+      Pagination.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 

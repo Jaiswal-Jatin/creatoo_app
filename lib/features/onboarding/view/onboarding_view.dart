@@ -1,6 +1,5 @@
 import 'package:creatoo/features/onboarding/model/onboarding_model.dart';
 import 'package:flutter/services.dart';
-import 'package:creatoo/features/force_update/service/version_check_service.dart';
 
 import '../../../core.dart';
 import '../widget/onboarding_slide_widget.dart';
@@ -19,50 +18,23 @@ class _OnboardingViewState extends State<OnboardingView> {
   void initState() {
     super.initState();
     initialization(); // Directly call initialization without force update check
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom]);
     _pageController = PageController();
   }
 
   @override
   void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
     super.dispose();
-  }
-
-  // ------------------ VERSION CHECK ---------------------
-  Future<void> _checkVersionAndInitialize() async {
-    try {
-      final versionResponse = await VersionCheckService.checkAppVersion();
-
-      if (versionResponse != null && versionResponse.needsUpdate) {
-        FlutterNativeSplash.remove();
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          Navigator.pushReplacementNamed(
-            context,
-            RoutesName.forceUpdateView,
-            arguments: {
-              'message': versionResponse.message,
-              'currentVersion': versionResponse.clientVersion,
-              'latestVersion': versionResponse.latestVersion,
-            },
-          );
-        });
-        return;
-      }
-
-      initialization();
-    } catch (e, st) {
-      print("Error during version check: $e\n$st");
-      initialization();
-    }
   }
 
   // ------------------ INITIALIZATION ---------------------
   void initialization() async {
     try {
-      final SharedPreferencesService _preferencesService = SharedPreferencesService();
+      final SharedPreferencesService _preferencesService =
+          SharedPreferencesService();
       var myToken = await _preferencesService.getToken();
       var isOnboarded = await _preferencesService.getOnboarding() ?? false;
 
@@ -197,14 +169,16 @@ class _OnboardingViewState extends State<OnboardingView> {
                       isFirstSlide: index == 0,
                       isLastSlide: index == OnboardingModel.data.length - 1,
                       onNext: () async {
-                        if (_currentPageIndex < OnboardingModel.data.length - 1) {
+                        if (_currentPageIndex <
+                            OnboardingModel.data.length - 1) {
                           setState(() => _currentPageIndex++);
                           _pageController.nextPage(
                             duration: Duration(milliseconds: 500),
                             curve: Curves.ease,
                           );
                         } else {
-                          SharedPreferencesService _pref = SharedPreferencesService();
+                          SharedPreferencesService _pref =
+                              SharedPreferencesService();
                           await _pref.saveOnboarding(true);
 
                           Navigator.pushReplacementNamed(

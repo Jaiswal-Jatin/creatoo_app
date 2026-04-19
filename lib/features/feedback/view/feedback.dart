@@ -13,7 +13,11 @@ class FeedbackScreen extends StatefulWidget {
   final int businessId;
   final String orderId;
 
-  const FeedbackScreen({super.key, required this.businessName, required this.businessId, required this.orderId});
+  const FeedbackScreen(
+      {super.key,
+      required this.businessName,
+      required this.businessId,
+      required this.orderId});
 
   @override
   _FeedbackScreenState createState() => _FeedbackScreenState();
@@ -34,9 +38,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   void _saveAnswerAndNext(int answer) {
-    if (answer == null && currentPage < 6) {
+    if (currentPage < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please choose your answer before proceeding.")),
+        const SnackBar(
+            content: Text("Please choose your answer before proceeding.")),
       );
       return;
     }
@@ -98,7 +103,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (success && mounted) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isFeedbackSubmitted', true);
-      await prefs.setString('feedbackBusinessName', viewModel.businessName ?? "");
+      await prefs.setString(
+          'feedbackBusinessName', viewModel.businessName ?? "");
       await prefs.setString('feedbackOrderId', viewModel.orderId ?? "");
       Navigator.pushNamed(context, RoutesName.thankYouFeedback);
     }
@@ -112,7 +118,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       case Status.loading:
         return AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.feedbackResponse.message.toString());
+        return AppErrorWidget(
+            message: viewModel.feedbackResponse.message.toString());
       case Status.completed:
         return _buildBody();
       default:

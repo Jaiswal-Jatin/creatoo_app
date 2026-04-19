@@ -14,7 +14,8 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
   @override
   void initState() {
     super.initState();
-    viewModel = Provider.of<EditCreatorProfileViewModel>(context, listen: false);
+    viewModel =
+        Provider.of<EditCreatorProfileViewModel>(context, listen: false);
     viewModel.init();
   }
 
@@ -31,9 +32,9 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
       case Status.loading:
         return const AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.profileResponse.message.toString());
+        return AppErrorWidget(
+            message: viewModel.profileResponse.message.toString());
       case Status.completed:
-        var data = viewModel.profileResponse.data!.data!;
         return AppScaffold(
           appBar: AppBarWidget(
             title: "My Profile",
@@ -55,7 +56,8 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
                             if (viewModel.isEditing) {
                               viewModel.getImageAttachment();
                             } else {
-                              Utils.snackBar("Click the 'Edit' button to make changes.");
+                              Utils.snackBar(
+                                  "Click the 'Edit' button to make changes.");
                             }
                           },
                           child: Stack(
@@ -65,13 +67,16 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
                                 backgroundColor: AppColor.transparent,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
-                                  child: (viewModel.model.userImage == null || viewModel.model.userImage!.isEmpty)
+                                  child: (viewModel.model.userImage == null ||
+                                          viewModel.model.userImage!.isEmpty)
                                       ? AppImageWidget(
                                           iconSize: 120.sp,
                                           isProfile: true,
                                           height: 120.h,
                                           width: 120.h,
-                                          imageUrl: viewModel.profileResponse.data?.data?.userImage ?? '',
+                                          imageUrl: viewModel.profileResponse
+                                                  .data?.data?.userImage ??
+                                              '',
                                         )
                                       : Image.file(
                                           File(viewModel.model.userImage!),
@@ -114,8 +119,10 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
                         viewModel.nameController,
                         readOnly: !viewModel.isEditing,
                       ),
-                      buildTextField("City", viewModel.addressController, readOnly: !viewModel.isEditing, maxLines: 4),
-                      buildTextField("Mobile No", viewModel.phoneController, readOnly: true),
+                      buildTextField("City", viewModel.addressController,
+                          readOnly: !viewModel.isEditing, maxLines: 4),
+                      buildTextField("Mobile No", viewModel.phoneController,
+                          readOnly: true),
                       SizedBox(height: 80.h),
                     ],
                   ),
@@ -123,7 +130,8 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
               ),
             ),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           floatingActionButton: Container(
             margin: EdgeInsets.symmetric(horizontal: 20.h),
             child: AppButton(
@@ -189,7 +197,9 @@ class _EditCreatorProfileViewState extends State<EditCreatorProfileView> {
             suffixIcon: suffixIcon,
             maxLength: maxLength,
             // capitaliseText: capitaliseText,
-            hintText: title.toLowerCase().contains("expiry") ? "DD/MM/YYYY" : "Enter ${title.toLowerCase()}",
+            hintText: title.toLowerCase().contains("expiry")
+                ? "DD/MM/YYYY"
+                : "Enter ${title.toLowerCase()}",
             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           ),
           SizedBox(height: 10.h),

@@ -11,11 +11,13 @@ class ApplyOffersResponseModel {
     this.data,
   });
 
-  factory ApplyOffersResponseModel.fromRawJson(String str) => ApplyOffersResponseModel.fromJson(json.decode(str));
+  factory ApplyOffersResponseModel.fromRawJson(String str) =>
+      ApplyOffersResponseModel.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory ApplyOffersResponseModel.fromJson(Map<String, dynamic> json) => ApplyOffersResponseModel(
+  factory ApplyOffersResponseModel.fromJson(Map<String, dynamic> json) =>
+      ApplyOffersResponseModel(
         status: json["status"],
         message: json["message"],
         data: json["data"] == null ? null : BillSummary.fromJson(json["data"]),
@@ -100,18 +102,8 @@ class BillSummary {
       parsedValue = double.tryParse(value);
     }
 
-    return parsedValue != null ? double.parse(parsedValue.toStringAsFixed(2)) : null;
-  }
-
-  static String? _roundString(dynamic value) {
-    if (value == null) return null;
-
-    if (value is String) {
-      value = value.replaceAll('%', '');
-    }
-    double? parsedValue = double.tryParse(value.toString());
-    if (parsedValue == null) return null;
-    String formattedValue = parsedValue % 1 == 0 ? parsedValue.toInt().toString() : parsedValue.toStringAsFixed(2);
-    return "$formattedValue%";
+    return parsedValue != null
+        ? double.parse(parsedValue.toStringAsFixed(2))
+        : null;
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../../../utils/helper/type_converter.dart';
 
 // Helper function to convert bool/int to int
 int? _toInt(dynamic value) {
@@ -21,11 +20,13 @@ class HomeDataResponse {
     this.message,
   });
 
-  factory HomeDataResponse.fromRawJson(String str) => HomeDataResponse.fromJson(json.decode(str));
+  factory HomeDataResponse.fromRawJson(String str) =>
+      HomeDataResponse.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory HomeDataResponse.fromJson(Map<String, dynamic> json) => HomeDataResponse(
+  factory HomeDataResponse.fromJson(Map<String, dynamic> json) =>
+      HomeDataResponse(
         status: json["status"],
         message: json["message"],
         data: json["data"] == null ? null : Data.fromJson(json["data"]),
@@ -66,24 +67,54 @@ class Data {
   String toRawJson() => json.encode(toJson());
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        banners: json["banners"] == null ? [] : List<Baner>.from(json["banners"].map((x) => Baner.fromJson(x))),
-        topBusiness: json["topBusiness"] == null ? [] : List<Business>.from(json["topBusiness"].map((x) => Business.fromJson(x))),
-        newCreator: json["newCreator"] == null ? [] : List<Creator>.from(json["newCreator"].map((x) => Creator.fromJson(x))),
-        newBusiness: json["newBusiness"] == null ? [] : List<Business>.from(json["newBusiness"].map((x) => Business.fromJson(x))),
-        topReviewers:
-            json["top_reviews"] == null ? [] : List<Reviewer>.from(json["top_reviews"].map((x) => Reviewer.fromJson(x))), // Added this
-        paymentStatus: json["paymentStatus"] == null ? null : PaymentStatus.fromJson(json["paymentStatus"]),
-        roleSpecificData: json["role_specific_data"] == null ? null : RoleSpecificData.fromJson(json["role_specific_data"]),
-        isPendingReviewFlag: json["is_pending_review_flag"] == null ? null : IsPendingReviewFlag.fromJson(json["is_pending_review_flag"]),
+        banners: json["banners"] == null
+            ? []
+            : List<Baner>.from(json["banners"].map((x) => Baner.fromJson(x))),
+        topBusiness: json["topBusiness"] == null
+            ? []
+            : List<Business>.from(
+                json["topBusiness"].map((x) => Business.fromJson(x))),
+        newCreator: json["newCreator"] == null
+            ? []
+            : List<Creator>.from(
+                json["newCreator"].map((x) => Creator.fromJson(x))),
+        newBusiness: json["newBusiness"] == null
+            ? []
+            : List<Business>.from(
+                json["newBusiness"].map((x) => Business.fromJson(x))),
+        topReviewers: json["top_reviews"] == null
+            ? []
+            : List<Reviewer>.from(json["top_reviews"]
+                .map((x) => Reviewer.fromJson(x))), // Added this
+        paymentStatus: json["paymentStatus"] == null
+            ? null
+            : PaymentStatus.fromJson(json["paymentStatus"]),
+        roleSpecificData: json["role_specific_data"] == null
+            ? null
+            : RoleSpecificData.fromJson(json["role_specific_data"]),
+        isPendingReviewFlag: json["is_pending_review_flag"] == null
+            ? null
+            : IsPendingReviewFlag.fromJson(json["is_pending_review_flag"]),
         orderId: json["order_id"],
       );
 
   Map<String, dynamic> toJson() => {
-        "banners": banners == null ? [] : List<dynamic>.from(banners!.map((x) => x.toJson())),
-        "topBusiness": topBusiness == null ? [] : List<dynamic>.from(topBusiness!.map((x) => x.toJson())),
-        "newCreator": newCreator == null ? [] : List<dynamic>.from(newCreator!.map((x) => x.toJson())),
-        "newBusiness": newBusiness == null ? [] : List<dynamic>.from(newBusiness!.map((x) => x.toJson())),
-        "top_reviews": topReviewers == null ? [] : List<dynamic>.from(topReviewers!.map((x) => x.toJson())), // Added this
+        "banners": banners == null
+            ? []
+            : List<dynamic>.from(banners!.map((x) => x.toJson())),
+        "topBusiness": topBusiness == null
+            ? []
+            : List<dynamic>.from(topBusiness!.map((x) => x.toJson())),
+        "newCreator": newCreator == null
+            ? []
+            : List<dynamic>.from(newCreator!.map((x) => x.toJson())),
+        "newBusiness": newBusiness == null
+            ? []
+            : List<dynamic>.from(newBusiness!.map((x) => x.toJson())),
+        "top_reviews": topReviewers == null
+            ? []
+            : List<dynamic>.from(
+                topReviewers!.map((x) => x.toJson())), // Added this
         "paymentStatus": paymentStatus?.toJson(),
         "role_specific_data": roleSpecificData?.toJson(),
         "is_pending_review_flag": isPendingReviewFlag?.toJson(),
@@ -130,7 +161,8 @@ class PaymentStatus {
     this.items,
   });
 
-  factory PaymentStatus.fromRawJson(String str) => PaymentStatus.fromJson(json.decode(str));
+  factory PaymentStatus.fromRawJson(String str) =>
+      PaymentStatus.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
@@ -160,11 +192,13 @@ class RoleSpecificData {
     this.profileCompletionStatus,
   });
 
-  factory RoleSpecificData.fromRawJson(String str) => RoleSpecificData.fromJson(json.decode(str));
+  factory RoleSpecificData.fromRawJson(String str) =>
+      RoleSpecificData.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory RoleSpecificData.fromJson(Map<String, dynamic> json) => RoleSpecificData(
+  factory RoleSpecificData.fromJson(Map<String, dynamic> json) =>
+      RoleSpecificData(
         qrCode: json["qr_code"],
         todayWalletPoints: _round(json["today_wallet_points"]),
         userCreatooPoints: json["user_creatoo_points"],
@@ -191,7 +225,9 @@ class RoleSpecificData {
       parsedValue = double.tryParse(value);
     }
 
-    return parsedValue != null ? double.parse(parsedValue.toStringAsFixed(2)) : null;
+    return parsedValue != null
+        ? double.parse(parsedValue.toStringAsFixed(2))
+        : null;
   }
 }
 
@@ -240,23 +276,27 @@ class Business {
   int? isTop;
   int? roleId;
   int? set_first_time_discount;
+  int? set_regular_discount;
+  String? discount_type;
 
-  Business({
-    this.id,
-    this.businessFullName,
-    this.businessName,
-    this.businessEmail,
-    this.businessMobile,
-    this.businessArea,
-    this.businessSiteUrl,
-    this.businessImage,
-    this.isActive,
-    this.isTop,
-    this.roleId,
-    this.set_first_time_discount,
-  });
+  Business(
+      {this.id,
+      this.businessFullName,
+      this.businessName,
+      this.businessEmail,
+      this.businessMobile,
+      this.businessArea,
+      this.businessSiteUrl,
+      this.businessImage,
+      this.isActive,
+      this.isTop,
+      this.roleId,
+      this.set_first_time_discount,
+      this.set_regular_discount,
+      this.discount_type});
 
-  factory Business.fromRawJson(String str) => Business.fromJson(json.decode(str));
+  factory Business.fromRawJson(String str) =>
+      Business.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
@@ -273,6 +313,8 @@ class Business {
         isTop: _toInt(json["is_top"]),
         roleId: json["role_id"],
         set_first_time_discount: json["set_first_time_discount"],
+        set_regular_discount: json["set_regular_discount"],
+        discount_type: json["discount_type"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -288,6 +330,8 @@ class Business {
         "is_top": isTop,
         "role_id": roleId,
         "set_first_time_discount": set_first_time_discount,
+        "set_regular_discount": set_regular_discount,
+        "discount_type": discount_type,
       };
 }
 
@@ -362,11 +406,13 @@ class IsPendingReviewFlag {
     this.orderId,
   });
 
-  factory IsPendingReviewFlag.fromRawJson(String str) => IsPendingReviewFlag.fromJson(json.decode(str));
+  factory IsPendingReviewFlag.fromRawJson(String str) =>
+      IsPendingReviewFlag.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory IsPendingReviewFlag.fromJson(Map<String, dynamic> json) => IsPendingReviewFlag(
+  factory IsPendingReviewFlag.fromJson(Map<String, dynamic> json) =>
+      IsPendingReviewFlag(
         businessName: json["business_name"],
         businessId: json["business_id"],
         orderId: json["order_id"],

@@ -1,8 +1,4 @@
-import '../../../core.dart';
-
-class StartupRepository{
-  final BaseApiServices _apiServices = NetworkApiService();
-
+class StartupRepository {
   // Future<dynamic> selectRoleApi() async {
   //   return await _apiServices.callGetAPI(
   //     AppUrl.roleSelection,

@@ -169,109 +169,148 @@ class RecentRestaurantCard extends StatelessWidget {
     
     return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.all(cardMargin),
-        child: Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardBorderRadius)),
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: cardPadding, horizontal: cardPadding + 4),
-            child: Row(
-            children: [
-              // Left: Restaurant image or initials fallback
-              ClipRRect(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+        padding: EdgeInsets.all(cardPadding + 4),
+        decoration: BoxDecoration(
+          color: AppColor.premiumCardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.05),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left: Restaurant image or initials fallback
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: _tierColor(tier).withOpacity(0.3),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(imageBorderRadius),
                 child: imageUrl != null && imageUrl!.isNotEmpty
-                    ? AppImageWidget(
-                        imageUrl: imageUrl!,
+                    ? Image.network(
+                        imageUrl!,
                         height: imageSize,
                         width: imageSize,
-                        iconSize: imageSize,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildFallbackAvatar(imageBorderRadius, nameFontSize),
                       )
-                    : CircleAvatar(
-                        radius: imageBorderRadius,
-                        backgroundColor: _tierColor(tier).withOpacity(0.15),
+                    : _buildFallbackAvatar(imageBorderRadius, nameFontSize),
+              ),
+            ),
+
+            SizedBox(width: cardPadding + 4),
+
+            // Middle: name + date/time
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: nameFontSize,
+                      color: AppColor.premiumTextPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: cardPadding * 0.5),
+
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded,
+                          size: timeIconSize, color: AppColor.premiumTextSecondary),
+                      SizedBox(width: cardPadding * 0.4),
+                      Text(
+                        _formatTime(dateTime),
+                        style: TextStyle(
+                            fontSize: timeFontSize,
+                            color: AppColor.premiumTextSecondary,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(width: cardPadding),
+                      Icon(Icons.calendar_today_rounded,
+                          size: timeIconSize, color: AppColor.premiumTextSecondary),
+                      SizedBox(width: cardPadding * 0.4),
+                      Flexible(
                         child: Text(
-                          (name.split(' ').map((s) => s.isNotEmpty ? s[0] : '').take(2).join()).toUpperCase(),
+                          _formatDate(dateTime),
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: nameFontSize * 0.8,
-                          ),
+                              fontSize: timeFontSize,
+                              color: AppColor.premiumTextSecondary,
+                              fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                    ],
+                  ),
+                ],
               ),
-      
-              SizedBox(width: cardPadding),
-      
-              // Middle: name + date/time
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: nameFontSize,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+            ),
+
+            // Right: tier chip with Premium/Elite/Core styling
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: tierPaddingH, vertical: tierPaddingV),
+              decoration: _getTierDecoration(tier, tierBorderRadius),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _tierIcon(tier),
+                    size: tierIconSize,
+                    color: _tierIconColor(tier),
+                  ),
+                  SizedBox(width: cardPadding * 0.4),
+                  Text(
+                    _getTierDisplayName(tier),
+                    style: TextStyle(
+                      color: _getTierTextColor(tier),
+                      fontWeight: FontWeight.w800,
+                      fontSize: tierFontSize,
                     ),
-      
-                    SizedBox(height: cardPadding * 0.5),
-      
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: timeIconSize),
-                        SizedBox(width: cardPadding * 0.4),
-                        Text(
-                          _formatTime(dateTime), 
-                          style: TextStyle(fontSize: timeFontSize),
-                        ),
-                        SizedBox(width: cardPadding),
-                        Icon(Icons.calendar_today, size: timeIconSize),
-                        SizedBox(width: cardPadding * 0.4),
-                        Flexible(
-                          child: Text(
-                            _formatDate(dateTime), 
-                            style: TextStyle(fontSize: timeFontSize),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-      
-              // Right: tier chip with Premium/Elite/Core styling
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: tierPaddingH, vertical: tierPaddingV),
-                decoration: _getTierDecoration(tier, tierBorderRadius),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _tierIcon(tier),
-                      size: tierIconSize,
-                      color: _tierIconColor(tier),
-                    ),
-                    SizedBox(width: cardPadding * 0.4),
-                    Text(
-                      _getTierDisplayName(tier),
-                      style: TextStyle(
-                        color: _getTierTextColor(tier),
-                        fontWeight: FontWeight.w700,
-                        fontSize: tierFontSize,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    ),
+    );
+  }
+
+  Widget _buildFallbackAvatar(double radius, double fontSize) {
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: _tierColor(tier).withOpacity(0.15),
+      child: Text(
+        (name.split(' ').map((s) => s.isNotEmpty ? s[0] : '').take(2).join())
+            .toUpperCase(),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize * 0.9,
+          color: AppColor.premiumTextPrimary,
+        ),
+      ),
     );
   }
 

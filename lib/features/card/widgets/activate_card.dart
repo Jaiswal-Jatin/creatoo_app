@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'dart:ui' as ui;
 import 'package:creatoo/core.dart';
 import 'package:creatoo/data/services/shared_preference_service.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
@@ -40,45 +41,46 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   String? extractCardCode(String qrValue) {
     // QR me sirf 4 digit code hai
     final RegExp digitRegex = RegExp(r'^\d{4}$');
-    
+
     // Check if QR value is exactly 4 digits
     if (digitRegex.hasMatch(qrValue.trim())) {
       return qrValue.trim();
     }
-    
+
     // Agar QR me kuch aur bhi hai, toh 4 digit extract karo
     final RegExp extractRegex = RegExp(r'\d{4}');
     final match = extractRegex.firstMatch(qrValue);
     if (match != null) {
       return match.group(0);
     }
-    
+
     return null;
   }
 
   void _onDetect(BarcodeCapture capture) {
     if (isScanned) return; // Already scanned, prevent multiple calls
-    
+
     final List<Barcode> barcodes = capture.barcodes;
-    
+
     for (final barcode in barcodes) {
       if (barcode.rawValue != null) {
         final String qrValue = barcode.rawValue!;
         final String? cardCode = extractCardCode(qrValue);
-        
+
         if (cardCode != null && cardCode.length == 4) {
           setState(() {
             isScanned = true;
           });
-          
+
           // Stop camera
           cameraController.stop();
-          
+
           // Call activate card API
           _activateCard(cardCode);
           break;
         } else {
-          Utils.flushBar('Invalid QR Code. Please scan a valid card QR.', result: Result.error);
+          Utils.flushBar('Invalid QR Code. Please scan a valid card QR.',
+              result: Result.error);
         }
       }
     }
@@ -86,13 +88,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   void _activateCard(String cardCode) {
     if (userData == null || userData!.name == null) {
-      Utils.flushBar('User data not found. Please login again.', result: Result.error);
+      Utils.flushBar('User data not found. Please login again.',
+          result: Result.error);
       Navigator.pop(context);
       return;
     }
 
     final cardViewModel = Provider.of<CardViewModel>(context, listen: false);
-    
+
     // API call with scanned code and user name
     cardViewModel.activeCard(
       context,
@@ -101,7 +104,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         number: cardCode,
       ),
     );
-    
   }
 
   @override
@@ -111,7 +113,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(
+            Theme.of(context).platform == TargetPlatform.iOS
+                ? Icons.arrow_back_ios_new
+                : Icons.arrow_back,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -153,10 +160,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             controller: cameraController,
             onDetect: _onDetect,
           ),
-          
+
           // Overlay with scanning frame
           _buildScannerOverlay(),
-          
+
           // Bottom instruction text
           Positioned(
             bottom: 100.h,
@@ -191,7 +198,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ],
             ),
           ),
-          
+
           // Loading overlay when scanning
           if (isScanned)
             Container(
@@ -227,39 +234,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         final scanAreaSize = constraints.maxWidth * 0.7;
         final left = (constraints.maxWidth - scanAreaSize) / 2;
         final top = (constraints.maxHeight - scanAreaSize) / 2.5;
+        final scanWindow = Rect.fromLTWH(left, top, scanAreaSize, scanAreaSize);
 
         return Stack(
           children: [
-            // Dark overlay
-            ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.6),
-                BlendMode.srcOut,
-              ),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.transparent,
-                      backgroundBlendMode: BlendMode.dstOut,
-                    ),
+            // Dark blurred overlay with cutout
+            Positioned.fill(
+              child: ClipPath(
+                clipper: _ScannerClipper(scanWindow),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.5),
                   ),
-                  Positioned(
-                    left: left,
-                    top: top,
-                    child: Container(
-                      width: scanAreaSize,
-                      height: scanAreaSize,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            
+
             // Corner decorations
             Positioned(
               left: left,
@@ -350,4 +341,24 @@ class CornerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// CustomClipper to create the transparent cutout with rounded corners
+class _ScannerClipper extends CustomClipper<Path> {
+  final Rect cutOutRect;
+
+  _ScannerClipper(this.cutOutRect);
+
+  @override
+  Path getClip(Size size) {
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height)) // Full screen
+      ..addRRect(RRect.fromRectAndRadius(
+          cutOutRect, const Radius.circular(20))); // Rounded hole
+    return path..fillType = PathFillType.evenOdd; // Even-odd creates the hole
+  }
+
+  @override
+  bool shouldReclip(_ScannerClipper oldClipper) =>
+      oldClipper.cutOutRect != cutOutRect;
 }

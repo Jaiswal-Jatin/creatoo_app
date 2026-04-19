@@ -212,7 +212,7 @@ class AboutUsTabView extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          color: AppColor.black,
+          color: AppColor.premiumTextPrimary,
           height: 1.3,
         ),
       ),
@@ -228,7 +228,7 @@ class AboutUsTabView extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
-          color: AppColor.black,
+          color: AppColor.premiumTextPrimary,
           height: 1.3,
         ),
       ),
@@ -244,7 +244,7 @@ class AboutUsTabView extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           height: 1.6,
-          color: AppColor.darkGrey,
+          color: AppColor.premiumTextSecondary,
           fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
         ),
       ),
@@ -267,7 +267,7 @@ class AboutUsTabView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w600,
-                    color: AppColor.black,
+                    color: AppColor.premiumTextPrimary,
                     height: 1.5,
                   ),
                 ),
@@ -279,7 +279,7 @@ class AboutUsTabView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: fontSize,
                     height: 1.5,
-                    color: AppColor.darkGrey,
+                    color: AppColor.premiumTextSecondary,
                   ),
                 ),
               ),
@@ -303,7 +303,7 @@ class AboutUsTabView extends StatelessWidget {
                 '• ',
                 style: TextStyle(
                   fontSize: fontSize,
-                  color: AppColor.black,
+                  color: AppColor.premiumTextPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -314,7 +314,7 @@ class AboutUsTabView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: fontSize,
                     height: 1.5,
-                    color: AppColor.darkGrey,
+                    color: AppColor.premiumTextSecondary,
                   ),
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:creatoo/features/creator_wallet/model/transaction_details.dart';
 import 'package:creatoo/features/wallet/view_model/wallet_view_model.dart';
 import 'package:creatoo/features/wallet/widgets/wallet_calendar_dialog.dart';
 import 'package:creatoo/features/wallet/model/business_wallet_transaction_response.dart';
+import 'package:creatoo/widgets/app_text_widget.dart';
 
 class WalletView extends StatefulWidget {
   const WalletView({super.key});
@@ -56,25 +57,40 @@ class _WalletViewState extends State<WalletView> {
         return AppErrorWidget(message: walletViewModel.walletResponse.message.toString());
       case Status.completed:
         return AppScaffold(
-          appBar: AppBarWidget(
-            title: "Earning View",
-            disableLeadingButton: true,
-          ),
-          isSafe: true,
+          useGradient: false,
+          backgroundColor: Colors.transparent, // Inherits Home Gradient
+          extendBody: true, 
+          isSafe: false,
           body: Container(
+            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10.h),
             margin: EdgeInsets.all(16),
             child: RefreshIndicator(
+              color: AppColor.premiumAccent,
+              backgroundColor: AppColor.premiumCardBg,
               onRefresh: () async {
                 await walletViewModel.fetchBusinessWalletTransactions();
               },
               child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 children: [
+                  _buildPremiumHeader(),
+                  SizedBox(height: 20.h),
                   Stack(
                     children: [
-                      SvgPicture.asset(
-                        width: SizeConfig.screenWidth,
-                        AppIcon.walletBg,
+                      Container(
+                        height: 180.h,
+                        decoration: BoxDecoration(
+                           color: AppColor.premiumCardBg,
+                           borderRadius: BorderRadius.circular(20),
+                           border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.2),
+                           boxShadow: [
+                             BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                             )
+                           ]
+                        ),
                       ),
                       AppWalletCard(
                         value: walletViewModel.selectedDate != null && walletViewModel.selectedEndDate != null
@@ -83,12 +99,16 @@ class _WalletViewState extends State<WalletView> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 25.h),
                   Row(
                     children: [
                       Text(
                         'Transactions',
-                        style: AppTextStyles.body(fontWeight: FontWeight.w700),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.premiumTextPrimary,
+                        ),
                       ),
                       SizedBox(
                         width: 5.w,
@@ -97,8 +117,8 @@ class _WalletViewState extends State<WalletView> {
                         margin: EdgeInsets.symmetric(horizontal: 20),
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColor.white,
-                          border: Border.all(color: AppColor.lightGrey),
+                          color: AppColor.premiumCardBg,
+                          border: Border.all(color: AppColor.premiumAccent.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         enableTapToDismiss: true,
@@ -109,7 +129,7 @@ class _WalletViewState extends State<WalletView> {
                         richMessage: TextSpan(
                           text: Constants.walletInfo2,
                           style: TextStyle(
-                            color: AppColor.black,
+                            color: AppColor.premiumTextPrimary,
                             fontSize: 14.sp,
                           ),
                           children: [],
@@ -117,48 +137,57 @@ class _WalletViewState extends State<WalletView> {
                         child: Icon(
                           Icons.info_outline,
                           size: 20.h,
-                          color: AppColor.primary,
+                          color: AppColor.premiumAccent,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
-                  Row(
+                  SizedBox(height: 15.h),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Select Date Range',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: AppColor.premiumTextSecondary),
                       ),
-                      SizedBox(width: 5.w),
-                      Spacer(),
+                      SizedBox(height: 10.h),
+
                       InkWell(
                         onTap: () => _selectDateRange(context),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(top: 3.5.h),
-                              child: Text(
-                                walletViewModel.selectedEndDate != null && 
-                                    walletViewModel.selectedDate != walletViewModel.selectedEndDate
-                                  ? '${_formatDateForDisplay(walletViewModel.selectedDate)} - ${_formatDateForDisplay(walletViewModel.selectedEndDate)}'
-                                  : _formatDateForDisplay(walletViewModel.selectedDate),
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          decoration: BoxDecoration(
+                            color: AppColor.premiumCardBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                walletViewModel.selectedEndDate != null &&
+                                    walletViewModel.selectedDate !=
+                                        walletViewModel.selectedEndDate
+                                    ? '${_formatDateForDisplay(walletViewModel.selectedDate)} - ${_formatDateForDisplay(walletViewModel.selectedEndDate)}'
+                                    : _formatDateForDisplay(walletViewModel.selectedDate),
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColor.premiumTextPrimary,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 6),
-                            Icon(
-                              Icons.calendar_month_rounded,
-                              size: 20.h,
-                              color: AppColor.primary,
-                            ),
-                          ],
+                              Icon(
+                                Icons.calendar_month_rounded,
+                                size: 20.h,
+                                color: AppColor.premiumAccent,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 15.h),
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: Column(
@@ -175,7 +204,7 @@ class _WalletViewState extends State<WalletView> {
                       height: SizeConfig.screenHeight / 5,
                       width: SizeConfig.screenWidth,
                       alignment: Alignment.center,
-                      child: Text('No Transaction data for selected date range!'),
+                      child: Text('No Transaction data for selected date range!', style: TextStyle(color: AppColor.premiumTextSecondary)),
                     ),
                     child: Builder(
                       builder: (context) {
@@ -185,9 +214,10 @@ class _WalletViewState extends State<WalletView> {
                         return ListView.separated(
                           itemCount: transactions.length,
                           shrinkWrap: true,
+                          padding: EdgeInsets.only(bottom: 100.h),
                           physics: NeverScrollableScrollPhysics(),
                           separatorBuilder: (context, index) {
-                            return Divider();
+                            return SizedBox(height: 10.h);
                           },
                           itemBuilder: (context, index) {
                             var item = transactions[index];
@@ -216,11 +246,40 @@ class _WalletViewState extends State<WalletView> {
     }
   }
 
+  Widget _buildPremiumHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextWidget(
+                text: "CREATOO",
+                fontSize: 11.sp,
+                color: AppColor.premiumAccent,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+              ),
+              SizedBox(height: 2.h),
+              AppTextWidget(
+                text: "My Wallet",
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColor.premiumTextPrimary,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   SizedBox buildSearchField() {
     return SizedBox(
-      height: 50.h,
+      height: 55.h,
       child: TextFormField(
         controller: walletViewModel.searchController,
+        style: TextStyle(color: AppColor.premiumTextPrimary, fontSize: 14.sp),
         onFieldSubmitted: (value) async {
           if (value.trim().isEmpty) {
             await walletViewModel.fetchBusinessWalletTransactions();
@@ -234,23 +293,28 @@ class _WalletViewState extends State<WalletView> {
           }
         },
         decoration: InputDecoration(
-          fillColor: AppColor.white,
+          fillColor: AppColor.premiumCardBg,
           filled: true,
           hintText: "Search by Order Id...",
           hintStyle: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w400,
+            color: AppColor.premiumTextSecondary,
           ),
           suffixIconConstraints: const BoxConstraints.tightForFinite(width: 40, height: 20),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFE8ECF4)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFE8ECF4)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
           ),
-          prefixIcon: Icon(Icons.search),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColor.premiumAccent.withOpacity(0.5)),
+          ),
+          prefixIcon: Icon(Icons.search_rounded, color: AppColor.premiumAccent),
         ),
       ),
     );

@@ -1,4 +1,3 @@
-import 'package:creatoo/widgets/app_text_widget.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core.dart';
@@ -33,7 +32,8 @@ class _ScannerViewState extends State<ScannerView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     if (args != null) {
       final newQrUrl = args['qrUrl'] as String?;
@@ -158,7 +158,7 @@ class _ScannerViewState extends State<ScannerView> {
           ),
         ),
         SizedBox(height: 24),
-        
+
         // QR Code Container
         Container(
           padding: EdgeInsets.all(16),
@@ -179,7 +179,8 @@ class _ScannerViewState extends State<ScannerView> {
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColor.kPrimary.withOpacity(0.2), width: 1),
+                  border: Border.all(
+                      color: AppColor.kPrimary.withOpacity(0.2), width: 1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: AppImageWidget(
@@ -189,12 +190,14 @@ class _ScannerViewState extends State<ScannerView> {
                   fit: BoxFit.contain,
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Download Button
               if (viewModel.isDownloading)
-                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColor.kPrimary))
+                CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColor.kPrimary))
               else
                 Container(
                   width: double.infinity,
@@ -203,13 +206,15 @@ class _ScannerViewState extends State<ScannerView> {
                       File? file = await viewModel.getImage();
                       if (file != null) {
                         print('Image saved to :${file.path}');
-                        Utils.snackBar('QR code downloaded successfully!', result: Result.success);
+                        Utils.snackBar('QR code downloaded successfully!',
+                            result: Result.success);
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColor.kPrimary,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -230,7 +235,7 @@ class _ScannerViewState extends State<ScannerView> {
             ],
           ),
         ),
-        
+
         // Info Text
         Padding(
           padding: EdgeInsets.only(top: 24, left: 16, right: 16),
@@ -258,7 +263,8 @@ class _ScannerViewState extends State<ScannerView> {
           FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
         ),
         SizedBox(height: 10),
-        buildSettingField('Min Order Value', viewModel.minOrderController, FilteringTextInputFormatter.digitsOnly),
+        buildSettingField('Min Order Value', viewModel.minOrderController,
+            FilteringTextInputFormatter.digitsOnly),
         SizedBox(height: 10),
         buildDropdownField(),
         if (viewModel.showTextField) buildExpiryDateTextField(),
@@ -268,7 +274,8 @@ class _ScannerViewState extends State<ScannerView> {
     );
   }
 
-  Widget buildSettingField(String label, TextEditingController controller, TextInputFormatter formatter) {
+  Widget buildSettingField(String label, TextEditingController controller,
+      TextInputFormatter formatter) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -287,7 +294,8 @@ class _ScannerViewState extends State<ScannerView> {
 
             if (label == 'Set Discount %') {
               final parsedValue = int.tryParse(value);
-              if (parsedValue != null && (parsedValue > 100 || parsedValue < 1)) {
+              if (parsedValue != null &&
+                  (parsedValue > 100 || parsedValue < 1)) {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -298,7 +306,8 @@ class _ScannerViewState extends State<ScannerView> {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: Text('OK', style: TextStyle(color: AppColor.kPrimary)),
+                        child: Text('OK',
+                            style: TextStyle(color: AppColor.kPrimary)),
                       ),
                     ],
                   ),
@@ -324,7 +333,8 @@ class _ScannerViewState extends State<ScannerView> {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: Text('OK', style: TextStyle(color: AppColor.kPrimary)),
+                        child: Text('OK',
+                            style: TextStyle(color: AppColor.kPrimary)),
                       ),
                     ],
                   ),
@@ -402,7 +412,8 @@ class _ScannerViewState extends State<ScannerView> {
           child: DropdownButtonFormField<String>(
             isExpanded: true,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: OutlineInputBorder(
@@ -425,7 +436,8 @@ class _ScannerViewState extends State<ScannerView> {
             ),
             dropdownColor: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[600]),
+            icon: Icon(Icons.keyboard_arrow_down_rounded,
+                color: Colors.grey[600]),
             value: viewModel.selectedValue,
             items: [
               DropdownMenuItem(
@@ -434,11 +446,13 @@ class _ScannerViewState extends State<ScannerView> {
               ),
               DropdownMenuItem(
                 value: "30",
-                child: Text("30 days (1 month)", style: TextStyle(fontSize: 15)),
+                child:
+                    Text("30 days (1 month)", style: TextStyle(fontSize: 15)),
               ),
               DropdownMenuItem(
                 value: "360",
-                child: Text("360 days (1 year)", style: TextStyle(fontSize: 15)),
+                child:
+                    Text("360 days (1 year)", style: TextStyle(fontSize: 15)),
               ),
               DropdownMenuItem(
                 value: "Custom",
@@ -450,7 +464,9 @@ class _ScannerViewState extends State<ScannerView> {
               viewModel.onDropdownChangeExpiry(value!);
               viewModel.notify();
             },
-            validator: (value) => value == null || value.isEmpty ? 'Please select expiry days' : null,
+            validator: (value) => value == null || value.isEmpty
+                ? 'Please select expiry days'
+                : null,
           ),
         ),
         SizedBox(height: 16),
@@ -488,8 +504,10 @@ class _ScannerViewState extends State<ScannerView> {
             hintStyle: TextStyle(color: Colors.grey[500]),
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter number of days';
-              if (int.tryParse(value) == null) return 'Please enter a valid number';
+              if (value == null || value.isEmpty)
+                return 'Please enter number of days';
+              if (int.tryParse(value) == null)
+                return 'Please enter a valid number';
               if (int.parse(value) <= 0) return 'Must be greater than 0';
               return null;
             },
@@ -580,7 +598,8 @@ class _ScannerViewState extends State<ScannerView> {
               onPressed: () async {
                 if (!viewModel.isModified) {
                   Navigator.pop(context);
-                } else if (viewModel.formKey.currentState?.validate() ?? false) {
+                } else if (viewModel.formKey.currentState?.validate() ??
+                    false) {
                   await viewModel.updateBusinessSetting();
                   Navigator.pop(context);
                 }

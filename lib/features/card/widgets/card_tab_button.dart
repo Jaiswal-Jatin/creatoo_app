@@ -17,22 +17,35 @@ class CardTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 12.w),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
         decoration: BoxDecoration(
-          color: isSelected ?  AppColor.kPrimary : AppColor.transparent,
-          borderRadius: BorderRadius.circular(5),
+          color: isSelected 
+              ? AppColor.premiumAccent.withOpacity(0.15) 
+              : AppColor.premiumCardBg,
+          borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: AppColor.black.withOpacity(0.5),
-            width: 1,
+            color: isSelected 
+                ? AppColor.premiumAccent.withOpacity(0.5) 
+                : Colors.white.withOpacity(0.05),
+            width: 1.2,
           ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: AppColor.premiumAccent.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ] : [],
         ),
         child: Text(
           text,
           style: TextStyle(
-            color:isSelected ?  AppColor.white : AppColor.black,
-            fontSize: 10.sp,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.bold,
+            color: isSelected ? AppColor.white : AppColor.premiumTextSecondary,
+            fontSize: 12.sp,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
       ),

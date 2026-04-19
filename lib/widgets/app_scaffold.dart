@@ -47,6 +47,7 @@ class AppScaffold extends StatelessWidget {
         if (useGradient) // Apply gradient only when useGradient is true
           Container(
             decoration: BoxDecoration(
+              color: AppColor.premiumBg, // Solid base so transparency doesn't bleed
               gradient: gradient ?? AppGradient.scaffoldGradient,
             ),
           ),

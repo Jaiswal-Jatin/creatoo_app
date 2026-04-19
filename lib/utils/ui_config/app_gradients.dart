@@ -10,10 +10,13 @@ class AppGradient {
 // ),
 
   static RadialGradient scaffoldGradient = RadialGradient(
-    center: Alignment.topLeft,
+    center: const Alignment(0.8, -0.6),
     radius: 1.5,
-    colors: [AppColor.scaffoldColor, AppColor.white],
-    stops: [0.0, 0.7],
+    colors: [
+      AppColor.premiumAccent.withOpacity(0.12), // Vibrant but deep glow
+      AppColor.premiumBg, // Deep dark background
+    ],
+    stops: const [0.0, 0.7],
   );
 
   static RadialGradient onboardingBg = RadialGradient(

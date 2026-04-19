@@ -88,7 +88,7 @@ class VerifyOtpViewModel with ChangeNotifier {
         setVerifyOtpResponse(ApiResponse.error(l.message));
 
         // Check if error message indicates user doesn't exist
-        if (l.message?.toLowerCase().contains('user not exist') == true) {
+        if (l.message.toLowerCase().contains('user not exist')) {
           print('User Not Found - Redirecting to Registration');
           if (roleId == Constants.businessUser) {
             print('Redirecting to Business Registration');
@@ -213,7 +213,7 @@ class VerifyOtpViewModel with ChangeNotifier {
   }
 
   validateOtp(String value) {
-    if (value!.isEmpty) {
+    if (value.isEmpty) {
       return "Please enter OTP";
     } else if (value.length != 6) {
       return "OTP should be of 6 digits";

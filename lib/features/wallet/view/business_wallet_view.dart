@@ -2,11 +2,12 @@ import '../../../core.dart';
 import '../widgets/business_creatoo_tabview.dart';
 import 'wallet_view.dart';
 
-final GlobalKey<_BusinessWalletViewState> businessWalletKey = GlobalKey<_BusinessWalletViewState>();
+final GlobalKey<_BusinessWalletViewState> businessWalletKey =
+    GlobalKey<_BusinessWalletViewState>();
 
 class BusinessWalletView extends StatefulWidget {
-  int index;
-  BusinessWalletView({Key? key, this.index = 0}) : super(key: key);
+  final int index;
+  const BusinessWalletView({super.key, this.index = 0});
 
   @override
   State<BusinessWalletView> createState() => _BusinessWalletViewState();
@@ -30,7 +31,6 @@ class _BusinessWalletViewState extends State<BusinessWalletView> {
 
   @override
   void dispose() {
-    widget.index = _currentSelection;
     super.dispose();
   }
 

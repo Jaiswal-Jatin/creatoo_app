@@ -66,7 +66,9 @@ class _VisitsScreenState extends State<VisitsScreen> {
 
   void _countUsersByTier(List<Visit> visitsList) {
     // Map API tiers to display tiers: gold/new -> premium, silver -> elite, bronze -> core
-    goldCount = visitsList.where((v) => v.tier == Tier.premium || v.tier == Tier.newTier).length;
+    goldCount = visitsList
+        .where((v) => v.tier == Tier.premium || v.tier == Tier.newTier)
+        .length;
     silverCount = visitsList.where((v) => v.tier == Tier.elite).length;
     // core only
     bronzeCount = visitsList.where((v) => v.tier == Tier.core).length;
@@ -75,12 +77,12 @@ class _VisitsScreenState extends State<VisitsScreen> {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    
+
     // Responsive breakpoints
     final isVerySmall = h < 600;
     final isSmall = h < 700 && !isVerySmall;
     final isMedium = h >= 700 && h < 850;
-    
+
     // Responsive values
     double screenPadding;
     double tierCardPadding;
@@ -89,7 +91,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
     double cardSpacing;
     double sectionSpacing;
     double dateFontSize;
-    
+
     if (isVerySmall) {
       screenPadding = 12;
       tierCardPadding = 10;
@@ -123,7 +125,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
       sectionSpacing = 24;
       dateFontSize = 16;
     }
-    
+
     return ChangeNotifierProvider<VisitsViewModel>.value(
       value: visitsViewModel,
       child: Scaffold(
@@ -142,7 +144,8 @@ class _VisitsScreenState extends State<VisitsScreen> {
                 return const Center(child: CircularProgressIndicator());
               case Status.error:
                 log("VisitsScreen: Error state - ${viewModel.visitsResponse.message}");
-                return Center(child: Text('Error: ${viewModel.visitsResponse.message}'));
+                return Center(
+                    child: Text('Error: ${viewModel.visitsResponse.message}'));
               case Status.completed:
                 log("VisitsScreen: Completed state");
                 _updateVisitsData(viewModel.visitsResponse.data?.days ?? []);
@@ -150,7 +153,8 @@ class _VisitsScreenState extends State<VisitsScreen> {
                 if (visitsByDate.isEmpty) {
                   return Center(
                     child: Text(
-                      viewModel.visitsResponse.message ?? 'No visits history available.',
+                      viewModel.visitsResponse.message ??
+                          'No visits history available.',
                       style: AppTextStyles.montserratStyle(
                         fontSize: dateFontSize,
                         fontWeight: FontWeight.w500,
@@ -212,7 +216,8 @@ class _VisitsScreenState extends State<VisitsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: screenPadding * 0.5),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: screenPadding * 0.5),
                               child: Text(
                                 entry.key,
                                 style: AppTextStyles.montserratStyle(
@@ -222,7 +227,8 @@ class _VisitsScreenState extends State<VisitsScreen> {
                                 ),
                               ),
                             ),
-                            ...entry.value.map((visit) => _buildVisitCard(visit, context)),
+                            ...entry.value.map(
+                                (visit) => _buildVisitCard(visit, context)),
                             SizedBox(height: screenPadding),
                           ],
                         );
@@ -311,12 +317,12 @@ class _VisitsScreenState extends State<VisitsScreen> {
 
   Widget _buildVisitCard(Visit visit, BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    
+
     // Responsive breakpoints
     final isVerySmall = h < 600;
     final isSmall = h < 700 && !isVerySmall;
     final isMedium = h >= 700 && h < 850;
-    
+
     // Responsive values
     double cardPadding;
     double cardMargin;
@@ -327,7 +333,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
     double tierPaddingH;
     double tierPaddingV;
     double tierFontSize;
-    
+
     if (isVerySmall) {
       cardPadding = 10;
       cardMargin = 8;
@@ -369,11 +375,12 @@ class _VisitsScreenState extends State<VisitsScreen> {
       tierPaddingV = 6;
       tierFontSize = 12;
     }
-    
+
     final timeFormat = DateFormat('h:mm a');
-    
+
     // Treat 'newTier' as 'premium' for display purposes
-    final Tier displayTier = visit.tier == Tier.newTier ? Tier.premium : visit.tier;
+    final Tier displayTier =
+        visit.tier == Tier.newTier ? Tier.premium : visit.tier;
     List<Color> tierGradient;
     switch (displayTier) {
       case Tier.premium:
@@ -386,7 +393,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
       default:
         tierGradient = [const Color(0xFFF0D9B5), const Color(0xFFCD7F32)];
     }
-    
+
     return Card(
       margin: EdgeInsets.only(bottom: cardMargin),
       elevation: 1,
@@ -441,7 +448,8 @@ class _VisitsScreenState extends State<VisitsScreen> {
               ),
               // Tier badge
               Container(
-                padding: EdgeInsets.symmetric(horizontal: tierPaddingH, vertical: tierPaddingV),
+                padding: EdgeInsets.symmetric(
+                    horizontal: tierPaddingH, vertical: tierPaddingV),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: tierGradient,
@@ -464,19 +472,6 @@ class _VisitsScreenState extends State<VisitsScreen> {
         ),
       ),
     );
-  }
-
-  Color _getTierColor(Tier tier) {
-    switch (tier) {
-      case Tier.premium:
-        return const Color(0xFFFFD700); // Premium (gold)
-      case Tier.elite:
-        return const Color(0xFFC0C0C0); // Elite (silver)
-      case Tier.core:
-        return const Color(0xFFCD7F32); // Core (bronze)
-      case Tier.newTier:
-        return const Color(0xFFFFD700); // Treat newTier as premium for display
-    }
   }
 }
 

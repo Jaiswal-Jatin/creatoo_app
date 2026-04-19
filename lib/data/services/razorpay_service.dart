@@ -4,7 +4,8 @@ class RazorpayService {
   late Razorpay _razorpay;
   final Function(PaymentSuccessResponse) _paymentSuccessCallback;
   final Function(PaymentFailureResponse) _paymentFailureCallback;
-  final SharedPreferencesService _preferencesService = SharedPreferencesService();
+  final SharedPreferencesService _preferencesService =
+      SharedPreferencesService();
 
   RazorpayService(this._paymentSuccessCallback, this._paymentFailureCallback) {
     try {
@@ -48,22 +49,21 @@ class RazorpayService {
   }) {
     var options = {
       'key': dotenv.env["KEY_ID"],
-      'amount': amount * 100,
-      "currency": "INR",
+      'amount': (amount * 100).round(),
       'name': Constants.appName,
+      'description': paymentDescription ?? "Bill Payment",
       'order_id': orderId,
-      'description': paymentDescription,
+      'currency': "INR",
       'prefill': {
         'contact': contact,
         'email': email,
       },
-      "image": Constants.appLogo,
-      "send_sms_hash": true,
-      'theme.color': '#9759C4',
-      'theme.backdrop_color': '#9759C4',
+      'theme': {'color': '#9759C4'}
     };
 
     try {
+      print("Starting Razorpay Checkout...");
+      print("Using KEY_ID: ${dotenv.env["KEY_ID"]}");
       print("Opening Razorpay with options: $options");
       _razorpay.open(options);
     } catch (e) {

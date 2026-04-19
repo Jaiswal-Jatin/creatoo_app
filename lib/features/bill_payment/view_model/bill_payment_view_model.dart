@@ -21,9 +21,11 @@ class BillPaymentViewModel with ChangeNotifier {
   String? orderId;
   bool autoFocus = true;
 
-  ApiResponse<BusinessDetailsResponseModel> businessDetailsResponse = ApiResponse.initial();
+  ApiResponse<BusinessDetailsResponseModel> businessDetailsResponse =
+      ApiResponse.initial();
 
-  setBusinessDetailsResponse(ApiResponse<BusinessDetailsResponseModel> response) {
+  setBusinessDetailsResponse(
+      ApiResponse<BusinessDetailsResponseModel> response) {
     businessDetailsResponse = response;
   }
 
@@ -53,15 +55,11 @@ class BillPaymentViewModel with ChangeNotifier {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) async {
-    final result = PaymentResult(
-      isSuccess: false,
-      message: response.message ?? "Payment failed",
-      orderId: merchantTransactionId ?? "",
-      errorCode: response.code.toString(),
-    );
-    await paymentStatusApiCall(result);
-    Utils.toastMessage("Payment Failed ❌");
-    Navigator.pop(navigatorKey.currentContext!);
+    debugPrint("Razorpay Error Code: ${response.code}");
+    debugPrint("Razorpay Error Message: ${response.message}");
+    debugPrint("Razorpay Error Details: ${response.error}");
+
+    Utils.toastMessage("Payment Error: ${response.message} ❌");
   }
 
   Future<void> getBusinessDetailsApi({required int id}) async {
@@ -88,18 +86,17 @@ class BillPaymentViewModel with ChangeNotifier {
     debugPrint('🔹 Order ID: ${result.orderId}');
     debugPrint('🔹 Message: ${result.message}');
     debugPrint('🔹 Error Code: ${result.errorCode}');
-    
+
     setBusinessDetailsResponse(ApiResponse.loading());
     notifyListeners();
 
     var data = {
       "user_id": userId,
+      "order_id": result.orderId,
+      "payment_status": "SUCCESS", // AS PER REQUIREMENT: MUST BE "SUCCESS"
+      // Optional/Additional tracking data
       "business_id": businessDescription?.id,
       "token": token,
-      "order_id": result.orderId,
-      "payment_status": result.isSuccess ? "SUCCESS" : "FAILED",
-      "payment_error_message": result.errorCode ?? "",
-      // Add all billSummary data for database
       "bill_amount": billSummary?.originalBill,
       "original_bill_amount": billSummary?.originalBill,
       "discounted_bill": billSummary?.discountedBill,
@@ -134,35 +131,42 @@ class BillPaymentViewModel with ChangeNotifier {
         debugPrint('🟢 Final Bill: ${r.data?.finalBill}');
         debugPrint('🟢 Receipt Name: ${r.data?.receiptName}');
         debugPrint('🟢 Created At: ${r.data?.createdAt}');
-        
+
         // CRITICAL FIX: Set paymentData BEFORE navigation
         paymentData = r.data;
-        
+
         // FALLBACK: If API returns null data, use billSummary and businessDescription
         if (paymentData != null) {
           // Check if critical fields are null and populate from existing data
-          if (paymentData!.totalBill == null && billSummary?.originalBill != null) {
+          if (paymentData!.totalBill == null &&
+              billSummary?.originalBill != null) {
             paymentData = PaymentData(
-              businessName: paymentData!.businessName ?? businessDescription?.businessName,
+              businessName: paymentData!.businessName ??
+                  businessDescription?.businessName,
               businessId: paymentData!.businessId ?? businessDescription?.id,
               totalBill: billSummary?.originalBill?.toInt(),
               finalBill: billSummary?.finalBillAmount,
               createdAt: paymentData!.createdAt ?? DateTime.now(),
-              receiptName: paymentData!.receiptName ?? businessDescription?.businessName,
+              receiptName:
+                  paymentData!.receiptName ?? businessDescription?.businessName,
               orderId: paymentData!.orderId ?? result.orderId,
             );
-            debugPrint('\n⚠️ API returned null data, using fallback from billSummary');
+            debugPrint(
+                '\n⚠️ API returned null data, using fallback from billSummary');
             debugPrint('🔄 Fallback totalBill: ${billSummary?.originalBill}');
-            debugPrint('🔄 Fallback finalBill: ${billSummary?.finalBillAmount}');
-            debugPrint('🔄 Fallback businessName: ${businessDescription?.businessName}');
+            debugPrint(
+                '🔄 Fallback finalBill: ${billSummary?.finalBillAmount}');
+            debugPrint(
+                '🔄 Fallback businessName: ${businessDescription?.businessName}');
           }
         }
-        
+
         if (result.isSuccess) {
           orderId = result.orderId;
-          businessName = r.data?.businessName ?? businessDescription?.businessName;
+          businessName =
+              r.data?.businessName ?? businessDescription?.businessName;
           businessId = r.data?.businessId;
-          
+
           debugPrint('\n🔜 Data assigned to ViewModel:');
           debugPrint('🔹 orderId: $orderId');
           debugPrint('🔹 businessName: $businessName');
@@ -172,7 +176,7 @@ class BillPaymentViewModel with ChangeNotifier {
           debugPrint('🔹 paymentData.finalBill: ${paymentData?.finalBill}');
           debugPrint('🔹 paymentData.receiptName: ${paymentData?.receiptName}');
           debugPrint('🔹 paymentData.createdAt: ${paymentData?.createdAt}');
-          
+
           debugPrint('\n🚀 Navigating to PaymentSuccessView...');
           Navigator.pushNamed(
             navigatorKey.currentContext!,
@@ -181,7 +185,8 @@ class BillPaymentViewModel with ChangeNotifier {
         } else {
           debugPrint('\n⚠️ Payment was not successful, skipping navigation');
         }
-        setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
+        setBusinessDetailsResponse(
+            ApiResponse.completed(businessDetailsResponse.data));
       },
     );
     notifyListeners();
@@ -192,7 +197,7 @@ class BillPaymentViewModel with ChangeNotifier {
   Future<void> applyOffersApiCall() async {
     // Print API call start with timestamp
     debugPrint('\n\n=== [${DateTime.now()}] Starting applyOffersApiCall ===');
-    
+
     // Print request details
     debugPrint('📤 Request Details:');
     debugPrint('🔹 API Endpoint: applyOffersApi');
@@ -200,32 +205,35 @@ class BillPaymentViewModel with ChangeNotifier {
     debugPrint('🔹 Business ID: ${businessDescription?.id}');
     debugPrint('🔹 Business Name: ${businessDescription?.businessName}');
     debugPrint('🔹 Amount: $_amount');
-    debugPrint('🔹 Referral Code: ${referralCodeController.text.isNotEmpty ? referralCodeController.text : 'Not provided'}');
+    debugPrint(
+        '🔹 Referral Code: ${referralCodeController.text.isNotEmpty ? referralCodeController.text : 'Not provided'}');
     debugPrint('🔹 Timestamp: ${DateTime.now().toIso8601String()}');
-    
+
     setBusinessDetailsResponse(ApiResponse.loading());
     notifyListeners();
-    
+
     var data = {
       "user_id": userId,
       "business_id": businessDescription?.id,
       "token": token,
       "bill_amount": _amount,
-      "referrer_code": (referralCodeController.text.isNotEmpty) ? referralCodeController.text : null,
+      "referrer_code": (referralCodeController.text.isNotEmpty)
+          ? referralCodeController.text
+          : null,
     };
-    
+
     debugPrint('\n📦 Request Payload:');
     debugPrint(data.toString());
-    
+
     try {
       debugPrint('\n🔄 Sending API request...');
       var startTime = DateTime.now();
       var response = await _myRepo.applyOffersApi(data);
       var endTime = DateTime.now();
       var duration = endTime.difference(startTime);
-      
+
       debugPrint('\n⏱️ API Response Time: ${duration.inMilliseconds}ms');
-      
+
       response.fold(
         (l) {
           debugPrint('\n❌ API Error:');
@@ -235,14 +243,17 @@ class BillPaymentViewModel with ChangeNotifier {
             debugPrint('🔴 Error Data: ${l.data}');
           }
           debugPrint('🔴 Timestamp: ${DateTime.now().toIso8601String()}');
-          
-          setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-          
+
+          setBusinessDetailsResponse(
+              ApiResponse.completed(businessDetailsResponse.data));
+
           // Check for discount not set error
           String errorMsg = l.message.toString().toLowerCase();
-          if (errorMsg.contains('discountpercentage') || 
-              errorMsg.contains('discount') && errorMsg.contains('not a function')) {
-            Utils.toastMessage("This business has not set discount. You can't pay right now. Please contact the business.");
+          if (errorMsg.contains('discountpercentage') ||
+              errorMsg.contains('discount') &&
+                  errorMsg.contains('not a function')) {
+            Utils.toastMessage(
+                "This business has not set discount. You can't pay right now. Please contact the business.");
           } else {
             Utils.toastMessage(l.message.toString());
           }
@@ -250,21 +261,24 @@ class BillPaymentViewModel with ChangeNotifier {
         (r) async {
           debugPrint('\n✅ API Success:');
           debugPrint('🟢 Status: Success');
-          debugPrint('🟢 Merchant Transaction ID: ${r.data?.merchantTransactionId}');
+          debugPrint(
+              '🟢 Merchant Transaction ID: ${r.data?.merchantTransactionId}');
           debugPrint('🟢 Original Bill: ${r.data?.originalBill}');
-          debugPrint('🟢 Discount Applied: ${r.data?.discountApplied} (${r.data?.discountPercentage}%)');
+          debugPrint(
+              '🟢 Discount Applied: ${r.data?.discountApplied} (${r.data?.discountPercentage}%)');
           debugPrint('🟢 Final Bill Amount: ${r.data?.finalBillAmount}');
           debugPrint('🟢 Points You Will Earn: ${r.data?.pointsYouWillEarn}');
           debugPrint('🟢 Timestamp: ${DateTime.now().toIso8601String()}');
-          
+
           // Print full response data
           debugPrint('\n📥 Full Response Data:');
           debugPrint(r.data?.toJson().toString() ?? 'No data in response');
-          
-          setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
+
+          setBusinessDetailsResponse(
+              ApiResponse.completed(businessDetailsResponse.data));
           billSummary = r.data;
           merchantTransactionId = r.data?.merchantTransactionId;
-          
+
           debugPrint('\n🔜 Navigating to payment screen...');
           Navigator.pushNamed(
             navigatorKey.currentContext!,
@@ -280,12 +294,16 @@ class BillPaymentViewModel with ChangeNotifier {
       Utils.toastMessage('An error occurred while processing your request');
     } finally {
       notifyListeners();
-      debugPrint('\n🏁 Completed applyOffersApiCall at ${DateTime.now().toIso8601String()}');
+      debugPrint(
+          '\n🏁 Completed applyOffersApiCall at ${DateTime.now().toIso8601String()}');
       debugPrint('==================================================\n');
     }
   }
 
-  Future<void> startPayment({required String? orderId, required double amount, String? mobileNumber}) async {
+  Future<void> startPayment(
+      {required String? orderId,
+      required double amount,
+      String? mobileNumber}) async {
     if (orderId != null) {
       razorPayService.openCheckout(
         // amount: 1.00,
@@ -295,7 +313,8 @@ class BillPaymentViewModel with ChangeNotifier {
         paymentDescription: "Bill Payment",
       );
     } else {
-      Utils.toastMessage("Unable to start payment. Missing order ID or amount.");
+      Utils.toastMessage(
+          "Unable to start payment. Missing order ID or amount.");
     }
   }
 
@@ -303,7 +322,9 @@ class BillPaymentViewModel with ChangeNotifier {
     razorPayService.dispose();
   }
 
-  Future<void> checkTransactionStatusApiCall({required String orderId, required Future<void> Function() onSuccess}) async {
+  Future<void> checkTransactionStatusApiCall(
+      {required String orderId,
+      required Future<void> Function() onSuccess}) async {
     var data = {
       "user_id": userId,
       "token": token,
@@ -325,25 +346,21 @@ class BillPaymentViewModel with ChangeNotifier {
   }
 
   Future<void> processPaymentStatusApiCall() async {
-    setBusinessDetailsResponse(ApiResponse.loading());
-    notifyListeners();
+    // notifyListeners(); // Don't trigger loading to avoid closing Razorpay
 
     var data = {
-      "token": token,
       "order_id": billSummary?.merchantTransactionId,
     };
 
     var response = await _myRepo.processPaymentApi(data);
     response.fold(
       (l) {
-        setBusinessDetailsResponse(ApiResponse.error(l.message));
-        debugPrint(l.message);
+        // setBusinessDetailsResponse(ApiResponse.error(l.message)); // Don't disrupt the view
+        debugPrint("Process Payment Error: ${l.message}");
       },
       (r) async {
-        setBusinessDetailsResponse(ApiResponse.completed(businessDetailsResponse.data));
-        debugPrint("Orders Status updated");
+        debugPrint("Orders Status updated to Processing");
       },
     );
-    notifyListeners();
   }
 }

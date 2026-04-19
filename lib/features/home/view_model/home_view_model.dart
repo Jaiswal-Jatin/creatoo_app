@@ -20,7 +20,7 @@ class HomeViewModel with ChangeNotifier {
   int _selectedIndex = 0;
   bool _creatooView = false;
   bool? isLogout;
-  
+
   // Subscription state for business users
   Subscription? businessSubscription;
   bool hasCheckedSubscription = false;
@@ -52,8 +52,22 @@ class HomeViewModel with ChangeNotifier {
     }
   }
 
-  void launchBannerUrl(String url) async {
-    await _urlLauncherService.launchAppUrl(url);
+  void launchBannerUrl(String? url) async {
+    if (url == null || url.isEmpty) {
+      debugPrint('Banner URL is null or empty');
+      return;
+    }
+
+    bool launched = false;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      launched = await _urlLauncherService.launchWebUrl(url);
+    } else {
+      launched = await _urlLauncherService.launchAppUrl(url);
+    }
+
+    if (!launched) {
+      Utils.toastMessage('Could not launch URL');
+    }
   }
 
   double roundToTwoDecimalPlaces(double value) {
@@ -77,14 +91,20 @@ class HomeViewModel with ChangeNotifier {
         setResponse(ApiResponse.completed(r));
         if (roleId == Constants.creatorUser) {
           if (r.data?.isPendingReviewFlag != null) {
-            Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.feedbackScreen, arguments: {
-              'businessName': r.data?.isPendingReviewFlag?.businessName ?? "Unknown",
-              'businessId': r.data?.isPendingReviewFlag?.businessId ?? 125,
-              'orderId': r.data?.isPendingReviewFlag?.orderId ?? "order_Q9TCU7fsYEF5XA",
-            });
+            Navigator.pushNamed(
+                navigatorKey.currentContext!, RoutesName.feedbackScreen,
+                arguments: {
+                  'businessName':
+                      r.data?.isPendingReviewFlag?.businessName ?? "Unknown",
+                  'businessId': r.data?.isPendingReviewFlag?.businessId ?? 125,
+                  'orderId': r.data?.isPendingReviewFlag?.orderId ??
+                      "order_Q9TCU7fsYEF5XA",
+                });
           }
           if (r.data?.orderId != null && r.data!.orderId!.isNotEmpty) {
-            BillPaymentViewModel billPaymentViewModel = Provider.of<BillPaymentViewModel>(navigatorKey.currentContext!, listen: false);
+            BillPaymentViewModel billPaymentViewModel =
+                Provider.of<BillPaymentViewModel>(navigatorKey.currentContext!,
+                    listen: false);
             billPaymentViewModel.init();
             await billPaymentViewModel.checkTransactionStatusApiCall(
                 orderId: r.data!.orderId!,
@@ -99,38 +119,64 @@ class HomeViewModel with ChangeNotifier {
           if (r.data?.roleSpecificData?.profileCompletionStatus == 0) {
             await AppDialog.showBusinessInfoIncompleteDialog(
                 title: "Complete Your Basic Registration!",
-                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                content:
+                    "You haven't finished setting up your business. Complete the process to start attracting customers!",
                 mandatoryFields: "Business Name, Mobile, Area & Address",
                 buttonLabel: "Proceed To Finish",
                 onClicked: () async {
-                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!,
+                          listen: false)
+                      .changeIndex(2, true);
                   Navigator.of(navigatorKey.currentContext!).pop(true);
-                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Details");
-                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                  await Navigator.pushNamed(navigatorKey.currentContext!,
+                      RoutesName.editBusinessProfile,
+                      arguments: "Details");
+                  await Provider.of<SettingsViewModel>(
+                          navigatorKey.currentContext!,
+                          listen: false)
+                      .fetchUserProfileDetails();
                 });
           } else if (r.data?.roleSpecificData?.profileCompletionStatus == 1) {
             await AppDialog.showBusinessInfoIncompleteDialog(
                 title: "Complete Your Business Description!",
-                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
-                mandatoryFields: "Business Images 4, Opening Time & Closing Time",
+                content:
+                    "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                mandatoryFields:
+                    "Business Images 4, Opening Time & Closing Time",
                 buttonLabel: "Proceed To Finish",
                 onClicked: () async {
-                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!,
+                          listen: false)
+                      .changeIndex(2, true);
                   Navigator.of(navigatorKey.currentContext!).pop(true);
-                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Details");
-                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                  await Navigator.pushNamed(navigatorKey.currentContext!,
+                      RoutesName.editBusinessProfile,
+                      arguments: "Details");
+                  await Provider.of<SettingsViewModel>(
+                          navigatorKey.currentContext!,
+                          listen: false)
+                      .fetchUserProfileDetails();
                 });
           } else if (r.data?.roleSpecificData?.profileCompletionStatus == 2) {
             await AppDialog.showBusinessInfoIncompleteDialog(
                 title: "Complete Your Registration!",
-                content: "You haven't finished setting up your business. Complete the process to start attracting customers!",
-                mandatoryFields: "Discount Fields, Min order Value & Points Expiry Date",
+                content:
+                    "You haven't finished setting up your business. Complete the process to start attracting customers!",
+                mandatoryFields:
+                    "Discount Fields, Min order Value & Points Expiry Date",
                 buttonLabel: "Proceed To Finish",
                 onClicked: () async {
-                  Provider.of<HomeViewModel>(navigatorKey.currentContext!, listen: false).changeIndex(2, true);
+                  Provider.of<HomeViewModel>(navigatorKey.currentContext!,
+                          listen: false)
+                      .changeIndex(2, true);
                   Navigator.of(navigatorKey.currentContext!).pop(true);
-                  await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.editBusinessProfile, arguments: "Set Discount");
-                  await Provider.of<SettingsViewModel>(navigatorKey.currentContext!, listen: false).fetchUserProfileDetails();
+                  await Navigator.pushNamed(navigatorKey.currentContext!,
+                      RoutesName.editBusinessProfile,
+                      arguments: "Set Discount");
+                  await Provider.of<SettingsViewModel>(
+                          navigatorKey.currentContext!,
+                          listen: false)
+                      .fetchUserProfileDetails();
                 });
           }
         }
@@ -151,7 +197,8 @@ class HomeViewModel with ChangeNotifier {
         user?.image = r.data!.userImage;
         user?.email = r.data!.email;
         user?.mobile = r.data!.mobile;
-        user?.instagramVerificationStatus = r.data!.instagramVerificationStatus!;
+        user?.instagramVerificationStatus =
+            r.data!.instagramVerificationStatus!;
         // if (r.data!.instagramVerificationStatus == InstagramStatus.initial.index ||
         //     r.data!.instagramVerificationStatus == InstagramStatus.rejected.index) {
         //   log("API COUNT : ${count}");

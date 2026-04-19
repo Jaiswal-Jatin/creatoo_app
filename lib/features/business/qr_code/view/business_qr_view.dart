@@ -226,31 +226,21 @@ class _BusinessQrViewState extends State<BusinessQrView> {
     );
   }
 
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: AppTextWidget(text: 'URL copied to clipboard'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   Future<void> _saveQrCode() async {
     if (_isSaving) return;
 
     setState(() => _isSaving = true);
 
     try {
-      final boundary = _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) {
         throw Exception('Failed to capture QR code');
       }
 
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      
+
       if (byteData == null) {
         throw Exception('Failed to convert image to bytes');
       }
@@ -258,7 +248,8 @@ class _BusinessQrViewState extends State<BusinessQrView> {
       final result = await ImageGallerySaverPlus.saveImage(
         byteData.buffer.asUint8List(),
         quality: 100,
-        name: 'creatoo_qr_${widget.businessId}_${DateTime.now().millisecondsSinceEpoch}',
+        name:
+            'creatoo_qr_${widget.businessId}_${DateTime.now().millisecondsSinceEpoch}',
       );
 
       if (result['isSuccess'] == true) {

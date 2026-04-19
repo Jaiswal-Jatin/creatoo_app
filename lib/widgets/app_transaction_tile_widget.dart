@@ -24,123 +24,144 @@ class AppTransactionTileWidget extends StatelessWidget {
     if (item.paidTo == null && item.receivedFrom == null) {
       return SizedBox.shrink();
     } else {
-      return ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Container(
-          height: 50.h,
-          width: 50.h,
-          decoration: BoxDecoration(
-            color: AppColor.lightGrey,
-            shape: BoxShape.circle,
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+        // margin: EdgeInsets.only(bottom: 8.h),
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: AppColor.premiumCardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColor.premiumAccent.withOpacity(0.15),
+            width: 1.2,
           ),
-          child: roleId == Constants.businessUser
-              ? Icon(
-                  Icons.arrow_downward,
-                  color: AppColor.green,
-                )
-              : Icon(
-                  Icons.arrow_upward,
-                  color: AppColor.darkRed,
-                ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              (item.paidTo == null) ? 'Received from:' : 'Paid to:',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.body(
-                fontSize: 10.sp,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: MediaQuery.sizeOf(context).width * 0.5,
-                  child: Text(
-                    (item.paidTo == null) ? '${item.receivedFrom}' : '${item.paidTo}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.body(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Text(
-                  '₹${item.totalBill.toCommaSeparated()}',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
-        subtitle: Container(
-          padding: EdgeInsets.only(top: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 45.h,
+              width: 45.h,
+              decoration: BoxDecoration(
+                color: AppColor.premiumAccent.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: roleId == Constants.businessUser
+                  ? Icon(
+                      Icons.arrow_downward,
+                      color: AppColor.premiumAccent,
+                    )
+                  : Icon(
+                      Icons.arrow_upward,
+                      color: AppColor.premiumAccent,
+                    ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${_formatDate(item.dateTime.toString())}',
+                    (item.paidTo == null) ? 'Received from:' : 'Paid to:',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColor.darkGrey,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColor.premiumTextSecondary,
                     ),
                   ),
-                  SizedBox(
-                    height: 4,
-                  ),
-                  if (item.orderId != null)
-                    Text(
-                      'Order ID: ${item.orderId}',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w400,
-                        color: AppColor.darkGrey,
+                  SizedBox(height: 2.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: MediaQuery.sizeOf(context).width * 0.45,
+                        child: Text(
+                          (item.paidTo == null) ? '${item.receivedFrom}' : '${item.paidTo}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.premiumTextPrimary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                    ),
+                      Text(
+                        '₹${item.totalBill.toCommaSeparated()}',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w800,
+                          color: AppColor.premiumTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 6.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatDate(item.dateTime.toString()),
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w400,
+                              color: AppColor.premiumTextSecondary,
+                            ),
+                          ),
+                          if (item.orderId != null) ...[
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Id: ${item.orderId}',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w400,
+                                color: AppColor.premiumTextSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (roleId == Constants.creatorUser && item.finalBill != null)
+                        Text(
+                          '₹${item.finalBill.toCommaSeparated()}',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.premiumTextSecondary,
+                          ),
+                        )
+                      else if (item.discountPercentage != null)
+                        Text(
+                          '${item.discountPercentage}%',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.premiumTextSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
-              if (roleId == Constants.creatorUser && item.finalBill != null)
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Text(
-                    '₹${item.finalBill.toCommaSeparated()}',
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColor.darkGrey,
-                    ),
-                  ),
-                )
-              else if (item.discountPercentage != null)
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Text(
-                    '${item.discountPercentage}%',
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColor.darkGrey,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }

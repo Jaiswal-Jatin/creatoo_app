@@ -111,34 +111,52 @@ class EditBusinessProfileViewModel with ChangeNotifier {
   updateFields() {
     if (profileResponse.data != null && profileResponse.data?.data != null) {
       var item = profileResponse.data!.data!;
-      businessNameController = TextEditingController(text: item.businessName ?? "");
-      businessAreaController = TextEditingController(text: item.businessArea ?? "");
-      businessCompleteAddressController = TextEditingController(text: item.businessAddress ?? "");
-      businessWebsiteController = TextEditingController(text: item.businessSiteUrl ?? "");
-      businessFullNameController = TextEditingController(text: item.businessFullname ?? "");
-      businessDesignationController = TextEditingController(text: item.businessDesignation ?? "");
-      businessEmailController = TextEditingController(text: item.businessEmail ?? "");
-      businessMobileController = TextEditingController(text: item.businessMobile ?? "");
-      businessGstNoController = TextEditingController(text: item.gstNumber == null ? '' : item.gstNumber.toString().toUpperCase());
-      setFirstTimeDiscountController = TextEditingController(text: item.setFirstTimeDiscount?.toString() ?? "");
-      setRegularDiscountController = TextEditingController(text: item.setRegularDiscount?.toString() ?? "");
+      businessNameController =
+          TextEditingController(text: item.businessName ?? "");
+      businessAreaController =
+          TextEditingController(text: item.businessArea ?? "");
+      businessCompleteAddressController =
+          TextEditingController(text: item.businessAddress ?? "");
+      businessWebsiteController =
+          TextEditingController(text: item.businessSiteUrl ?? "");
+      businessFullNameController =
+          TextEditingController(text: item.businessFullname ?? "");
+      businessDesignationController =
+          TextEditingController(text: item.businessDesignation ?? "");
+      businessEmailController =
+          TextEditingController(text: item.businessEmail ?? "");
+      businessMobileController =
+          TextEditingController(text: item.businessMobile ?? "");
+      businessGstNoController = TextEditingController(
+          text: item.gstNumber == null
+              ? ''
+              : item.gstNumber.toString().toUpperCase());
+      setFirstTimeDiscountController = TextEditingController(
+          text: item.setFirstTimeDiscount?.toString() ?? "");
+      setRegularDiscountController = TextEditingController(
+          text: item.setRegularDiscount?.toString() ?? "");
       if (item.setExpiry != null) {
-        if (item.setExpiry == 15 || item.setExpiry == 30 || item.setExpiry == 365) {
+        if (item.setExpiry == 15 ||
+            item.setExpiry == 30 ||
+            item.setExpiry == 365) {
           selectedExpiryDays = item.setExpiry.toString();
           showOtherField = false;
         } else {
           showOtherField = true;
           selectedExpiryDays = "Other";
-          expiryInDaysController = TextEditingController(text: (item.setExpiry != null) ? item.setExpiry.toString() : "");
+          expiryInDaysController = TextEditingController(
+              text: (item.setExpiry != null) ? item.setExpiry.toString() : "");
         }
       } else {
         showOtherField = false;
         selectedExpiryDays = null;
       }
-      minOrderValueController = TextEditingController(text: item.minOrder?.toString() ?? "");
+      minOrderValueController =
+          TextEditingController(text: item.minOrder?.toString() ?? "");
       toTimeController = TextEditingController(text: item.timeTo ?? "");
       fromTimeController = TextEditingController(text: item.timeFrom ?? "");
-      priceRangeController = TextEditingController(text: item.pricingRangeText ?? '');
+      priceRangeController =
+          TextEditingController(text: item.pricingRangeText ?? '');
       extractPricingDetails(item.pricingRangeText);
 
       if (item.businessImage != null) {
@@ -201,7 +219,7 @@ class EditBusinessProfileViewModel with ChangeNotifier {
 
   void extractPricingDetails(String? pricingText) {
     debugPrint("extractPricingDetails called with: $pricingText");
-    
+
     if (pricingText == null || pricingText.isEmpty) {
       amountController = TextEditingController(text: '');
       noOfPeopleController = TextEditingController(text: '');
@@ -219,9 +237,10 @@ class EditBusinessProfileViewModel with ChangeNotifier {
       String amountStr = (match.group(1) ?? '').replaceAll(',', '');
       // Parse as double and convert to integer to remove decimal
       double? amountDouble = double.tryParse(amountStr);
-      String amount = amountDouble != null ? amountDouble.toInt().toString() : '';
+      String amount =
+          amountDouble != null ? amountDouble.toInt().toString() : '';
       String people = match.group(2) ?? '';
-      
+
       debugPrint("Extracted amount: $amount, people: $people");
 
       amountController = TextEditingController(text: amount);
@@ -344,10 +363,12 @@ class EditBusinessProfileViewModel with ChangeNotifier {
   Future<void> updateBusinessDescriptionApiCall() async {
     setResponse(ApiResponse.loading());
     notifyListeners();
-    String pricingRange = (amountController != null && noOfPeopleController != null)
+    String pricingRange = (amountController != null &&
+            noOfPeopleController != null)
         ? "₹${amountController?.text.toCommaSeparated()} for ${noOfPeopleController?.text} people"
         : "";
-    BusinessDescriptionRequestModel businessDescriptionRequestModel = BusinessDescriptionRequestModel(
+    BusinessDescriptionRequestModel businessDescriptionRequestModel =
+        BusinessDescriptionRequestModel(
       businessId: userId,
       token: token,
       timeFrom: fromTimeController?.text,
@@ -355,7 +376,8 @@ class EditBusinessProfileViewModel with ChangeNotifier {
       pricingRangeText: pricingRange,
     );
 
-    var response = await _myRepo.updateBusinessDescriptionApi(businessDescriptionRequestModel);
+    var response = await _myRepo
+        .updateBusinessDescriptionApi(businessDescriptionRequestModel);
     response.fold(
       (l) {
         setResponse(ApiResponse.error(l.message));
@@ -383,11 +405,14 @@ class EditBusinessProfileViewModel with ChangeNotifier {
       businessId: userId,
       setFirstTimeDiscount: int.parse(setFirstTimeDiscountController!.text),
       setRegularDiscount: int.parse(setRegularDiscountController!.text),
-      setExpiry: (selectedExpiryDays == "Other") ? int.parse(expiryInDaysController!.text) : int.parse(selectedExpiryDays ?? '1'),
+      setExpiry: (selectedExpiryDays == "Other")
+          ? int.parse(expiryInDaysController!.text)
+          : int.parse(selectedExpiryDays ?? '1'),
       token: token,
     );
 
-    var response = await _myRepo.updateBusinessDiscountApi(setDiscountRequestModel);
+    var response =
+        await _myRepo.updateBusinessDiscountApi(setDiscountRequestModel);
     response.fold(
       (l) {
         setResponse(ApiResponse.error(l.message));

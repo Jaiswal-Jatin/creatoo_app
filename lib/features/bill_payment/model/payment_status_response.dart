@@ -11,11 +11,13 @@ class PaymentStatusResponse {
     this.data,
   });
 
-  factory PaymentStatusResponse.fromRawJson(String str) => PaymentStatusResponse.fromJson(json.decode(str));
+  factory PaymentStatusResponse.fromRawJson(String str) =>
+      PaymentStatusResponse.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory PaymentStatusResponse.fromJson(Map<String, dynamic> json) => PaymentStatusResponse(
+  factory PaymentStatusResponse.fromJson(Map<String, dynamic> json) =>
+      PaymentStatusResponse(
         status: json["status"],
         message: json["message"],
         data: json["data"] == null ? null : PaymentData.fromJson(json["data"]),
@@ -47,20 +49,25 @@ class PaymentData {
     this.orderId,
   });
 
-  factory PaymentData.fromRawJson(String str) => PaymentData.fromJson(json.decode(str));
+  factory PaymentData.fromRawJson(String str) =>
+      PaymentData.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
   factory PaymentData.fromJson(Map<String, dynamic> json) => PaymentData(
         businessName: json["business_name"],
-        totalBill: json["total_bill"] is int 
-            ? json["total_bill"] 
+        totalBill: json["total_bill"] is int
+            ? json["total_bill"]
             : int.tryParse(json["total_bill"]?.toString() ?? "0"),
-        businessId: json["business_id"] is int 
-            ? json["business_id"] 
+        businessId: json["business_id"] is int
+            ? json["business_id"]
             : int.tryParse(json["business_id"]?.toString() ?? "0"),
         finalBill: json["final_bill"]?.toDouble(),
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
+        createdAt: json["created_at"] == null
+            ? null
+            : DateTime.tryParse(
+                    json["created_at"].toString().replaceAll(' ', 'T')) ??
+                DateTime.tryParse(json["created_at"].toString()),
         receiptName: json["receipt_name"],
         orderId: json["order_id"]?.toString(),
       );

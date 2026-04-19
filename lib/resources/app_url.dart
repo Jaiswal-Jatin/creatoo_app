@@ -3,10 +3,12 @@ String baseUrl = "${AppUrl.host}/storage/app/";
 class AppUrl {
   // Base URLs
 
+ 
+  // static const String host = 'http://dev-api.creatoo.co.in';
+  
   static const String host = 'https://api.creatoo.co.in';
 
-  // static const String host = 'https://api.tapbill.in';
-  // static const String host = 'https://portal.creatoo.co.in';
+
 
   static const String baseUrl = '$host/api';
   static const String razorpayOrderId = 'https://api.razorpay.com/v1/orders';
@@ -58,7 +60,8 @@ class AppUrl {
       '$baseUrl/visit/user-all-history'; //done
   static const String visitCheck = '$baseUrl/visit?'; //done
   static const String Addvisit = '$baseUrl/visit'; //done
-  static const String busineesHistory = '$baseUrl/visit/history'; //done
+  static const String busineesHistory =
+      '$baseUrl/visit/history?mobile=true'; //done
 
   // Post & Opportunities Endpoints
   static const String viewMyPost = '$baseUrl/post/myPost';

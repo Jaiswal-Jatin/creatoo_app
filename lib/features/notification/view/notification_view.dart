@@ -20,7 +20,6 @@ class _NotificationViewState extends State<NotificationView> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     Future.microtask(() {
       viewModel = Provider.of<NotificationViewModel>(context, listen: false);
@@ -28,7 +27,8 @@ class _NotificationViewState extends State<NotificationView> {
     });
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 100) {
         viewModel.loadMoreNotifications();
       }
     });
@@ -38,151 +38,289 @@ class _NotificationViewState extends State<NotificationView> {
   Widget build(BuildContext context) {
     viewModel = Provider.of<NotificationViewModel>(context);
 
-    switch (viewModel.notificationResponse.status) {
-      case Status.loading:
-        // Show loading only if notifications list is empty (initial load)
-        if (viewModel.notifications.isEmpty) {
-          return AppLoadingWidget();
-        }
-        // If loading more and we have data, show the list
-        return _buildBody();
-      case Status.error:
-        return _buildEmptyNotificationWidget(viewModel.notificationResponse.message.toString());
-      case Status.completed:
-        if (viewModel.noNotificationMessage != null || viewModel.notifications.isEmpty) {
-          return _buildEmptyNotificationWidget(viewModel.noNotificationMessage ?? "No Notification received yet");
-        }
-        return _buildBody();
-      default:
-        return AppLoadingWidget(); // Default to loading or handle other unexpected states
-    }
-  }
-
-  Widget _buildEmptyNotificationWidget(String message) {
+    // Apply exact styling container as used in Search/Home
     return AppScaffold(
-      appBar: AppBarWidget(title: "Notification"),
-      body: Center(
-        child: Text("No Notification received yet"),
+      useGradient: true, // Must be true so the background slides with the content
+      isSafe: false,
+      body: Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10.h),
+        child: Column(
+          children: [
+            _buildPremiumHeader(),
+            SizedBox(height: 20.h),
+            Expanded(
+              child: _buildStatefulBody(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildBody() {
-    // The check for empty notifications is now handled in the build method.
-    // This method will only be called if there are notifications to display.
-    // final notifications = viewModel.notificationResponse.data?.data?.data ?? [];
-    final notifications = viewModel.notifications;
-    
-    // Get screen dimensions for responsive UI
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
-    final isSmall = h < 700;
-
-    return AppScaffold(
-      appBar: AppBarWidget(title: "Notification"),
-      body: Padding(
-        padding: EdgeInsets.all(isSmall ? 12.0 : 16.0),
-        child: Form(
-          key: viewModel.formKey,
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: viewModel.notifications.length + 1,
-            itemBuilder: (context, index) {
-              if (index == viewModel.notifications.length) {
-                if (viewModel.isLoading) {
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(isSmall ? 8.0 : 10.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else {
-                  return SizedBox();
-                }
-              }
-
-              final notification = viewModel.notifications[index];
-
-              return Card(
-                elevation: 2,
-                margin: EdgeInsets.only(bottom: isSmall ? 8.0 : 10.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(isSmall ? 6 : 8),
-                  side: BorderSide(color: AppColor.moreLighterDd, width: 1), // Added border here
+  Widget _buildStatefulBody() {
+    switch (viewModel.notificationResponse.status) {
+      case Status.loading:
+        if (viewModel.notifications.isEmpty) {
+          return AppLoadingWidget();
+        }
+        return _buildNotificationList();
+      case Status.error:
+        return AppErrorWidget(
+            message: viewModel.notificationResponse.message.toString());
+      case Status.completed:
+        if (viewModel.noNotificationMessage != null ||
+            viewModel.notifications.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Lottie.asset('assets/lottie/empty_search.json', height: 180.h, repeat: true),
+                SizedBox(height: 10.h),
+                AppTextWidget(
+                  text: viewModel.noNotificationMessage ?? "No Notifications Yet",
+                  color: AppColor.premiumTextSecondary,
+                  fontSize: 15.sp,
                 ),
-                child: InkWell(
-                  onTap: () {
-                    if (roleId == Constants.businessUser) {
-                      Navigator.pop(context);
-                      Provider.of<HomeViewModel>(context, listen: false).changeIndex(1, true);
-                      businessWalletKey.currentState?.changeIndex(0);
-                    }
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(isSmall ? 10.0 : 12.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.notifications,
-                          color: AppColor.kPrimary,
-                          size: isSmall ? 20 : 24,
-                        ),
-                        SizedBox(width: isSmall ? 10.w : 12.w),
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (roleId == Constants.creatorUser)
+              ],
+            ),
+          );
+        }
+        return _buildNotificationList();
+      default:
+        return AppLoadingWidget();
+    }
+  }
+
+  Widget _buildPremiumHeader() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 17.w),
+      child: Row(
+        children: [
+          _buildHeaderIcon(Icons.arrow_back_ios_new, () {
+            Navigator.pop(context);
+          }),
+          SizedBox(width: 15.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppTextWidget(
+                  text: "UPDATES",
+                  fontSize: 11.sp,
+                  color: AppColor.premiumAccent,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+                SizedBox(height: 2.h),
+                AppTextWidget(
+                  text: "Notifications",
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.premiumTextPrimary,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderIcon(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: AppColor.premiumCardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: AppColor.premiumTextPrimary, size: 20.sp),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getNotificationTheme(dynamic notification) {
+    // For pending reviews/alerts
+    if (roleId == Constants.creatorUser && notification.isRedeemed == "0") {
+      return {"color": AppColor.orange, "icon": Icons.assignment_late_rounded};
+    }
+    // Completed state
+    if (roleId == Constants.creatorUser && notification.isRedeemed == "1") {
+      return {"color": AppColor.activeGreen, "icon": Icons.check_circle};
+    }
+    // Generic notification
+    return {"color": AppColor.premiumAccent, "icon": Icons.notifications_active};
+  }
+
+  Widget _buildNotificationList() {
+    return ListView.builder(
+      controller: _scrollController,
+      physics: BouncingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: 17.w, vertical: 10.h),
+      itemCount: viewModel.notifications.length + 1,
+      itemBuilder: (context, index) {
+        if (index == viewModel.notifications.length) {
+          if (viewModel.isLoading) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(15.h),
+                child: CircularProgressIndicator(color: AppColor.premiumAccent),
+              ),
+            );
+          } else {
+            return SizedBox.shrink();
+          }
+        }
+
+        final notification = viewModel.notifications[index];
+        final theme = _getNotificationTheme(notification);
+
+        // Staggered List Entrance Animation
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 300 + (index * 50).clamp(0, 500)), // dynamic stagger
+          tween: Tween(begin: 0.0, end: 1.0),
+          curve: Curves.easeOutQuart,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 25 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            margin: EdgeInsets.only(bottom: 15.h),
+            decoration: BoxDecoration(
+              color: AppColor.premiumCardBg,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: (theme["color"] as Color).withOpacity(0.15),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () {
+                if (roleId == Constants.businessUser) {
+                  Navigator.pop(context);
+                  Provider.of<HomeViewModel>(context, listen: false)
+                      .changeIndex(1, true);
+                  businessWalletKey.currentState?.changeIndex(0);
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Glowing Icon Container
+                    Container(
+                      padding: EdgeInsets.all(10.w),
+                      decoration: BoxDecoration(
+                        color: (theme["color"] as Color).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (theme["color"] as Color).withOpacity(0.2),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        theme["icon"] as IconData,
+                        color: theme["color"] as Color,
+                        size: 24.sp,
+                      ),
+                    ),
+                    SizedBox(width: 15.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (roleId == Constants.creatorUser)
+                            AppTextWidget(
+                              text: notification.notificationSubject ?? "Alert",
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w800,
+                              color: AppColor.premiumTextPrimary,
+                            ),
+                          SizedBox(height: 5.h),
+                          AppTextWidget(
+                            text: notification.notificationText ?? "",
+                            fontSize: 13.sp,
+                            color: AppColor.premiumTextSecondary,
+                          ),
+                          SizedBox(height: 10.h),
+                          if (notification.createdAt != null)
+                            Row(
+                              children: [
+                                Icon(Icons.access_time, 
+                                    size: 12.sp, color: AppColor.grey),
+                                SizedBox(width: 4.w),
                                 AppTextWidget(
-                                  text: notification.notificationSubject ?? "Feedback Review",
-                                  fontSize: isSmall ? 14 : 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              SizedBox(height: isSmall ? 3.h : 4.h),
-                              AppTextWidget(
-                                text: notification.notificationText ?? " ",
-                                fontSize: isSmall ? 11 : 13,
-                                color: AppColor.darkGrey,
-                              ),
-                              if (notification.createdAt != null) ...[
-                                SizedBox(height: isSmall ? 4.h : 6.h),
-                                AppTextWidget(
-                                  text: "Received: ${notification.createdAt}", // Assuming createdAt exists
-                                  fontSize: isSmall ? 9 : 10,
+                                  text: notification.createdAt!.toString().split('.')[0], // Format to exclude milliseconds
+                                  fontSize: 11.sp,
                                   color: AppColor.grey,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ],
-                            ],
-                          ),
-                        ),
-                        if (roleId == Constants.creatorUser) ...[
-                          SizedBox(width: isSmall ? 8.w : 10.w),
-                          if (notification.isRedeemed == "0")
-                            SizedBox(
-                              width: isSmall ? 70 : 80,
-                              height: isSmall ? 26 : 30,
-                              child: AppRoundButton(
-                                title: 'Complete',
-                                onPress: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    RoutesName.completeFeedback,
-                                  );
-                                },
-                              ),
                             ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
+                    if (roleId == Constants.creatorUser && notification.isRedeemed == "0") ...[
+                      SizedBox(width: 10.w),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            RoutesName.completeFeedback,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.mangoYellow,
+                          foregroundColor: Colors.black,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 4,
+                          shadowColor: AppColor.mangoYellow.withOpacity(0.4),
+                        ),
+                        child: Text(
+                          "Complete",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

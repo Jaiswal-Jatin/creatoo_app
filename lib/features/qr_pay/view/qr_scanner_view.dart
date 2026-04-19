@@ -110,7 +110,7 @@ class _QrScannerViewState extends State<QrScannerView>
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -175,7 +175,7 @@ class _QrScannerViewState extends State<QrScannerView>
                     });
                   },
                   child: CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
                     radius: 25,
                     child: Icon(
                       _isTorchOn ? Icons.flash_on : Icons.flash_off,
@@ -241,7 +241,7 @@ class _QrScannerViewState extends State<QrScannerView>
                     }
                   },
                   child: CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
                     radius: 25,
                     child: const Icon(
                       Icons.image, // Or Icons.photo_library
@@ -265,8 +265,7 @@ class _QrScannerViewState extends State<QrScannerView>
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
           child: Container(
-            color: Colors.black.withOpacity(
-                0.5), // Semi-transparent overlay to darken blurred area
+            color: Colors.black.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -274,8 +273,8 @@ class _QrScannerViewState extends State<QrScannerView>
   }
 
   Widget _buildCornerMarkers(Rect scanWindow) {
-    final double markerLength = _BorderCornerPainter().length;
-    final double markerStrokeWidth = _BorderCornerPainter().strokeWidth;
+    const double markerLength = 40;
+    const double markerStrokeWidth = 5;
 
     return Stack(
       children: [
@@ -488,18 +487,17 @@ class _ScannerClipper extends CustomClipper<Path> {
 class _BorderCornerPainter extends CustomPainter {
   final bool right;
   final bool bottom;
-  final double length;
-  final double strokeWidth;
 
   _BorderCornerPainter({
     this.right = false,
     this.bottom = false,
-    this.length = 40,
-    this.strokeWidth = 5,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    const double length = 40;
+    const double strokeWidth = 5;
+
     final paint = Paint()
       ..color = Colors.white
       ..strokeWidth = strokeWidth

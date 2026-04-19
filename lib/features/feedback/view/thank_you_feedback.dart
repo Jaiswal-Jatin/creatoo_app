@@ -2,7 +2,7 @@ import 'package:creatoo/widgets/app_text_widget.dart';
 
 import '../../../core.dart';
 import '../../home/view/home_page.dart';
-import '../../home/view_model/home_view_model.dart';
+
 import '../view_model/feedback_view_model.dart';
 
 class ThankYouFeedback extends StatefulWidget {
@@ -45,7 +45,8 @@ class _ThankYouFeedbackState extends State<ThankYouFeedback> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   AppTextWidget(
-                    text: 'Thank You For Your Feedback At ' "${viewModel.businessName}",
+                    text: 'Thank You For Your Feedback At '
+                        "${viewModel.businessName}",
                     fontSize: 28,
                     fontWeight: FontWeight.w500,
                     textAlign: TextAlign.center,
@@ -79,7 +80,8 @@ class _ThankYouFeedbackState extends State<ThankYouFeedback> {
               ),
             ),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           floatingActionButton: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: AppButton(

@@ -377,7 +377,7 @@ class _CreatorProfileDetailViewState extends State<CreatorProfileDetailView> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    '${data?.avgActivity?.toStringAsFixed(2) ?? 0} %',
+                                                    '${data.avgActivity?.toStringAsFixed(2) ?? 0} %',
                                                     style:
                                                         GoogleFonts.montserrat(
                                                       textStyle: Theme.of(

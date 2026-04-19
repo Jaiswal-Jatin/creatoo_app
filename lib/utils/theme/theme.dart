@@ -19,7 +19,7 @@ class AppTheme {
       brightness: brightness,
       fontFamily: GoogleFonts.montserrat().fontFamily,
       fontFamilyFallback: [Constants.sfUIText],
-      scaffoldBackgroundColor: brightness == Brightness.light ? AppColor.white : AppColor.black,
+      scaffoldBackgroundColor: AppColor.premiumBg,
       // textTheme: TextTheme(
       //   displayLarge: AppTextStyles.title.copyWith(color: textColor),
       //   displayMedium: AppTextStyles.title.copyWith(color: textColor),

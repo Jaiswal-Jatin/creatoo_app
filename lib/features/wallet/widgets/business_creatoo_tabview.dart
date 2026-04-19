@@ -17,7 +17,8 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
   @override
   void initState() {
     super.initState();
-    viewModel = Provider.of<BusinessWalletCreatooViewModel>(context, listen: false);
+    viewModel =
+        Provider.of<BusinessWalletCreatooViewModel>(context, listen: false);
     viewModel.init();
   }
 
@@ -26,17 +27,31 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
 
   String _formatDateForDisplay(DateTime? date) {
     if (date == null) return "Select Date";
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day.toString().padLeft(2, '0')}-${months[date.month - 1]}-${date.year}';
   }
 
   Future<void> _selectDateRange(BuildContext context) async {
-    final DateTime now = DateTime.now();
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      initialDateRange: _fromDate != null && _toDate != null ? DateTimeRange(start: _fromDate!, end: _toDate!) : null,
+      initialDateRange: _fromDate != null && _toDate != null
+          ? DateTimeRange(start: _fromDate!, end: _toDate!)
+          : null,
     );
 
     if (picked != null) {
@@ -58,7 +73,8 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
       case Status.loading:
         return const AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.transactionCreatorResponse.message!);
+        return AppErrorWidget(
+            message: viewModel.transactionCreatorResponse.message!);
       case Status.completed:
         return AppScaffold(
           backgroundColor: Colors.transparent,
@@ -75,7 +91,8 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                         AppIcon.walletBg,
                       ),
                       AppWalletCard(
-                        value: viewModel.roundToTwoDecimalPlaces(viewModel.walletBalanceCreato?.toDouble() ?? 0.0),
+                        value: viewModel.roundToTwoDecimalPlaces(
+                            viewModel.walletBalanceCreato?.toDouble() ?? 0.0),
                         showPoints: true,
                       ),
                     ],
@@ -86,7 +103,8 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                     children: [
                       Text(
                         'Select Date Range',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                       SizedBox(width: 5.w),
                       Spacer(),
@@ -105,19 +123,28 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                                       children: [
                                         Text(
                                           _formatDateForDisplay(_fromDate),
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400),
                                         ),
-                                        if (_formatDateForDisplay(_fromDate) != _formatDateForDisplay(_toDate))
+                                        if (_formatDateForDisplay(_fromDate) !=
+                                            _formatDateForDisplay(_toDate))
                                           Text(
                                             " - ",
-                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400),
                                           ),
                                       ],
                                     ),
-                                  if (_toDate != null && _formatDateForDisplay(_fromDate) != _formatDateForDisplay(_toDate))
+                                  if (_toDate != null &&
+                                      _formatDateForDisplay(_fromDate) !=
+                                          _formatDateForDisplay(_toDate))
                                     Text(
                                       _formatDateForDisplay(_toDate),
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400),
                                     ),
                                 ],
                               ),
@@ -179,11 +206,17 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: transaction.status == 'Debited' ? AppColor.lightButtonGrey : AppColor.darkButtonGrey,
+              color: transaction.status == 'Debited'
+                  ? AppColor.lightButtonGrey
+                  : AppColor.darkButtonGrey,
             ),
             child: Icon(
-              transaction.status == 'Debited' ? Icons.arrow_upward : Icons.arrow_downward,
-              color: transaction.status == 'Debited' ? AppColor.darkRed : AppColor.green,
+              transaction.status == 'Debited'
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward,
+              color: transaction.status == 'Debited'
+                  ? AppColor.darkRed
+                  : AppColor.green,
               size: 24,
             ),
           ),
@@ -202,7 +235,8 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                         transaction.status == 'Debited'
                             ? 'Released to ${transaction.instagramUsername ?? transaction.creatorName}'
                             : 'Redeemed by ${transaction.instagramUsername ?? transaction.creatorName}',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w800),
                         overflow: TextOverflow.visible,
                         softWrap: true,
                       ),
@@ -212,7 +246,9 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: transaction.status == 'Debited' ? AppColor.darkRed : AppColor.green,
+                        color: transaction.status == 'Debited'
+                            ? AppColor.darkRed
+                            : AppColor.green,
                       ),
                     ),
                   ],

@@ -14,7 +14,8 @@ class FirebaseMessagingService {
       sound: true,
     );
 
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
@@ -44,7 +45,8 @@ class FirebaseMessagingService {
   }
 
   @pragma('vm:entry-point')
-  static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  static Future<void> _firebaseMessagingBackgroundHandler(
+      RemoteMessage message) async {
     print('Handling a background message: ${message.messageId}');
     // No need to manually show, Firebase shows it automatically in background
   }
@@ -84,13 +86,5 @@ class FirebaseMessagingService {
       debugPrint('Error retrieving FCM token: $e');
       return null;
     }
-  }
-
-  static Future<void> _handleOnMessage(RemoteMessage message) async {
-    await NotificationService.showNotification(
-      title: message.notification?.title ?? "",
-      body: message.notification?.body ?? "",
-      pictureUrl: Platform.isAndroid ? message.notification?.android?.imageUrl ?? "" : message.notification?.apple?.imageUrl ?? "",
-    );
   }
 }

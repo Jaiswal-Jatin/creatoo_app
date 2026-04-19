@@ -23,11 +23,10 @@ class _ScannerPayViewState extends State<ScannerPayView> {
   }
 
   // Method to handle back navigation
-  Future<bool> _onBackPressed() async {
+  void _onBackPressed() {
     viewModel.pointsController.clear();
     Navigator.pop(context);
     Navigator.pop(context);
-    return false; // Prevents the default back navigation
   }
 
   @override
@@ -38,7 +37,8 @@ class _ScannerPayViewState extends State<ScannerPayView> {
       case Status.loading:
         return AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.businessResponse.message.toString());
+        return AppErrorWidget(
+            message: viewModel.businessResponse.message.toString());
       case Status.completed:
         return buildMobileBody();
       default:
@@ -47,8 +47,12 @@ class _ScannerPayViewState extends State<ScannerPayView> {
   }
 
   Widget buildMobileBody() {
-    return WillPopScope(
-      onWillPop: _onBackPressed, // Add WillPopScope to handle back navigation
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _onBackPressed();
+      },
       child: AppScaffold(
         appBar: AppBarWidget(
           onPop: () {
@@ -97,7 +101,8 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                     padding: const EdgeInsets.symmetric(horizontal: 26.0),
                     child: Text(
                       viewModel.businessData?.businessAddress ?? '',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w100),
+                      style:
+                          TextStyle(fontSize: 10, fontWeight: FontWeight.w100),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -128,7 +133,8 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                           children: [
                             Text(
                               'Amount(INR)',
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.grey),
                             ),
                             SizedBox(
                               width: 4.h,
@@ -173,7 +179,10 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                 width: SizeConfig.screenWidth / 3,
                                 child: Text(
                                   'Enter Total Bill Amount',
-                                  style: TextStyle(fontSize: 16, color: Color(0xFF26278D), fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF26278D),
+                                      fontWeight: FontWeight.w700),
                                 )),
                             Container(
                               width: 130,
@@ -188,19 +197,22 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                 controller: viewModel.amountController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                 ),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                 ),
-                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d{0,2}')),
                                 ],
                                 onChanged: (value) {
                                   if (value.isNotEmpty) {
-                                    double amount = double.tryParse(value) ?? 0;
+                                    // double amount = double.tryParse(value) ?? 0;
                                     // double percentageDecimal = (viewModel.discount ?? 0) / 100;
                                     // viewModel.percentageAmount = amount * percentageDecimal;
                                     // viewModel.pointsController.text = (viewModel.percentageAmount == 0)
@@ -256,7 +268,8 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                           children: [
                             Text(
                               'Creatoo Points Redeem',
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.grey),
                             ),
                             SizedBox(
                               width: 4,
@@ -301,7 +314,10 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                 width: SizeConfig.screenWidth / 3,
                                 child: Text(
                                   'Points to Pay',
-                                  style: TextStyle(fontSize: 16, color: Color(0xFF26278D), fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF26278D),
+                                      fontWeight: FontWeight.w700),
                                 )),
                             Container(
                                 width: 130,
@@ -318,7 +334,8 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                     readOnly: true,
                                     decoration: InputDecoration(
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 8),
                                     ),
                                     style: TextStyle(
                                       fontSize: 16,

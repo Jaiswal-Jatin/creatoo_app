@@ -8,7 +8,7 @@ import 'package:creatoo/features/card/data/user_tier_history_response_model.dart
 
 class CardTierSection extends StatefulWidget {
   final bool isCardActive;
-  
+
   const CardTierSection({super.key, required this.isCardActive});
 
   @override
@@ -19,12 +19,12 @@ class _CardTierSectionState extends State<CardTierSection> {
   int? _expandedIndex;
   late CardViewModel _cardViewModel;
   List<Map<String, dynamic>> _tiers = []; // Make it mutable
-  
+
   @override
   void initState() {
     super.initState();
     _cardViewModel = Provider.of<CardViewModel>(context, listen: false);
-    
+
     // Schedule the API call for the next frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cardViewModel.getUserTierHistory();
@@ -49,8 +49,11 @@ class _CardTierSectionState extends State<CardTierSection> {
   }
 
   // Helper method to filter visits by tier
-  List<VisitHistory> _filterVisitsByTier(List<VisitHistory> visits, String tier) {
-    return visits.where((visit) => visit.tier.toLowerCase() == tier.toLowerCase()).toList();
+  List<VisitHistory> _filterVisitsByTier(
+      List<VisitHistory> visits, String tier) {
+    return visits
+        .where((visit) => visit.tier.toLowerCase() == tier.toLowerCase())
+        .toList();
   }
 
   void _updateTiersBasedOnViewModel() {
@@ -63,22 +66,22 @@ class _CardTierSectionState extends State<CardTierSection> {
         }
 
         final allVisits = responseData.history;
-        
+
         // Categorize visits by tier
         _tiers = _defaultTiers.map((tier) {
           final tierName = (tier['name'] as String).toLowerCase();
           List<VisitHistory> tierVisits;
-          
+
           // Handle different tier names
           if (tierName.contains('premium')) {
-            tierVisits = _filterVisitsByTier(allVisits, 'premium') + 
-                         _filterVisitsByTier(allVisits, 'new');
+            tierVisits = _filterVisitsByTier(allVisits, 'premium') +
+                _filterVisitsByTier(allVisits, 'new');
           } else if (tierName.contains('elite')) {
             tierVisits = _filterVisitsByTier(allVisits, 'elite');
           } else {
             tierVisits = _filterVisitsByTier(allVisits, 'core');
           }
-          
+
           return {
             ...tier,
             'visits': tierVisits.length,
@@ -90,7 +93,8 @@ class _CardTierSectionState extends State<CardTierSection> {
         _tiers = List.from(_defaultTiers);
       }
     } else if (_cardViewModel.userTierHistoryResponse.status == Status.error) {
-      debugPrint('Error fetching user tier history in UI: ${_cardViewModel.userTierHistoryResponse.toString()}');
+      debugPrint(
+          'Error fetching user tier history in UI: ${_cardViewModel.userTierHistoryResponse.toString()}');
       _tiers = List.from(_defaultTiers);
     }
   }
@@ -135,16 +139,6 @@ class _CardTierSectionState extends State<CardTierSection> {
     },
   ];
 
-  // Helper to format visit history for display
-  List<Map<String, String>> _formatVisitHistory(List<VisitHistory> visits) {
-    return visits.map<Map<String, String>>((visit) => {
-      'place': visit.businessName,
-      'date': visit.time,
-      'tier': visit.tier,
-      'image': visit.businessImage ?? '',
-    }).toList();
-  }
-
   void _toggleExpand(int index) {
     setState(() {
       _expandedIndex = (_expandedIndex == index) ? null : index;
@@ -155,8 +149,9 @@ class _CardTierSectionState extends State<CardTierSection> {
   Widget build(BuildContext context) {
     // Show empty state if card is not active
     if (!widget.isCardActive) {
-      return Scaffold(
-        body: Center(
+      return Container(
+        color: Colors.transparent,
+        child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -165,13 +160,13 @@ class _CardTierSectionState extends State<CardTierSection> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: AppColor.lightGrey.withOpacity(0.2),
+                    color: AppColor.premiumCardBg,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.credit_card_off_rounded,
                     size: 64,
-                    color: AppColor.grey,
+                    color: AppColor.premiumTextSecondary,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -180,7 +175,7 @@ class _CardTierSectionState extends State<CardTierSection> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColor.black,
+                    color: AppColor.premiumTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -189,7 +184,7 @@ class _CardTierSectionState extends State<CardTierSection> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
-                    color: AppColor.grey,
+                    color: AppColor.premiumTextSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -199,10 +194,13 @@ class _CardTierSectionState extends State<CardTierSection> {
         ),
       );
     }
-    
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 20.0),
+
+    return Container(
+      color: Colors.transparent,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(
+            left: 16.0, right: 16.0, top: 20.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -210,8 +208,10 @@ class _CardTierSectionState extends State<CardTierSection> {
             if (_cardViewModel.userTierHistoryResponse.status == Status.loading)
               const Center(child: CircularProgressIndicator()),
             if (_cardViewModel.userTierHistoryResponse.status == Status.error)
-              Center(child: Text('Error: ${_cardViewModel.userTierHistoryResponse.message ?? 'Unknown error'}')),
-            
+              Center(
+                  child: Text(
+                      'Error: ${_cardViewModel.userTierHistoryResponse.message ?? 'Unknown error'}')),
+
             // Display the fetched data, or default data if loading/error
             ...List.generate(_tiers.length, (index) {
               final tier = _tiers[index];
@@ -271,12 +271,12 @@ class TierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    
+
     // Responsive breakpoints
     final isVerySmall = h < 600;
     final isSmall = h < 700 && !isVerySmall;
     final isMedium = h >= 700 && h < 850;
-    
+
     // Responsive values
     double cardPadding;
     double cardMargin;
@@ -288,7 +288,7 @@ class TierCard extends StatelessWidget {
     double visitIconSize;
     double arrowIconSize;
     double shadowBlur;
-    
+
     if (isVerySmall) {
       cardPadding = 10;
       cardMargin = 4;
@@ -334,7 +334,7 @@ class TierCard extends StatelessWidget {
       arrowIconSize = 20;
       shadowBlur = 12;
     }
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(borderRadius),
@@ -488,12 +488,12 @@ class TierCard extends StatelessWidget {
 
   Widget _buildVisitHistory(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    
+
     // Responsive breakpoints
     final isVerySmall = h < 600;
     final isSmall = h < 700 && !isVerySmall;
     final isMedium = h >= 700 && h < 850;
-    
+
     // Responsive values
     double topPadding;
     double historyTitleFontSize;
@@ -506,7 +506,7 @@ class TierCard extends StatelessWidget {
     double dateFontSize;
     double dateIconSize;
     double borderRadius;
-    
+
     if (isVerySmall) {
       topPadding = 12;
       historyTitleFontSize = 12;
@@ -556,7 +556,7 @@ class TierCard extends StatelessWidget {
       dateIconSize = 11;
       borderRadius = 10;
     }
-    
+
     return Container(
       padding: EdgeInsets.only(top: topPadding),
       child: Column(
@@ -600,10 +600,10 @@ class TierCard extends StatelessWidget {
               margin: EdgeInsets.only(bottom: itemMargin),
               padding: EdgeInsets.all(itemPadding),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColor.premiumCardBg,
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: AppColor.premiumAccent.withOpacity(0.15),
                   width: 1,
                 ),
               ),
@@ -612,12 +612,12 @@ class TierCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(storeIconPadding),
                     decoration: BoxDecoration(
-                      color: textColor.withOpacity(0.15),
+                      color: AppColor.premiumAccent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(borderRadius * 0.8),
                     ),
                     child: Icon(
                       Icons.store_rounded,
-                      color: textColor,
+                      color: AppColor.premiumAccent,
                       size: storeIconSize,
                     ),
                   ),
@@ -629,7 +629,7 @@ class TierCard extends StatelessWidget {
                         Text(
                           visit.businessName,
                           style: TextStyle(
-                            color: textColor,
+                            color: AppColor.premiumTextPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: businessNameFontSize,
                             fontFamily: 'SFUIText',
@@ -641,13 +641,13 @@ class TierCard extends StatelessWidget {
                             Icon(
                               Icons.calendar_today_rounded,
                               size: dateIconSize,
-                              color: textColor.withOpacity(0.7),
+                              color: AppColor.premiumTextSecondary,
                             ),
                             SizedBox(width: itemPadding * 0.3),
                             Text(
                               _formatDate(visit.time),
                               style: TextStyle(
-                                color: textColor.withOpacity(0.8),
+                                color: AppColor.premiumTextSecondary,
                                 fontSize: dateFontSize,
                                 fontFamily: 'SFUIText',
                               ),

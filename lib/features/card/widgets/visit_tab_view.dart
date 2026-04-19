@@ -143,13 +143,13 @@ class _VisitTabViewState extends State<VisitTabView> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColor.lightGrey.withOpacity(0.2),
+                  color: AppColor.premiumCardBg,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.history_rounded,
                   size: 64,
-                  color: AppColor.grey,
+                  color: AppColor.premiumTextSecondary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -158,7 +158,7 @@ class _VisitTabViewState extends State<VisitTabView> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColor.black,
+                  color: AppColor.premiumTextPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -167,7 +167,7 @@ class _VisitTabViewState extends State<VisitTabView> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
-                  color: AppColor.grey,
+                  color: AppColor.premiumTextSecondary,
                   height: 1.5,
                 ),
               ),
@@ -283,18 +283,18 @@ class _VisitTabViewState extends State<VisitTabView> {
     return Container(
       margin: EdgeInsets.only(bottom: cardMargin),
       decoration: BoxDecoration(
-        color: AppColor.moreLighterDd.withOpacity(0.3),
+        color: AppColor.premiumCardBg,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColor.grey.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
         border: Border.all(
-          color: AppColor.lightGrey.withOpacity(0.3),
-          width: 1,
+          color: AppColor.premiumAccent.withOpacity(0.15),
+          width: 1.2,
         ),
       ),
       child: Column(
@@ -399,30 +399,27 @@ class _VisitTabViewState extends State<VisitTabView> {
           // Visit history section
           Container(
             decoration: BoxDecoration(
-              color: AppColor.moreLighterDd.withOpacity(0.1),
+              color: Colors.transparent,
               borderRadius:
                   BorderRadius.vertical(bottom: Radius.circular(borderRadius)),
             ),
             child: Theme(
               data: theme.copyWith(
                 dividerColor: AppColor.transparent,
-                cardColor: AppColor.moreLighterDd,
+                cardColor: Colors.transparent, // Background of the expanded list
               ),
               child: ExpansionTile(
+                iconColor: AppColor.premiumAccent,
+                collapsedIconColor: AppColor.premiumTextPrimary,
                 tilePadding:
                     EdgeInsets.symmetric(horizontal: padding, vertical: padding * 0.25),
                 title: Text(
                   'View Visit History',
                   style: TextStyle(
                     fontSize: expansionTitleFontSize,
-                    color: AppColor.black,
+                    color: AppColor.premiumTextPrimary,
                     fontWeight: FontWeight.w600,
                   ),
-                ),
-                trailing: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: AppColor.black,
-                  size: expansionIconSize,
                 ),
                 children: [
                   _buildVisitHistory(restaurant.visits, theme, context),
@@ -448,7 +445,7 @@ class _VisitTabViewState extends State<VisitTabView> {
       padding: EdgeInsets.only(bottom: bottomPadding),
       child: Column(
         children: [
-          Divider(height: 2, color: AppColor.black),
+          Divider(height: 2, color: AppColor.premiumAccent.withOpacity(0.2)),
           SizedBox(height: verticalPadding),
           ListView.separated(
             shrinkWrap: true,
@@ -594,11 +591,11 @@ class _VisitTabViewState extends State<VisitTabView> {
       margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: verticalMargin),
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
       decoration: BoxDecoration(
-        color: AppColor.white,
+        color: AppColor.premiumCardBg,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
-          width: 1,
+          color: AppColor.premiumAccent.withOpacity(0.15),
+          width: 0.8,
         ),
       ),
       child: Row(
@@ -609,13 +606,13 @@ class _VisitTabViewState extends State<VisitTabView> {
             height: iconContainerSize,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColor.black.withOpacity(0.1),
+              color: AppColor.premiumAccent.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.calendar_month_rounded,
               size: calendarIconSize,
-              color: AppColor.black.withOpacity(0.5),
+              color: AppColor.premiumAccent,
             ),
           ),
 
@@ -630,7 +627,7 @@ class _VisitTabViewState extends State<VisitTabView> {
                   DateFormat('EEEE, MMM d, yyyy').format(visit.date),
                   style: TextStyle(
                     fontSize: dateFontSize,
-                    color: AppColor.dd,
+                    color: AppColor.premiumTextPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -640,14 +637,14 @@ class _VisitTabViewState extends State<VisitTabView> {
                     Icon(
                       Icons.access_time_rounded,
                       size: timeIconSize,
-                      color: AppColor.grey,
+                      color: AppColor.premiumTextSecondary,
                     ),
                     SizedBox(width: horizontalPadding * 0.3),
                     Text(
                       '${DateFormat('h:mm a').format(visit.date)}',
                       style: TextStyle(
                         fontSize: timeFontSize,
-                        color: AppColor.grey,
+                        color: AppColor.premiumTextSecondary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

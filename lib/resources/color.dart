@@ -53,7 +53,7 @@ class AppColor {
   static const Color scaffoldColor = Color(0xFFCECEFF);
   static const Color darkRed = Color(0xFFDD5050);
   static const Color lightBack = Color(0xFF191D23);
-  static const Color cardText = Color(0xFF9B0084EB);
+  static const Color cardText = Color(0x9B0084EB);
 
   // Tier Colors
   static const Color gold = Color(0xFFFFD700);
@@ -114,4 +114,25 @@ class AppColor {
   //   const Color(0xFF6A2D9A),  // Dark purple
   // ];
 
+  // Premium Theme Colors
+  static const Color premiumBg = Color(0xFF0A0A12);
+  static const Color premiumCardBg = Color(0xFF161622);
+  static const Color premiumLightCardBg = Color(0xFF1E1E2E);
+  static const Color premiumAccent = Color(0xFF9759C4);
+  static const Color premiumGlow = Color(0x4D9759C4); // 30% opacity
+  static const Color premiumTextPrimary = Colors.white;
+  static const Color premiumTextSecondary = Color(0xFFB0B0B0);
+  static const Color premiumBorder = Color(0xFF2E2E3E);
+
+  static const List<Color> premiumGradient = [
+    Color(0xFF161622),
+    Color(0xFF0A0A12),
+  ];
+
+  static const List<Color> accentGradient = [
+    Color(0xFF9759C4),
+    Color(0xFF6A2D9A),
+  ];
+
 }
+

@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:confetti/confetti.dart';
 import 'package:creatoo/widgets/app_text_widget.dart';
 import 'package:flutter/gestures.dart';
 
@@ -15,12 +12,10 @@ class ProceedToPay extends StatefulWidget {
   State<ProceedToPay> createState() => _ProceedToPayState();
 }
 
-class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderStateMixin {
+class _ProceedToPayState extends State<ProceedToPay>
+    with SingleTickerProviderStateMixin {
   late BillPaymentViewModel viewModel;
-  late ConfettiController _confettiLeftController;
-  late ConfettiController _confettiRightController;
   late AnimationController _animationController;
-  late Animation<double> _sizeAnimation;
   late Animation<double> _oldAmountPosition;
   late Animation<double> _newAmountPosition;
   bool _showNewValue = false;
@@ -31,17 +26,9 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
     viewModel = Provider.of<BillPaymentViewModel>(context, listen: false);
     viewModel.init();
 
-    _confettiLeftController = ConfettiController(duration: Duration(seconds: 1));
-    _confettiRightController = ConfettiController(duration: Duration(seconds: 1));
-
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 800),
-    );
-
-    // Shrinking & moving down animation for previous value
-    _sizeAnimation = Tween<double>(begin: 30, end: 20).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
     _oldAmountPosition = Tween<double>(begin: 0, end: 30).animate(
@@ -59,7 +46,6 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
         _showNewValue = true;
         _showStrikethrough = true;
       });
-      _startCelebration();
     });
 
     super.initState();
@@ -67,27 +53,8 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
 
   @override
   void dispose() {
-    _confettiLeftController.dispose();
-    _confettiRightController.dispose();
     _animationController.dispose();
     super.dispose();
-  }
-
-  void _startCelebration() async {
-    _confettiLeftController.play();
-    _confettiRightController.play();
-
-    await Future.delayed(Duration(seconds: 1));
-
-    setState(() {
-      _showNewValue = true;
-    });
-
-    _animationController.forward().then((_) {
-      setState(() {
-        _showStrikethrough = true;
-      });
-    });
   }
 
   @override
@@ -98,7 +65,8 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
       case Status.loading:
         return AppLoadingWidget();
       case Status.error:
-        return AppErrorWidget(message: viewModel.businessDetailsResponse.message.toString());
+        return AppErrorWidget(
+            message: viewModel.businessDetailsResponse.message.toString());
       case Status.completed:
         return _buildMobileBody();
       default:
@@ -154,10 +122,12 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                                     offset: Offset(0, _newAmountPosition.value),
                                     child: _showNewValue
                                         ? Padding(
-                                            padding: const EdgeInsets.only(bottom: 15.0),
+                                            padding: const EdgeInsets.only(
+                                                bottom: 15.0),
                                             child: AppTextWidget(
                                               key: ValueKey(1),
-                                              text: "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
+                                              text:
+                                                  "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
                                               fontWeight: FontWeight.w500,
                                               color: AppColor.black,
                                               fontSize: 36,
@@ -168,24 +138,32 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                                 },
                               ),
                               SizedBox(height: 30),
-                              if (viewModel.billSummary?.finalBillAmount != null &&
+                              if (viewModel.billSummary?.finalBillAmount !=
+                                      null &&
                                   viewModel.billSummary?.originalBill != null &&
-                                  viewModel.billSummary!.finalBillAmount! <= viewModel.billSummary!.originalBill!)
+                                  viewModel.billSummary!.finalBillAmount! <=
+                                      viewModel.billSummary!.originalBill!)
                                 AnimatedBuilder(
                                   animation: _animationController,
                                   builder: (context, child) {
                                     return Transform.translate(
-                                      offset: Offset(0, _oldAmountPosition.value),
+                                      offset:
+                                          Offset(0, _oldAmountPosition.value),
                                       child: Padding(
-                                        padding: const EdgeInsets.only(top: 30.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 30.0),
                                         child: AppTextWidget(
                                           key: ValueKey(2),
-                                          text: "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
+                                          text:
+                                              "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
                                           fontWeight: FontWeight.w500,
                                           fontSize: 30,
                                           color: AppColor.lighterDd,
-                                          textDecoration: _showStrikethrough ? TextDecoration.lineThrough : TextDecoration.none,
-                                          textDecorationColor: AppColor.lighterDd,
+                                          textDecoration: _showStrikethrough
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
+                                          textDecorationColor:
+                                              AppColor.lighterDd,
                                         ),
                                       ),
                                     );
@@ -215,34 +193,6 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                         ],
                       ),
                     ),
-                    Positioned(
-                      top: 0,
-                      left: 20, // Slightly inside to avoid overflow
-                      child: ConfettiWidget(
-                        confettiController: _confettiLeftController,
-                        blastDirection: pi / 4, // Straight up
-                        emissionFrequency: 0.3,
-                        numberOfParticles: 1,
-                        gravity: 0.3,
-                        maxBlastForce: 5, // Restrict height
-                        minBlastForce: 1,
-                        colors: [Colors.red, Colors.yellow, Colors.blue, Colors.green],
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 20, // Slightly inside
-                      child: ConfettiWidget(
-                        confettiController: _confettiRightController,
-                        blastDirection: (3 * pi) / 4,
-                        emissionFrequency: 0.3,
-                        numberOfParticles: 1,
-                        gravity: 0.3,
-                        maxBlastForce: 5, // Restrict height
-                        minBlastForce: 1,
-                        colors: [Colors.red, Colors.yellow, Colors.blue, Colors.green],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -262,7 +212,7 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                         border: Border.all(color: AppColor.moreLighterDd),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 5,
                             spreadRadius: 2,
                             offset: Offset(0, 0),
@@ -270,9 +220,11 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                         ],
                       ),
                       child: Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        data: Theme.of(context)
+                            .copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
-                          tilePadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                          tilePadding:
+                              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                           childrenPadding: EdgeInsets.zero,
                           title: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -292,16 +244,21 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                               children: [
                                 _buildBillRowWidget(
                                   label: "Bill Amount",
-                                  price: "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
+                                  price:
+                                      "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
                                 ),
-                                if (viewModel.billSummary?.discountApplied != null && viewModel.billSummary!.discountApplied! > 0)
+                                if (viewModel.billSummary?.discountApplied !=
+                                        null &&
+                                    viewModel.billSummary!.discountApplied! > 0)
                                   _buildBillRowWidget(
                                     label: "Discount",
-                                    price: "${viewModel.billSummary?.discountPercentage}%",
+                                    price:
+                                        "${viewModel.billSummary?.discountPercentage}%",
                                     color: Colors.blue,
                                   ),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 20.w),
                                   alignment: Alignment.centerLeft,
                                   child: AppTextWidget(
                                     text: Constants.hiddenCharges,
@@ -320,7 +277,8 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                                   label: "To be paid",
                                   labelFontSize: 16,
                                   priceFontSize: 16,
-                                  price: "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
+                                  price:
+                                      "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
                                   fontWeight: FontWeight.bold,
                                 ),
                                 SizedBox(height: 10.0),
@@ -341,7 +299,7 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                         border: Border.all(color: AppColor.moreLighterDd),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 5,
                             spreadRadius: 2,
                             offset: Offset(0, 0),
@@ -349,9 +307,11 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                         ],
                       ),
                       child: Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        data: Theme.of(context)
+                            .copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
-                          tilePadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                          tilePadding:
+                              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                           childrenPadding: EdgeInsets.zero,
                           title: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -371,15 +331,18 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                               children: [
                                 _buildBillRowWidget(
                                   label: "Total Points",
-                                  price: "${viewModel.billSummary?.totalPointsForBusiness.toCommaSeparated()}",
+                                  price:
+                                      "${viewModel.billSummary?.totalPointsForBusiness.toCommaSeparated()}",
                                 ),
                                 _buildBillRowWidget(
                                   label: "Points Redeemed Here",
-                                  price: "${viewModel.billSummary?.pointsRedeemedHere.toCommaSeparated()}",
+                                  price:
+                                      "${viewModel.billSummary?.pointsRedeemedHere.toCommaSeparated()}",
                                 ),
                                 _buildBillRowWidget(
                                   label: "Points You’ll Earn",
-                                  price: "${viewModel.billSummary?.pointsYouWillEarn.toCommaSeparated()}",
+                                  price:
+                                      "${viewModel.billSummary?.pointsYouWillEarn.toCommaSeparated()}",
                                 ),
                                 SizedBox(height: 10.0),
                               ],
@@ -402,13 +365,15 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
                     //   height: 10.h,
                     // ),
                     Padding(
-                      padding: EdgeInsets.only(top: 8.h, bottom: 8.h, left: 4.w),
+                      padding:
+                          EdgeInsets.only(top: 8.h, bottom: 8.h, left: 4.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RichText(
                             text: TextSpan(
-                              style: GoogleFonts.inter(color: Colors.black, fontSize: 12.0),
+                              style: GoogleFonts.inter(
+                                  color: Colors.black, fontSize: 12.0),
                               children: [
                                 TextSpan(
                                   text: 'By using this app, you agree to the ',
@@ -459,15 +424,15 @@ class _ProceedToPayState extends State<ProceedToPay> with SingleTickerProviderSt
             onTap: () async {
               try {
                 if (viewModel.billSummary?.finalBillAmount != null) {
-                  await Future.wait([
-                    viewModel.startPayment(
-                      amount: viewModel.billSummary!.finalBillAmount!,
-                      // amount: 1.00,
-                      mobileNumber: user?.mobile,
-                      orderId: viewModel.billSummary!.merchantTransactionId!,
-                    ),
-                    viewModel.processPaymentStatusApiCall(),
-                  ]);
+                  // Step 2: Mark as processing on backend
+                  await viewModel.processPaymentStatusApiCall();
+
+                  // Step 2.5: Open Razorpay Checkout overlay
+                  await viewModel.startPayment(
+                    amount: viewModel.billSummary!.finalBillAmount!,
+                    mobileNumber: user?.mobile,
+                    orderId: viewModel.billSummary!.merchantTransactionId!,
+                  );
                 }
               } catch (e) {
                 debugPrint("Transaction Error: $e");

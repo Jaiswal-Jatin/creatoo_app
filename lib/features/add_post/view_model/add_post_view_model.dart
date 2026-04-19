@@ -1,13 +1,9 @@
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/add_post_payment_summary/model/add_post_response_model.dart';
-import 'package:creatoo/features/add_post/repository/add_post_repository.dart';
 
 import '../model/add_post_model.dart';
 
-
-class AddPostViewModel with ChangeNotifier{
-  final AddPostRepository _myRepo = AddPostRepository();
-
+class AddPostViewModel with ChangeNotifier {
   late AddPostModel model;
   int? radioValue;
   int creatorRequired = 1;
@@ -17,11 +13,11 @@ class AddPostViewModel with ChangeNotifier{
 
   late TextEditingController postExpiryController;
   late TextEditingController postNameController;
-  late TextEditingController postDescriptionController ;
+  late TextEditingController postDescriptionController;
   late TextEditingController postMinInstaController;
   late TextEditingController postDeliverablesController;
-  late TextEditingController postAmountController ;
-  late TextEditingController postDurationController ;
+  late TextEditingController postAmountController;
+  late TextEditingController postDurationController;
 
   ApiResponse<AddPostResponseModel> postResponse = ApiResponse.loading();
 
@@ -44,18 +40,18 @@ class AddPostViewModel with ChangeNotifier{
     postDurationController = TextEditingController();
   }
 
-  updateCreatorRequired(int value){
+  updateCreatorRequired(int value) {
     creatorRequired = value;
     model.creatorRequired = value;
     notifyListeners();
   }
 
-  updateMode(int value){
+  updateMode(int value) {
     radioValue = value;
     notifyListeners();
   }
 
-  setValidatingStatus(status){
+  setValidatingStatus(status) {
     isValidating = status;
     notifyListeners();
   }

@@ -10,11 +10,14 @@ import 'package:creatoo/widgets/status_dialog.dart'; // Import the custom status
 class CardViewModel with ChangeNotifier {
   final CardRepository _myRepo = CardRepository();
 
-  ApiResponse<ActivateCardResponseModel> activeCardResponse = ApiResponse.initial();
+  ApiResponse<ActivateCardResponseModel> activeCardResponse =
+      ApiResponse.initial();
   ApiResponse<CardCheckResponseModel> cardCheckResponse = ApiResponse.initial();
-  ApiResponse<UserTierHistoryResponseModel> userTierHistoryResponse = ApiResponse.initial();
+  ApiResponse<UserTierHistoryResponseModel> userTierHistoryResponse =
+      ApiResponse.initial();
 
-  ActivateCardResponseModel? _activatedCard; // Property to store activated card data
+  ActivateCardResponseModel?
+      _activatedCard; // Property to store activated card data
   CardData? _cardData; // Property to store card data from check
 
   ActivateCardResponseModel? get activatedCard => _activatedCard;
@@ -51,7 +54,8 @@ class CardViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  setUserTierHistoryResponse(ApiResponse<UserTierHistoryResponseModel> response) {
+  setUserTierHistoryResponse(
+      ApiResponse<UserTierHistoryResponseModel> response) {
     if (userTierHistoryResponse != response) {
       userTierHistoryResponse = response;
       // Use postFrameCallback to avoid setState during build
@@ -136,19 +140,17 @@ class CardViewModel with ChangeNotifier {
       if (userTierHistoryResponse.status != Status.loading) {
         setUserTierHistoryResponse(ApiResponse.loading());
       }
-      
+
       final result = await _myRepo.getUserTierHistoryApi();
-      
+
       // Ensure we're still mounted before proceeding
       if (!hasListeners) return;
-      
+
       result.fold(
         (error) {
           // Handle error case
-          final errorMessage = error is AppException 
-              ? error.message 
-              : 'Something went wrong! Please try again.';
-              
+          final errorMessage = error.message;
+
           setUserTierHistoryResponse(ApiResponse.error(errorMessage));
           debugPrint('❌ User tier history failed: $errorMessage');
         },
@@ -156,13 +158,15 @@ class CardViewModel with ChangeNotifier {
           // Handle successful response
           if (response.status == true) {
             // Only update if the data has actually changed
-            if (userTierHistoryResponse.data?.toJson().toString() != response.toJson().toString()) {
+            if (userTierHistoryResponse.data?.toJson().toString() !=
+                response.toJson().toString()) {
               setUserTierHistoryResponse(ApiResponse.completed(response));
               debugPrint('✅ User tier history updated successfully');
               debugPrint('📊 Tier history data: ${response.toJson()}');
             }
           } else {
-            final errorMessage = 'Failed to load tier history. Please try again.';
+            final errorMessage =
+                'Failed to load tier history. Please try again.';
             setUserTierHistoryResponse(ApiResponse.error(errorMessage));
             debugPrint('❌ User tier history failed: API returned status false');
           }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/add_post/view/add_post_view.dart';
 import 'package:creatoo/features/add_post_payment_summary/view/add_post_payment_summary_view.dart';
@@ -255,7 +256,12 @@ class Routes {
         );
 
       case RoutesName.notificationView:
-        return _buildRoute(settings, NotificationView());
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const NotificationView(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+          settings: settings,
+        );
 
       case RoutesName.businessDescriptionView:
         return _buildRoute(

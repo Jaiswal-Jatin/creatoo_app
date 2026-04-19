@@ -24,14 +24,18 @@ class BusinessDetailsResponseModel {
     this.data,
   });
 
-  factory BusinessDetailsResponseModel.fromRawJson(String str) => BusinessDetailsResponseModel.fromJson(json.decode(str));
+  factory BusinessDetailsResponseModel.fromRawJson(String str) =>
+      BusinessDetailsResponseModel.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory BusinessDetailsResponseModel.fromJson(Map<String, dynamic> json) => BusinessDetailsResponseModel(
+  factory BusinessDetailsResponseModel.fromJson(Map<String, dynamic> json) =>
+      BusinessDetailsResponseModel(
         status: json["status"],
         message: json["message"],
-        data: json["data"] == null ? null : BusinessDescription.fromJson(json["data"]),
+        data: json["data"] == null
+            ? null
+            : BusinessDescription.fromJson(json["data"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -74,7 +78,8 @@ class BusinessDescription {
   int? setExpiry;
   AverageRatings? averageRatings;
   int? totalReviews;
-  List<String>? reviewText;
+  List<Review>? reviews;
+  List<BusinessAssociate>? associates;
 
   BusinessDescription({
     this.id,
@@ -109,48 +114,100 @@ class BusinessDescription {
     this.setExpiry,
     this.averageRatings,
     this.totalReviews,
-    this.reviewText,
+    this.reviews,
+    this.associates,
   });
 
-  factory BusinessDescription.fromRawJson(String str) => BusinessDescription.fromJson(json.decode(str));
+  factory BusinessDescription.fromRawJson(String str) =>
+      BusinessDescription.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory BusinessDescription.fromJson(Map<String, dynamic> json) => BusinessDescription(
-        id: json["id"],
-        businessFullname: json["business_fullname"],
-        businessName: json["business_name"],
-        businessEmail: json["business_email"],
-        businessMobile: json["business_mobile"],
-        businessAddress: json["business_address"],
-        businessArea: json["business_area"],
-        businessSiteUrl: json["business_site_url"],
-        businessImage: json["business_image"],
-        gstNumber: json["gst_number"],
-        businessDesignation: json["business_designation"],
-        isActive: _toInt(json["is_active"]),
-        roleId: json["role_id"],
-        timeFrom: json["time_from"],
-        timeTo: json["time_to"],
-        pricingRangeText: json["pricing_range_text"],
-        menuCard1: json["menu_card_1"],
-        menuCard2: json["menu_card_2"],
-        menuCard3: json["menu_card_3"],
-        menuCard4: json["menu_card_4"],
-        menuCard5: json["menu_card_5"],
-        businessImage1: json["business_image_1"],
-        businessImage2: json["business_image_2"],
-        businessImage3: json["business_image_3"],
-        businessImage4: json["business_image_4"],
-        businessImage5: json["business_image_5"],
-        setFirstTimeDiscount: json["set_first_time_discount"],
-        setRegularDiscount: json["set_regular_discount"],
-        minOrder: json["min_order"],
-        setExpiry: json["set_expiry"],
-        averageRatings: json["average_ratings"] == null ? null : AverageRatings.fromJson(json["average_ratings"]),
-        totalReviews: json["total_reviews"],
-        reviewText: json["review_text"] == null ? [] : List<String>.from(json["review_text"]!.map((x) => x)),
-      );
+  factory BusinessDescription.fromJson(Map<String, dynamic> json) {
+    var reviewsList = json["reviews"] == null
+        ? <Review>[]
+        : List<Review>.from(json["reviews"]!.map((x) => Review.fromJson(x)));
+
+    var avgRatings = json["average_ratings"] == null
+        ? AverageRatings()
+        : AverageRatings.fromJson(json["average_ratings"]);
+
+    // If ratings are missing in the summary, calculate them from reviews
+    if (reviewsList.isNotEmpty) {
+      if (avgRatings.avgExperience == null || avgRatings.avgExperience == "0") {
+        double total = reviewsList.fold(
+            0, (sum, item) => sum + (item.experience?.toDouble() ?? 0));
+        avgRatings.avgExperience =
+            (total / reviewsList.length).toStringAsFixed(1);
+      }
+      if (avgRatings.avgExpectation == null ||
+          avgRatings.avgExpectation == "0") {
+        double total = reviewsList.fold(
+            0, (sum, item) => sum + (item.expectation?.toDouble() ?? 0));
+        avgRatings.avgExpectation =
+            (total / reviewsList.length).toStringAsFixed(1);
+      }
+      if (avgRatings.avgInteraction == null ||
+          avgRatings.avgInteraction == "0") {
+        double total = reviewsList.fold(
+            0, (sum, item) => sum + (item.interaction?.toDouble() ?? 0));
+        avgRatings.avgInteraction =
+            (total / reviewsList.length).toStringAsFixed(1);
+      }
+      if (avgRatings.avgRecommend == null || avgRatings.avgRecommend == "0") {
+        double total = reviewsList.fold(
+            0, (sum, item) => sum + (item.recommend?.toDouble() ?? 0));
+        avgRatings.avgRecommend =
+            "${((total / reviewsList.length) * 100).toStringAsFixed(0)}%";
+      }
+      if (avgRatings.avgFairMoney == null || avgRatings.avgFairMoney == "0") {
+        double total = reviewsList.fold(
+            0, (sum, item) => sum + (item.fairMoney?.toDouble() ?? 0));
+        avgRatings.avgFairMoney =
+            "${((total / reviewsList.length) * 100).toStringAsFixed(0)}%";
+      }
+    }
+
+    return BusinessDescription(
+      id: json["id"],
+      businessFullname: json["business_fullname"],
+      businessName: json["business_name"],
+      businessEmail: json["business_email"],
+      businessMobile: json["business_mobile"],
+      businessAddress: json["business_address"],
+      businessArea: json["business_area"],
+      businessSiteUrl: json["business_site_url"],
+      businessImage: json["business_image"],
+      gstNumber: json["gst_number"],
+      businessDesignation: json["business_designation"],
+      isActive: _toInt(json["is_active"]),
+      roleId: json["role_id"],
+      timeFrom: json["time_from"],
+      timeTo: json["time_to"],
+      pricingRangeText: json["pricing_range_text"],
+      menuCard1: json["menu_card_1"],
+      menuCard2: json["menu_card_2"],
+      menuCard3: json["menu_card_3"],
+      menuCard4: json["menu_card_4"],
+      menuCard5: json["menu_card_5"],
+      businessImage1: json["business_image_1"],
+      businessImage2: json["business_image_2"],
+      businessImage3: json["business_image_3"],
+      businessImage4: json["business_image_4"],
+      businessImage5: json["business_image_5"],
+      setFirstTimeDiscount: json["set_first_time_discount"],
+      setRegularDiscount: json["set_regular_discount"],
+      minOrder: json["min_order"],
+      setExpiry: json["set_expiry"],
+      averageRatings: avgRatings,
+      totalReviews: json["total_reviews"],
+      reviews: reviewsList,
+      associates: json["associates"] == null
+          ? []
+          : List<BusinessAssociate>.from(
+              json["associates"]!.map((x) => BusinessAssociate.fromJson(x))),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -185,7 +242,48 @@ class BusinessDescription {
         "set_expiry": setExpiry,
         "average_ratings": averageRatings?.toJson(),
         "total_reviews": totalReviews,
-        "review_text": reviewText == null ? [] : List<dynamic>.from(reviewText!.map((x) => x)),
+        "reviews": reviews == null
+            ? []
+            : List<dynamic>.from(reviews!.map((x) => x.toJson())),
+        "associates": associates == null
+            ? []
+            : List<dynamic>.from(associates!.map((x) => x.toJson())),
+      };
+}
+
+class Review {
+  int? experience;
+  int? expectation;
+  int? recommend;
+  int? fairMoney;
+  int? interaction;
+  String? reviewText;
+
+  Review({
+    this.experience,
+    this.expectation,
+    this.recommend,
+    this.fairMoney,
+    this.interaction,
+    this.reviewText,
+  });
+
+  factory Review.fromJson(Map<String, dynamic> json) => Review(
+        experience: json["experience"],
+        expectation: json["expectation"],
+        recommend: json["recommend"],
+        fairMoney: json["fair_money"],
+        interaction: json["interaction"],
+        reviewText: json["review_text"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "experience": experience,
+        "expectation": expectation,
+        "recommend": recommend,
+        "fair_money": fairMoney,
+        "interaction": interaction,
+        "review_text": reviewText,
       };
 }
 
@@ -204,7 +302,8 @@ class AverageRatings {
     this.avgFairMoney,
   });
 
-  factory AverageRatings.fromRawJson(String str) => AverageRatings.fromJson(json.decode(str));
+  factory AverageRatings.fromRawJson(String str) =>
+      AverageRatings.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
@@ -222,5 +321,54 @@ class AverageRatings {
         "avg_interaction": avgInteraction,
         "avg_recommend": avgRecommend,
         "avg_fair_money": avgFairMoney,
+      };
+}
+
+class BusinessAssociate {
+  int? id;
+  String? businessName;
+  String? businessFullname;
+  String? businessImage;
+  String? businessAddress;
+  String? businessArea;
+  String? businessDesignation;
+  String? timeFrom;
+  String? timeTo;
+
+  BusinessAssociate({
+    this.id,
+    this.businessName,
+    this.businessFullname,
+    this.businessImage,
+    this.businessAddress,
+    this.businessArea,
+    this.businessDesignation,
+    this.timeFrom,
+    this.timeTo,
+  });
+
+  factory BusinessAssociate.fromJson(Map<String, dynamic> json) =>
+      BusinessAssociate(
+        id: json["id"],
+        businessName: json["business_name"],
+        businessFullname: json["business_fullname"],
+        businessImage: json["business_image"],
+        businessAddress: json["business_address"],
+        businessArea: json["business_area"],
+        businessDesignation: json["business_designation"],
+        timeFrom: json["time_from"],
+        timeTo: json["time_to"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "business_name": businessName,
+        "business_fullname": businessFullname,
+        "business_image": businessImage,
+        "business_address": businessAddress,
+        "business_area": businessArea,
+        "business_designation": businessDesignation,
+        "time_from": timeFrom,
+        "time_to": timeTo,
       };
 }

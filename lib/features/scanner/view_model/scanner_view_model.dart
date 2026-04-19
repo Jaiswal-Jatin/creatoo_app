@@ -24,7 +24,8 @@ class ScannerViewModel with ChangeNotifier {
   bool isDownloading = false;
 
   ApiResponse<ScannerModelResponse> scannerResponse = ApiResponse.initial();
-  setResponse(ApiResponse<ScannerModelResponse> response) => scannerResponse = response;
+  setResponse(ApiResponse<ScannerModelResponse> response) =>
+      scannerResponse = response;
 
   init(String value) async {
     // Check if the value is already a complete URL
@@ -58,16 +59,21 @@ class ScannerViewModel with ChangeNotifier {
   setValues() async {
     if (scannerResponse.data?.data?.setDiscount != null) {
       var data = scannerResponse.data!.data!;
-      discountController = TextEditingController(text: data.setDiscount.toString());
-      minOrderController = TextEditingController(text: data.minOrder.toString());
+      discountController =
+          TextEditingController(text: data.setDiscount.toString());
+      minOrderController =
+          TextEditingController(text: data.minOrder.toString());
 
-      if (data.setExpiry == 15 || data.setExpiry == 30 || data.setExpiry == 360) {
+      if (data.setExpiry == 15 ||
+          data.setExpiry == 30 ||
+          data.setExpiry == 360) {
         selectedValue = data.setExpiry.toString();
         showTextField = false;
         expDateController = TextEditingController();
       } else {
         showTextField = true;
-        expDateController = TextEditingController(text: data.setExpiry.toString());
+        expDateController =
+            TextEditingController(text: data.setExpiry.toString());
         selectedValue = "Custom";
       }
 
@@ -77,7 +83,9 @@ class ScannerViewModel with ChangeNotifier {
         businessId: userId,
         setDiscount: int.parse(discountController.text),
         minOrder: int.parse(minOrderController.text),
-        setExpiry: selectedValue == "Custom" ? int.parse(expDateController.text) ?? 0 : int.parse(selectedValue!),
+        setExpiry: selectedValue == "Custom"
+            ? int.tryParse(expDateController.text) ?? 0
+            : int.parse(selectedValue!),
         note: noteController.text,
       );
     }
@@ -90,8 +98,10 @@ class ScannerViewModel with ChangeNotifier {
     if (discountController.text != businessSettings.setDiscount.toString() ||
         minOrderController.text != businessSettings.minOrder.toString() ||
         noteController.text != businessSettings.note ||
-        (selectedValue != "Custom" && selectedValue != businessSettings.setExpiry.toString()) ||
-        (selectedValue == "Custom" && expDateController.text != businessSettings.setExpiry.toString())) {
+        (selectedValue != "Custom" &&
+            selectedValue != businessSettings.setExpiry.toString()) ||
+        (selectedValue == "Custom" &&
+            expDateController.text != businessSettings.setExpiry.toString())) {
       isModified = true;
     } else {
       isModified = false;
@@ -106,12 +116,15 @@ class ScannerViewModel with ChangeNotifier {
       businessId: userId,
       setDiscount: int.parse(discountController.text),
       minOrder: int.parse(minOrderController.text),
-      setExpiry: selectedValue == "Custom" ? int.parse(expDateController.text) ?? 0 : int.parse(selectedValue!),
+      setExpiry: selectedValue == "Custom"
+          ? int.tryParse(expDateController.text) ?? 0
+          : int.parse(selectedValue!),
       note: noteController.text,
     );
 
     final Either<AppException, ScannerModelResponse> response =
-        await _scannerRepository.updateBusinessSettingApi(businessSettings.toJson());
+        await _scannerRepository
+            .updateBusinessSettingApi(businessSettings.toJson());
     response.fold(
       (l) {
         setResponse(ApiResponse.error(l.message));
@@ -131,7 +144,8 @@ class ScannerViewModel with ChangeNotifier {
     Map<String, dynamic> body = {
       "business_id": userId,
     };
-    final Either<AppException, ScannerModelResponse> response = await _scannerRepository.getBusinessSettingApi(body);
+    final Either<AppException, ScannerModelResponse> response =
+        await _scannerRepository.getBusinessSettingApi(body);
 
     response.fold(
       (l) {
@@ -154,12 +168,12 @@ class ScannerViewModel with ChangeNotifier {
         Utils.snackBar("QR code URL not found.", result: Result.error);
         return null;
       }
-      
+
       print("ScannerViewModel: getImage() - Downloading from: $qrValue");
-      
+
       isDownloading = true;
       notifyListeners();
-      
+
       Dio dio = Dio();
       dio.options.connectTimeout = Duration(seconds: 30);
       dio.options.receiveTimeout = Duration(seconds: 30);
@@ -170,7 +184,8 @@ class ScannerViewModel with ChangeNotifier {
         options: Options(responseType: ResponseType.stream),
       );
 
-      print("ScannerViewModel: getImage() - Response status: ${response.statusCode}");
+      print(
+          "ScannerViewModel: getImage() - Response status: ${response.statusCode}");
 
       // Collect bytes from the response stream
       List<int> imageBytes = [];
@@ -178,11 +193,13 @@ class ScannerViewModel with ChangeNotifier {
         imageBytes.addAll(chunk);
       }
 
-      print("ScannerViewModel: getImage() - Image bytes received: ${imageBytes.length}");
+      print(
+          "ScannerViewModel: getImage() - Image bytes received: ${imageBytes.length}");
 
       if (imageBytes.isEmpty) {
         print("ScannerViewModel: getImage() - No image bytes received");
-        Utils.snackBar("Failed to download QR code - no data received.", result: Result.error);
+        Utils.snackBar("Failed to download QR code - no data received.",
+            result: Result.error);
         isDownloading = false;
         notifyListeners();
         return null;
@@ -192,7 +209,8 @@ class ScannerViewModel with ChangeNotifier {
       final result = await ImageGallerySaverPlus.saveImage(
         Uint8List.fromList(imageBytes), // Convert to Uint8List
         quality: 100, // High quality
-        name: "creatoo_business_qr_${DateTime.now().millisecondsSinceEpoch}", // Unique file name
+        name:
+            "creatoo_business_qr_${DateTime.now().millisecondsSinceEpoch}", // Unique file name
       );
 
       print("ScannerViewModel: getImage() - Save result: $result");
@@ -201,13 +219,17 @@ class ScannerViewModel with ChangeNotifier {
         print("Image saved successfully to gallery: ${result['filePath']}");
 
         if (Platform.isAndroid) {
-          Utils.snackBar("QR code downloaded and added to gallery.", result: Result.success);
+          Utils.snackBar("QR code downloaded and added to gallery.",
+              result: Result.success);
         } else if (Platform.isIOS) {
-          Utils.snackBar("QR code added to your Photos app.", result: Result.success);
+          Utils.snackBar("QR code added to your Photos app.",
+              result: Result.success);
         }
       } else {
-        print("ScannerViewModel: getImage() - Failed to save: ${result['errorMessage'] ?? 'Unknown error'}");
-        Utils.snackBar("Failed to save QR code to gallery.", result: Result.error);
+        print(
+            "ScannerViewModel: getImage() - Failed to save: ${result['errorMessage'] ?? 'Unknown error'}");
+        Utils.snackBar("Failed to save QR code to gallery.",
+            result: Result.error);
       }
 
       isDownloading = false;
@@ -217,9 +239,12 @@ class ScannerViewModel with ChangeNotifier {
     } on DioException catch (e) {
       isDownloading = false;
       notifyListeners();
-      print('ScannerViewModel: getImage() - DioException: ${e.type} - ${e.message}');
-      print('ScannerViewModel: getImage() - Response: ${e.response?.statusCode} - ${e.response?.data}');
-      Utils.snackBar("Failed to download QR code. Please try again.", result: Result.error);
+      print(
+          'ScannerViewModel: getImage() - DioException: ${e.type} - ${e.message}');
+      print(
+          'ScannerViewModel: getImage() - Response: ${e.response?.statusCode} - ${e.response?.data}');
+      Utils.snackBar("Failed to download QR code. Please try again.",
+          result: Result.error);
       return null;
     } catch (e) {
       isDownloading = false;

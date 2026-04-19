@@ -49,8 +49,10 @@ class _CustomProgressBarState extends State<CustomProgressBar> {
     viewModel = Provider.of<FeedbackViewModel>(context);
 
     return GestureDetector(
-      onTapUp: (details) => _updatePosition(details.localPosition.dx, MediaQuery.of(context).size.width),
-      onHorizontalDragUpdate: (details) => _updatePosition(details.localPosition.dx, MediaQuery.of(context).size.width),
+      onTapUp: (details) => _updatePosition(
+          details.localPosition.dx, MediaQuery.of(context).size.width),
+      onHorizontalDragUpdate: (details) => _updatePosition(
+          details.localPosition.dx, MediaQuery.of(context).size.width),
       child: Container(
         width: double.infinity,
         height: 40,
@@ -63,13 +65,14 @@ class _CustomProgressBarState extends State<CustomProgressBar> {
             LayoutBuilder(
               builder: (context, constraints) {
                 segmentWidth = constraints.maxWidth / 5;
-                double progressWidth = (dragPosition + 1) * segmentWidth;
+                // double progressWidth = (dragPosition + 1) * segmentWidth;
 
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   width: dragPosition.round() == 4
                       ? constraints.maxWidth // Full width for 5th dot
-                      : ((dragPosition.round() + 0.61) * segmentWidth), // Stop at center of selected dot
+                      : ((dragPosition.round() + 0.61) *
+                          segmentWidth), // Stop at center of selected dot
                   height: 40,
                   decoration: BoxDecoration(
                     color: widget.progressColor,
@@ -85,14 +88,18 @@ class _CustomProgressBarState extends State<CustomProgressBar> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: index == dragPosition.round() ? widget.selectedDotColor : Colors.transparent,
+                    color: index == dragPosition.round()
+                        ? widget.selectedDotColor
+                        : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: widget.useStarIcon
                         ? Icon(
                             Icons.star,
-                            color: index == dragPosition.round() ? AppColor.orange : widget.dotColor,
+                            color: index == dragPosition.round()
+                                ? AppColor.orange
+                                : widget.dotColor,
                             size: 16,
                           )
                         : Container(

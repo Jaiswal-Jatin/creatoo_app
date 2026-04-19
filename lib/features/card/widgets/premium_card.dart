@@ -175,23 +175,23 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
       margin: EdgeInsets.symmetric(vertical: verticalMargin),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        gradient: LinearGradient(
-          colors: AppColor.premiumCardGradient,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF13131F), Color(0xFF0C0C12)], // Sleek dark card gradient
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColor.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 25,
             spreadRadius: 2,
             offset: const Offset(0, 12),
           ),
           BoxShadow(
-            color: const Color(0xFF0f3460).withOpacity(0.5),
+            color: AppColor.premiumAccent.withOpacity(0.15), // Neon glow
             blurRadius: 40,
             spreadRadius: -5,
-            offset: const Offset(0, 20),
+            offset: const Offset(0, 15),
           ),
         ],
       ),
@@ -207,10 +207,10 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColor.white.withOpacity(0.08),
+                  color: Colors.white.withOpacity(0.03),
                   borderRadius: BorderRadius.circular(borderRadius),
                   border: Border.all(
-                    color: AppColor.white.withOpacity(0.15),
+                    color: AppColor.premiumAccent.withOpacity(0.25), // Sharp edge glow
                     width: 1.5,
                   ),
                 ),
