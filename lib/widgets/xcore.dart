@@ -20,4 +20,6 @@ export 'app_image_widget.dart';
 export 'app_conditional_widget.dart';
 export 'app_image_text_widget.dart';
 export 'app_dotted_border_container.dart';
+export 'app_text_widget.dart';
+export 'custom_back_button.dart';
 export 'global.dart';

@@ -19,7 +19,13 @@ class _ScannerPayViewState extends State<ScannerPayView> {
     viewModel = Provider.of<QrPayViewModel>(context, listen: false);
     viewModel.amountController?.clear();
     viewModel.pointsController.clear();
+    viewModel.percentageAmount = 0.0;
     viewModel.init();
+    
+    // Fetch user's current points balance for this business on screen load
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await viewModel.validatePointsApiCall();
+    });
   }
 
   // Method to handle back navigation
@@ -115,7 +121,6 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                 ),
                 Container(
                   width: SizeConfig.screenWidth,
-                  height: 300,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(15),
@@ -303,8 +308,44 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                             ),
                           ],
                         ),
+                        if (viewModel.creatooBalance != null) ...[
+                          SizedBox(height: 12),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF26278D).withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Color(0xFF26278D).withOpacity(0.15),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: Color(0xFF26278D),
+                                  size: 18,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Note: You can redeem a maximum of 60% of your total Creatoo points for this payment (Max: ${(viewModel.creatooBalance! * 0.60).floor()} Points).\nYour Total Points: ${viewModel.creatooBalance} Points.",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF26278D),
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         SizedBox(
-                          height: 10,
+                          height: 14,
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,7 +372,7 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                 child: Center(
                                   child: TextField(
                                     controller: viewModel.pointsController,
-                                    readOnly: true,
+                                    readOnly: false,
                                     decoration: InputDecoration(
                                       border: InputBorder.none,
                                       contentPadding: EdgeInsets.symmetric(
@@ -345,6 +386,25 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
+                                    onChanged: (value) {
+                                      if (value.isNotEmpty) {
+                                        double points = double.tryParse(value) ?? 0.0;
+                                        double maxRedeemable = (viewModel.creatooBalance ?? 0.0) * 0.60;
+                                        if (points > maxRedeemable) {
+                                          viewModel.percentageAmount = maxRedeemable;
+                                          viewModel.pointsController.text = maxRedeemable.floor().toString();
+                                          viewModel.pointsController.selection = TextSelection.fromPosition(
+                                            TextPosition(offset: viewModel.pointsController.text.length),
+                                          );
+                                          Utils.toastMessage("You can redeem a maximum of 60% of your total points.");
+                                        } else {
+                                          viewModel.percentageAmount = points;
+                                        }
+                                      } else {
+                                        viewModel.percentageAmount = 0.0;
+                                      }
+                                      viewModel.notify();
+                                    },
                                   ),
                                 ))
                           ],
@@ -364,18 +424,27 @@ class _ScannerPayViewState extends State<ScannerPayView> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xFF26278D),
           onPressed: () async {
-            // if (viewModel.amountController?.text != null &&
-            //     viewModel.amountController!.text.isNotEmpty &&
-            //     double.parse(viewModel.amountController?.text ?? "0") >= viewModel.minOrderValue!) {
-            //   Navigator.pushNamed(context, RoutesName.payTransferView);
-            // } else {
-            //   Utils.snackBar("Minimum Bill Amount should be ${viewModel.minOrderValue}", result: Result.error);
-            // }
+            if (viewModel.amountController?.text != null &&
+                viewModel.amountController!.text.isNotEmpty) {
+              
+              double points = double.tryParse(viewModel.pointsController.text) ?? 0.0;
+              double maxRedeemable = (viewModel.creatooBalance ?? 0.0) * 0.60;
+              if (points > maxRedeemable) {
+                Utils.toastMessage("You can redeem a maximum of 60% of your total points.");
+                return;
+              }
+              
+              Navigator.pushNamed(context, RoutesName.payTransferView);
+            } else {
+              Utils.toastMessage("Please enter the total bill amount.");
+            }
           },
           child: Icon(
             Icons.arrow_forward,
             size: 25,
+            color: Colors.white,
           ),
         ),
       ),

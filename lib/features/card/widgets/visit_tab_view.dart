@@ -72,8 +72,8 @@ class _VisitTabViewState extends State<VisitTabView> {
       VisitByRestaurantResponseModel apiResponse) {
     List<RestaurantViewModel> restaurants = [];
 
-    if (apiResponse.restaurants != null && apiResponse.restaurants!.isNotEmpty) {
-      for (var restaurant in apiResponse.restaurants!) {
+    if (apiResponse.businesses != null && apiResponse.businesses!.isNotEmpty) {
+      for (var restaurant in apiResponse.businesses!) {
         List<Visit> visits = [];
 
         if (restaurant.visits != null && restaurant.visits!.isNotEmpty) {

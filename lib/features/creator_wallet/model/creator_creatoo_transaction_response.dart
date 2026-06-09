@@ -1,5 +1,20 @@
 import 'dart:convert';
 
+DateTime? _parseDate(dynamic value) {
+  if (value == null) return null;
+  final str = value.toString().trim();
+  if (str.isEmpty) return null;
+  // Try ISO format first ("2026-05-25T22:22:52" or with "Z")
+  try {
+    return DateTime.parse(str);
+  } catch (_) {}
+  // Try MySQL format ("2026-05-25 22:22:52")
+  try {
+    return DateTime.parse(str.replaceFirst(' ', 'T'));
+  } catch (_) {}
+  return null;
+}
+
 class CreatorCreatooPointTransactionResponse {
   bool? status;
   String? message;
@@ -132,15 +147,15 @@ class Transaction {
         businessId: json["business_id"],
         orderId: json["order_id"],
         points: json["points"],
-        expiryDate: json["expiry_date"] == null ? null : DateTime.parse(json["expiry_date"]),
+        expiryDate: _parseDate(json["expiry_date"]),
         creditDebitRemainingStatus: json["credit_debit_remaining_status"],
         businessName: json["business_name"],
         totalBill: json["total_bill"],
         finalBill: json["final_bill"],
         receiptName: json["receipt_name"],
         remainingPoints: json["remaining_points"],
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+        createdAt: _parseDate(json["created_at"]) ?? _parseDate(json["createdAt"]),
+        updatedAt: _parseDate(json["updated_at"]) ?? _parseDate(json["updatedAt"]),
         isExpired: json["is_expired"],
       );
 

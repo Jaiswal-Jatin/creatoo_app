@@ -14,7 +14,7 @@ void main() async {
 
   await Future.wait([
     NotificationService.initialize(),
-    dotenv.load(fileName: Constants.dotEnv),
+   
     FirebaseMessagingService.initialise(),
     DeepLinkService.initialize(), // Initialize deep link handling
   ]);
@@ -54,7 +54,7 @@ class MyApp extends StatelessWidget {
               title: Constants.appName,
               themeMode: ThemeMode.light,
               theme: AppTheme.lightTheme,
-              initialRoute: RoutesName.onboardingView,
+              initialRoute: RoutesName.splashView,
               onGenerateRoute: Routes.generateRoute,
               navigatorKey: navigatorKey,
               locale: DevicePreview.locale(context),

@@ -82,7 +82,7 @@ class UserData {
         id: json["id"],
         name: json["role_id"] == Constants.creatorUser
             ? json["name"]
-            : json["business_fullname"],
+            : (json["business_name"] ?? json["business_fullname"]),
         email: json["role_id"] == Constants.creatorUser
             ? json["email"]
             : json["business_email"],
@@ -91,7 +91,7 @@ class UserData {
             : json["business_mobile"],
         address: json["role_id"] == Constants.creatorUser
             ? json["address"]
-            : json["business_address"],
+            : (json["business_area"] ?? json["business_address"]),
         isActive: _toInt(json["is_active"]),
         isRegistered: _toInt(json["is_registered"]),
       );
@@ -111,10 +111,10 @@ class UserData {
   factory UserData.fromBusinessJson(Map<String, dynamic> json) => UserData(
         token: json["token"],
         id: json["id"],
-        name: json["business_fullname"],
+        name: json["business_name"] ?? json["business_fullname"],
         email: json["business_email"],
         mobile: json["business_mobile"],
-        address: json["business_address"],
+        address: json["business_area"] ?? json["business_address"],
         isActive: _toInt(json["is_active"]),
         isRegistered: _toInt(json["is_registered"]),
         roleId: json["role_id"],

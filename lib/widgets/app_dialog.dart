@@ -399,6 +399,84 @@ class AppDialog {
     });
   }
 
+  static Future<bool?> showCompleteProfileDialog({
+    required String businessCategory,
+    VoidCallback? onClicked,
+  }) async {
+    String title = "Complete Your Business Profile!";
+    String content;
+    String mandatoryFields;
+
+    switch (businessCategory.toLowerCase()) {
+      case 'salon':
+        content = "Set up your salon to start receiving clients. Add your services, pricing, and business hours.";
+        mandatoryFields = "Services, Pricing, Stylists, Timings";
+        break;
+      case 'turf':
+        content = "Set up your turf to start receiving bookings. Add your sports, amenities, pricing, and timings.";
+        mandatoryFields = "Sports, Ground Details, Amenities, Pricing, Timings";
+        break;
+      default:
+        content = "Set up your restaurant to start receiving customers. Add your cuisines, menu, pricing, and timings.";
+        mandatoryFields = "Cuisines, Menu, Pricing, Seating Capacity, Timings";
+    }
+
+    return await showDialog<bool>(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog.adaptive(
+          title: Container(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.appBarTitleTextStyle.copyWith(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.rocket_launch_rounded, size: 40.h, color: AppColor.premiumAccent),
+              SizedBox(height: 12.h),
+              Text(
+                content,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.appBarTitleTextStyle.copyWith(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w200,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                "Fields to complete: $mandatoryFields",
+                textAlign: TextAlign.center,
+                style: AppTextStyles.appBarTitleTextStyle.copyWith(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            Material(
+              child: Container(
+                margin: EdgeInsets.all(12),
+                child: AppButton(
+                  text: "Continue",
+                  onTap: onClicked,
+                ),
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
   static Future<bool?> showBusinessInfoIncompleteDialog(
       {String title = "Complete Your Registration!",
       String content = "You haven't finished setting up your business. Complete the process to start attracting customers!",
@@ -504,7 +582,7 @@ class AppDialog {
   static Future<void> showSubscriptionRequiredDialog() async {
     return showDialog(
       context: navigatorKey.currentContext!,
-      barrierDismissible: true,
+      barrierDismissible: false,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(

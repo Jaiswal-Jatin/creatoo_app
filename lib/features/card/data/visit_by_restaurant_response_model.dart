@@ -9,11 +9,11 @@ String? _toString(dynamic value) {
 
 class VisitByRestaurantResponseModel {
   final bool? status;
-  final List<RestaurantVisitData>? restaurants;
+  final List<RestaurantVisitData>? businesses;
 
   VisitByRestaurantResponseModel({
     this.status,
-    this.restaurants,
+    this.businesses,
   });
 
   factory VisitByRestaurantResponseModel.fromRawJson(String str) =>
@@ -24,17 +24,17 @@ class VisitByRestaurantResponseModel {
   factory VisitByRestaurantResponseModel.fromJson(Map<String, dynamic> json) =>
       VisitByRestaurantResponseModel(
         status: json["status"] as bool?,
-        restaurants: json["restaurants"] == null
+        businesses: json["businesses"] == null
             ? []
             : List<RestaurantVisitData>.from(
-                json["restaurants"].map((x) => RestaurantVisitData.fromJson(x))),
+                json["businesses"].map((x) => RestaurantVisitData.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
         "status": status,
-        "restaurants": restaurants == null
+        "businesses": businesses == null
             ? []
-            : List<dynamic>.from(restaurants!.map((x) => x.toJson())),
+            : List<dynamic>.from(businesses!.map((x) => x.toJson())),
       };
 }
 

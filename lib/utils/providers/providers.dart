@@ -1,4 +1,7 @@
 import 'package:creatoo/features/bill_payment/view_model/bill_payment_view_model.dart';
+import 'package:creatoo/features/user_payments/view_model/user_payments_view_model.dart';
+import 'package:creatoo/features/business_payments/view_model/business_payments_view_model.dart';
+import 'package:creatoo/features/business_visits/view_model/business_visits_view_model.dart';
 import 'package:creatoo/features/category/view_model/category_view_model.dart';
 import 'package:creatoo/features/creator_contact/view_model/creator_contact_view_model.dart';
 import 'package:creatoo/features/feedback/view_model/feedback_view_model.dart';
@@ -30,11 +33,14 @@ import '../../features/register_creator/view_model/register_creator_view_model.d
 import '../../features/search/view_model/search_view_model.dart';
 import '../../features/settings/view_model/settings_view_model.dart';
 import '../../features/shortlist/view_model/shortlist_view_model.dart';
+import '../../features/user_points/view_model/user_points_view_model.dart';
 import '../../features/startup/view_model/startup_view_model.dart';
 import '../../features/verify_otp/view_model/verify_otp_view_model.dart';
 import '../../features/wallet/view_model/businees_wallet_creatoo_view_model.dart';
 import '../../features/wallet/view_model/business_wallet_earning_view_model.dart';
 import '../../features/wallet/view_model/wallet_view_model.dart';
+import '../../features/booking/view_model/booking_view_model.dart';
+import '../../features/wallet/view_model/settlement_view_model.dart';
 
 class Providers {
   static List<SingleChildWidget> getAllProviders() {
@@ -135,6 +141,12 @@ class Providers {
       ChangeNotifierProvider(create: (BuildContext context) => ReviewsViewModel()),
       ChangeNotifierProvider(create: (BuildContext context) => CreatorWalletViewModel()),
       ChangeNotifierProvider(create: (BuildContext context) => CardViewModel()), // Add CardViewModel
+      ChangeNotifierProvider(create: (BuildContext context) => BusinessPaymentsViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => BusinessVisitsViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => UserPaymentsViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => UserPointsViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => BookingViewModel()),
+      ChangeNotifierProvider(create: (BuildContext context) => SettlementViewModel()),
     ];
     return providers;
   }

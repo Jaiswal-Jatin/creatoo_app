@@ -1,8 +1,8 @@
+import 'dart:ui';
 import 'package:creatoo/core.dart';
-// creator request model not required here after minimal payload change
 import 'package:creatoo/features/auth/view_model/auth_view_model.dart';
+import 'package:creatoo/widgets/custom_back_button.dart';
 import 'package:flutter/services.dart';
-
 import '../model/auth_business_request_model.dart';
 
 class AuthView extends StatefulWidget {
@@ -42,159 +42,192 @@ class _AuthViewState extends State<AuthView> {
     final AuthViewModel viewModel = Provider.of<AuthViewModel>(context);
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
-    final isSmall = h < 700;
     
     return AppScaffold(
-      gradient: AppGradient.loginBg,
-      body: Column(
+      useGradient: true,
+      backgroundColor: AppColor.premiumBg,
+      isSafe: false,
+      body: Stack(
         children: [
-          // Conditional back button for iOS
-          if (Platform.isIOS)
-            Padding(
-              padding: EdgeInsets.only(top: isSmall ? h * 0.025 : 20.h, left: w * 0.025),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: AppColor.primary,
-                    size: isSmall ? w * 0.05 : null,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+          // Background Glows
+          Positioned(
+            top: -100.h,
+            right: -100.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              child: Container(
+                width: 300.w,
+                height: 300.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.15),
                 ),
               ),
             ),
-          Expanded(
+          ),
+          Positioned(
+            bottom: -50.h,
+            left: -50.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+              child: Container(
+                width: 250.w,
+                height: 250.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.1),
+                ),
+              ),
+            ),
+          ),
+
+          // Main Content
+          SafeArea(
             child: Form(
               key: viewModel.formKey,
               child: Center(
-                child: Container(
-                  height: isSmall ? h * 0.65 : SizeConfig.screenHeight / 1.4,
-                  margin: EdgeInsets.all(isSmall ? w * 0.06 : 24.h),
-                  padding: EdgeInsets.all(isSmall ? w * 0.06 : 24.h),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColor.white.withOpacity(0.6),
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(isSmall ? 10 : 12),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: isSmall ? w * 0.07 : 30.sp,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(height: isSmall ? h * 0.015 : 12.h),
-                        SvgPicture.asset(
-                          height: isSmall ? h * 0.25 : 200.h,
-                          width: isSmall ? w * 0.5 : 200.w,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Header Illustration/Logo
+                      Hero(
+                        tag: 'auth_icon',
+                        child: SvgPicture.asset(
                           AppIcon.auth,
+                          height: 180.h,
+                          width: 180.w,
                           fit: BoxFit.contain,
                         ),
-                        SizedBox(height: isSmall ? h * 0.015 : 12.h),
-                        Flexible(
-                          child: Text(
-                            'Hello! Looks like you\'re enjoying our page, but you haven\'t Log In for an account yet.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.montserrat(
-                              textStyle: Theme.of(navigatorKey.currentContext!).textTheme.displayLarge,
-                              fontSize: isSmall ? w * 0.035 : 15.sp,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
-                            softWrap: true,
-                          ),
+                      ),
+                      SizedBox(height: 30.h),
+                      
+                      // Welcome Text
+                      Text(
+                        'Welcome Back',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
-                        SizedBox(height: isSmall ? h * 0.03 : 24.h),
-                        Container(
-                          height: isSmall ? h * 0.08 : 70.h,
-                          child: AppTextField(
-                            // autofocus: true,
-                            controller: viewModel.phoneController,
-                            hintText: "Mobile Number",
-                            textInputType: TextInputType.number,
-                            maxLength: 10,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            prefixIcon: Padding(
-                              padding: EdgeInsets.only(left: isSmall ? w * 0.04 : 15.0, right: isSmall ? w * 0.015 : 5),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SvgPicture.asset(
-                                    height: isSmall ? w * 0.05 : 20.h,
-                                    width: isSmall ? w * 0.05 : 20.h,
-                                    AppIcon.indiaFlag,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  Text(
-                                    '${viewModel.countryCode}',
-                                    style: GoogleFonts.montserrat(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: isSmall ? w * 0.032 : 14.sp,
-                                      color: AppColor.primary,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: AppColor.primary,
-                                    size: isSmall ? w * 0.04 : null,
-                                  ),
-                                  VerticalDivider(
-                                    thickness: 1,
-                                    color: Color(0xFFC0BFBF),
-                                  )
-                                ],
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(
+                        'Login to your account to continue your creative journey.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppColor.premiumTextSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 40.h),
+
+                      // Login Card
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                          child: Container(
+                            padding: EdgeInsets.all(24.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.1),
+                                width: 1.5,
                               ),
                             ),
-                            // suffixIcon: SvgPicture.asset(
-                            //   height: 20.h,
-                            //   width: 20.h,
-                            //   AppIcon.person,
-                            //   fit: BoxFit.contain,
-                            // ),
-                            validator: (v) => Validator.validate(v, "Mobile Number"),
+                            child: Column(
+                              children: [
+                                // Phone Input
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                  ),
+                                  child: AppTextField(
+                                    controller: viewModel.phoneController,
+                                    backgroundColor: Colors.transparent,
+                                    textColor: Colors.white,
+                                    cursorColor: Colors.white,
+                                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14.sp),
+                                    hintText: "Mobile Number",
+                                    textInputType: TextInputType.number,
+                                    maxLength: 10,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                    prefixIcon: Container(
+                                      width: 90.w,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SvgPicture.asset(
+                                            AppIcon.indiaFlag,
+                                            height: 16.h,
+                                            width: 16.h,
+                                          ),
+                                          SizedBox(width: 8.w),
+                                          Text(
+                                            '${viewModel.countryCode}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 14.sp,
+                                              color: AppColor.premiumAccent,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4.w),
+                                          Icon(Icons.keyboard_arrow_down, color: AppColor.premiumAccent, size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                    validator: (v) => Validator.validate(v, "Mobile Number"),
+                                  ),
+                                ),
+                                SizedBox(height: 24.h),
+                                
+                                // Login Button
+                                AppButton(
+                                  text: "Log In",
+                                  isIconEnabled: false,
+                                  isLoading: viewModel.otp.status == Status.loading,
+                                  onTap: () async {
+                                    if (viewModel.formKey.currentState!.validate()) {
+                                      final Map<String, dynamic> creatorPayload = {
+                                        "mobile": viewModel.phoneController.text,
+                                        "is_verified": 0,
+                                        "remember_token": fcmToken,
+                                      };
+                                      AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
+                                        businessMobile: "${viewModel.phoneController.text}",
+                                        rememberToken: fcmToken,
+                                      );
+                                      await viewModel.getOtpFromServer(
+                                        roleId == Constants.creatorUser ? creatorPayload : businessData.toJson(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        SizedBox(height: isSmall ? h * 0.03 : 24.h),
-                        AppButton(
-                          text: "Log In",
-                          isIconEnabled: false,
-                          isLoading: viewModel.otp.status == Status.loading,
-                          onTap: () async {
-                            if (viewModel.formKey.currentState!.validate()) {
-                              // Send minimal payloads: creator -> only mobile, business -> businessMobile + remember token
-                                final Map<String, dynamic> creatorPayload = {
-                                  "mobile": viewModel.phoneController.text,
-                                  "is_verified": 0,
-                                  "remember_token": fcmToken,
-                                };
-                              AuthBusinessRequestModel businessData = AuthBusinessRequestModel(
-                                businessMobile: "${viewModel.phoneController.text}",
-                                rememberToken: fcmToken,
-                              );
-                              await viewModel.getOtpFromServer(
-                                roleId == Constants.creatorUser ? creatorPayload : businessData.toJson(),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: 30.h),
+                    ],
                   ),
                 ),
               ),
+            ),
+          ),
+
+          // Back Button (on top)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10.h,
+            left: 16.w,
+            child: CustomBackButton(
+              onTap: () => Navigator.pop(context),
             ),
           ),
         ],

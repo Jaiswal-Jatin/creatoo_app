@@ -3,8 +3,12 @@ import 'dart:convert';
 int? _toInt(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;
+  if (value is double) return value.toInt();
   if (value is bool) return value ? 1 : 0;
-  if (value is String) return int.tryParse(value);
+  if (value is String) {
+    final parsed = double.tryParse(value);
+    return parsed?.toInt();
+  }
   return null;
 }
 
@@ -47,6 +51,7 @@ class Data {
   String? businessSiteUrl;
   String? businessImage;
   String? gstNumber;
+  String? businessCategory;
   String? businessDesignation;
   int? isActive;
   int? roleId;
@@ -67,6 +72,8 @@ class Data {
   int? setRegularDiscount;
   int? minOrder;
   int? setExpiry;
+  String? upiId;
+  Map<String, dynamic>? categoryAttributes;
 
   Data({
     this.id,
@@ -79,6 +86,7 @@ class Data {
     this.businessSiteUrl,
     this.businessImage,
     this.gstNumber,
+    this.businessCategory,
     this.businessDesignation,
     this.isActive,
     this.roleId,
@@ -99,6 +107,8 @@ class Data {
     this.setRegularDiscount,
     this.minOrder,
     this.setExpiry,
+    this.upiId,
+    this.categoryAttributes,
   });
 
   factory Data.fromRawJson(String str) => Data.fromJson(json.decode(str));
@@ -116,6 +126,7 @@ class Data {
         businessSiteUrl: json["business_site_url"],
         businessImage: json["business_image"],
         gstNumber: json["gst_number"],
+        businessCategory: json["business_category"],
         businessDesignation: json["business_designation"],
         isActive: _toInt(json["is_active"]),
         roleId: json["role_id"],
@@ -132,10 +143,16 @@ class Data {
         businessImage3: json["business_image_3"],
         businessImage4: json["business_image_4"],
         businessImage5: json["business_image_5"],
-        setFirstTimeDiscount: json["set_first_time_discount"],
-        setRegularDiscount: json["set_regular_discount"],
-        minOrder: json["min_order"],
+        setFirstTimeDiscount: _toInt(json["set_first_time_discount"]),
+        setRegularDiscount: _toInt(json["set_regular_discount"]),
+        minOrder: _toInt(json["min_order"]),
         setExpiry: json["set_expiry"],
+        upiId: json["upi_id"],
+        categoryAttributes: json["category_attributes"] != null 
+            ? (json["category_attributes"] is String 
+                ? jsonDecode(json["category_attributes"]) 
+                : json["category_attributes"]) 
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -149,6 +166,7 @@ class Data {
         "business_site_url": businessSiteUrl,
         "business_image": businessImage,
         "gst_number": gstNumber,
+        "business_category": businessCategory,
         "business_designation": businessDesignation,
         "is_active": isActive,
         "role_id": roleId,
@@ -169,5 +187,7 @@ class Data {
         "set_regular_discount": setRegularDiscount,
         "min_order": minOrder,
         "set_expiry": setExpiry,
+        "upi_id": upiId,
+        "category_attributes": categoryAttributes != null ? json.encode(categoryAttributes) : null,
       };
 }

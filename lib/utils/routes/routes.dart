@@ -6,8 +6,16 @@ import 'package:creatoo/features/bill_payment/view/payment_success_view.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_cart.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_pay.dart';
 import 'package:creatoo/features/business/qr_code/view/business_qr_view.dart';
+import 'package:creatoo/features/business_payments/view/business_payments_screen.dart';
+import 'package:creatoo/features/business_visits/view/business_visits_screen.dart';
+import 'package:creatoo/features/user_payments/view/user_payments_screen.dart';
+import 'package:creatoo/features/user_payments/view/user_payment_submit_screen.dart';
+import 'package:creatoo/features/user_payments/view/payment_processing_screen.dart';
+import 'package:creatoo/features/business_category_setup/view/category_attributes_screen.dart';
 import 'package:creatoo/features/business_profile/view/business_profile.dart';
+import 'package:creatoo/features/user_points/view/user_points_screen.dart';
 import 'package:creatoo/features/business_profile/view/edit_business_profile.dart';
+import 'package:creatoo/features/business_profile/view/services_management_view.dart';
 import 'package:creatoo/features/coming_soon/view/coming_soon_view.dart';
 import 'package:creatoo/features/creator_home/view/creator_home_view.dart';
 import 'package:creatoo/features/creator_profile/view/creator_profile_detail_view.dart';
@@ -36,6 +44,10 @@ import 'package:creatoo/features/wallet/view/wallet_view.dart';
 import 'package:creatoo/widgets/app_success_widget.dart';
 import 'package:creatoo/features/card/view/card_screen.dart';
 import 'package:creatoo/features/force_update/view/force_update_screen.dart';
+import 'package:creatoo/features/category/view/category_business_list_view.dart';
+import 'package:creatoo/features/booking/view/booking_request_screen.dart';
+import 'package:creatoo/features/booking/view/booking_history_screen.dart';
+import 'package:creatoo/features/booking/view/business_bookings_screen.dart';
 
 import '../../features/add_post/model/add_post_model.dart';
 import '../../features/auth/view/auth_view.dart';
@@ -47,6 +59,7 @@ import '../../features/qr_pay/view/pay_transfer_success_view.dart';
 import '../../features/qr_pay/view/scanner_pay_view.dart';
 import '../../features/settings/view/settings_view.dart';
 import '../../features/startup/view/startup_view.dart';
+import '../../features/splash/view/splash_view.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -78,6 +91,9 @@ class Routes {
     }
 
     switch (settings.name) {
+      case RoutesName.splashView:
+        return _buildRoute(settings, const SplashView());
+
       case RoutesName.onboardingView:
         return _buildRoute(settings, OnboardingView());
 
@@ -89,6 +105,14 @@ class Routes {
             message: args['message'] ?? 'A new update is available',
             currentVersion: args['currentVersion'] ?? '',
             latestVersion: args['latestVersion'] ?? '',
+          ),
+        );
+
+      case RoutesName.categoryBusinessListView:
+        return _buildRoute(
+          settings,
+          CategoryBusinessListView(
+            categoryKey: settings.arguments as String,
           ),
         );
 
@@ -125,7 +149,7 @@ class Routes {
         return _buildRoute(settings, HomePage());
 
       case RoutesName.homeView:
-        return _buildRoute(settings, const HomeView());
+        return _buildRoute(settings,  HomeView());
 
       case RoutesName.paymentSuccessView:
         return _buildRoute(settings, const PaymentSuccessView());
@@ -139,11 +163,14 @@ class Routes {
       case RoutesName.settingsView:
         return _buildRoute(settings, SettingsView());
 
+      case RoutesName.servicesManagement:
+        return _buildRoute(settings, const ServicesManagementView());
+
       case RoutesName.postView:
         return _buildRoute(settings, const PostView());
 
-      case RoutesName.addPostView:
-        return _buildRoute(settings, const AddPostView());
+      // case RoutesName.addPostView:
+      //   return _buildRoute(settings, const AddPostView());
 
       case RoutesName.businessProfile:
         return _buildRoute(settings, const BusinessProfileView());
@@ -272,10 +299,20 @@ class Routes {
         );
 
       case RoutesName.proceedToCart:
+        int businessId = 0;
+        double? prefilledAmount;
+        final args = settings.arguments;
+        if (args is int) {
+          businessId = args;
+        } else if (args is Map<String, dynamic>) {
+          businessId = args['businessId'] as int? ?? 0;
+          prefilledAmount = args['prefilledAmount'] as double?;
+        }
         return _buildRoute(
           settings,
           ProceedToCart(
-            businessId: settings.arguments as int? ?? 0,
+            businessId: businessId,
+            prefilledAmount: prefilledAmount,
           ),
         );
 
@@ -306,6 +343,48 @@ class Routes {
       case RoutesName.cardView:
         return _buildRoute(settings, const CardScreen());
 
+      case RoutesName.businessPaymentsView:
+        return _buildRoute(settings, const BusinessPaymentsScreen());
+
+      case RoutesName.businessVisitsView:
+        return _buildRoute(settings, const BusinessVisitsScreen());
+
+      case RoutesName.userPaymentsView:
+        return _buildRoute(settings, const UserPaymentsScreen());
+
+      case RoutesName.userPaymentSubmitView:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          settings,
+          UserPaymentSubmitScreen(
+            businessId: args['businessId'] as int,
+            businessName: args['businessName'] as String,
+            businessImage: args['businessImage'] as String?,
+            prefilledAmount: args['prefilledAmount'] as double?,
+          ),
+        );
+
+      case RoutesName.categoryAttributesView:
+        return _buildRoute(settings, const CategoryAttributesScreen());
+
+      case RoutesName.userPointsView:
+        return _buildRoute(settings, const UserPointsScreen());
+
+      case RoutesName.paymentProcessingView:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          settings,
+          PaymentProcessingScreen(
+            businessId: args['businessId'] as int,
+            businessName: args['businessName'] as String,
+            amount: args['amount'] as double,
+            billAmount: args['billAmount'] as double?,
+            pointsRedeemed: args['pointsRedeemed'] as int?,
+            discountPercentage: args['discountPercentage'] as int?,
+            discountAmount: args['discountAmount'] as double?,
+          ),
+        );
+
       case RoutesName.businessQrView:
         final args = settings.arguments as Map<String, dynamic>;
         return _buildRoute(
@@ -313,8 +392,30 @@ class Routes {
           BusinessQrView(
             businessId: args['businessId'] as int,
             businessName: args['businessName'] as String,
+            upiId: args['upiId'] as String?,
           ),
         );
+
+      case RoutesName.bookingRequestView:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          settings,
+          BookingRequestScreen(
+            businessId: args['businessId'] as int,
+            businessName: args['businessName'] as String,
+            businessImage: args['businessImage'] as String?,
+            businessCategory: args['businessCategory'] as String,
+            prefilledService: args['prefilledService'] as String?,
+            prefilledSport: args['prefilledSport'] as String?,
+            bookingServices: args['services'] as List<dynamic>?,
+          ),
+        );
+
+      case RoutesName.bookingHistoryView:
+        return _buildRoute(settings, const BookingHistoryScreen());
+
+      case RoutesName.businessBookingsView:
+        return _buildRoute(settings, const BusinessBookingsScreen());
 
       default:
         print('🔴 [ROUTES] NO ROUTE FOUND for: "${settings.name}"');

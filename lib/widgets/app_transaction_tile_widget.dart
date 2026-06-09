@@ -87,7 +87,9 @@ class AppTransactionTileWidget extends StatelessWidget {
                       Container(
                         width: MediaQuery.sizeOf(context).width * 0.45,
                         child: Text(
-                          (item.paidTo == null) ? '${item.receivedFrom}' : '${item.paidTo}',
+                          (item.paidTo == null)
+                              ? '${item.receivedFrom}'
+                              : '${item.paidTo}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -138,14 +140,28 @@ class AppTransactionTileWidget extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (roleId == Constants.creatorUser && item.finalBill != null)
-                        Text(
-                          '₹${item.finalBill.toCommaSeparated()}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppColor.premiumTextSecondary,
-                          ),
+                      if (item.finalBill != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '₹${item.finalBill.toCommaSeparated()}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColor.activeGreen,
+                              ),
+                            ),
+                            if (item.discountPercentage != null)
+                              Text(
+                                '${item.discountPercentage}% off',
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.premiumTextSecondary,
+                                ),
+                              ),
+                          ],
                         )
                       else if (item.discountPercentage != null)
                         Text(

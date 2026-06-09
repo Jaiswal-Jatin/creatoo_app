@@ -18,15 +18,59 @@ class SearchViewModel with ChangeNotifier {
   ];
   List<BusinessSearchData>? businessSearchList = [];
 
+  final Map<String, List<BusinessSearchData>> _categoryCache = {};
+  final Map<String, Future<void>> _categoryPreloadFutures = {};
+
   int currentPage = 1;
   int totalPages = 1;
   bool isLoadingMore = false;
   int userRole = 0;
   int currentSelection = 0;
+  String? selectedCategory; // 'restaurant', 'salon', 'turf', or null for all
 
   late TextEditingController searchController = TextEditingController();
   BusinessDescription? businessDescription;
   ExclusiveOffersData? exclusiveOffersData;
+
+  Future<void> preloadCategory(String category) async {
+    if (_categoryCache.containsKey(category)) return;
+    if (_categoryPreloadFutures.containsKey(category)) {
+      await _categoryPreloadFutures[category];
+      return;
+    }
+    final future = _doPreload(category);
+    _categoryPreloadFutures[category] = future;
+    await future;
+  }
+
+  Future<void> _doPreload(String category) async {
+    var data = {
+      "role_id": Constants.businessUser,
+      "per_page": 30,
+      "page": 1,
+      "business_category": category,
+    };
+    var response = await _myRepo.searchBusinessUserApi(data);
+    response.fold(
+      (l) {
+        print("Preload $category error: ${l.message}");
+      },
+      (r) {
+        final active = r.data?.where((b) => b.isActive == 1).toList() ?? [];
+        _categoryCache[category] = active;
+        print("Preloaded $category: ${active.length} businesses");
+      },
+    );
+  }
+
+  Future<List<BusinessSearchData>?> getCachedCategoryData(String category) async {
+    if (_categoryCache.containsKey(category)) return _categoryCache[category];
+    if (_categoryPreloadFutures.containsKey(category)) {
+      await _categoryPreloadFutures[category];
+      return _categoryCache[category];
+    }
+    return null;
+  }
 
   ApiResponse<SearchCreatorResponse> creatorResponse = ApiResponse.initial();
   ApiResponse<ExclusiveOffersResponseModel> exclusiveOffersApiResponse =
@@ -55,16 +99,29 @@ class SearchViewModel with ChangeNotifier {
     businessDetailsResponse = response;
   }
 
-  init(role) async {
+  init(role, {String? category}) async {
     userRole = role;
     searchController = TextEditingController();
-    // Removed searchController.addListener to prevent API calls on text change
     currentPage = 0;
     totalPages = 1;
     businessSearchList?.clear();
     businessDescription = null;
     exclusiveOffersData = null;
+    if (category != null) {
+      selectedCategory = category;
+    }
     await searchBusinessUser(); // Initial load of businesses
+  }
+
+  /// Set category filter and reload
+  Future<void> setCategoryFilter(String? category) async {
+    if (selectedCategory == category) return;
+    selectedCategory = category;
+    currentPage = 0;
+    totalPages = 1;
+    businessSearchList?.clear();
+    notifyListeners();
+    await searchBusinessUser();
   }
 
   void restoreOriginalList() async {
@@ -103,6 +160,7 @@ class SearchViewModel with ChangeNotifier {
       "role_id": userRole,
       "per_page": 30,
       "page": currentPage + 1,
+      if (selectedCategory != null) "business_category": selectedCategory,
     };
     var response = await _myRepo.searchBusinessUserApi(data);
 
@@ -151,6 +209,7 @@ class SearchViewModel with ChangeNotifier {
       "role_id": userRole,
       "per_page": 30,
       "page": currentPage + 1,
+      if (selectedCategory != null) "business_category": selectedCategory,
     };
     var response = await _myRepo.searchBusinessUserApi(data);
 
@@ -183,7 +242,8 @@ class SearchViewModel with ChangeNotifier {
       "role_id": userRole,
       "per_page": 30,
       "page": 1,
-      "key": searchQuery, // Corrected typo from "k,ey" to "key"
+      "key": searchQuery,
+      if (selectedCategory != null) "business_category": selectedCategory,
     };
 
     // Log the API URL for debugging purposes

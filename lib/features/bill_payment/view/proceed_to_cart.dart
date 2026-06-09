@@ -1,13 +1,16 @@
+import 'dart:ui';
 import '../../../core.dart';
-import '../../../widgets/app_text_widget.dart';
+import '../../../widgets/custom_back_button.dart';
 import '../view_model/bill_payment_view_model.dart';
 
 class ProceedToCart extends StatefulWidget {
   final int businessId;
+  final double? prefilledAmount;
 
   const ProceedToCart({
     super.key,
     required this.businessId,
+    this.prefilledAmount,
   });
 
   @override
@@ -20,7 +23,12 @@ class _ProceedToCartState extends State<ProceedToCart> {
   @override
   void initState() {
     viewModel = Provider.of<BillPaymentViewModel>(context, listen: false);
-    viewModel.amountController = TextEditingController();
+    viewModel.amountController = TextEditingController(
+      text: widget.prefilledAmount != null ? widget.prefilledAmount!.toInt().toString() : ""
+    );
+    if (widget.prefilledAmount != null) {
+      viewModel.setAmount(widget.prefilledAmount!);
+    }
     viewModel.referralCodeController = TextEditingController();
     viewModel.getBusinessDetailsApi(id: widget.businessId);
     super.initState();
@@ -32,178 +40,259 @@ class _ProceedToCartState extends State<ProceedToCart> {
 
     switch (viewModel.businessDetailsResponse.status) {
       case Status.loading:
-        return AppLoadingWidget();
+        return const AppLoadingWidget();
       case Status.error:
         return AppErrorWidget(message: viewModel.businessDetailsResponse.message.toString());
       case Status.completed:
         return _buildBody();
       default:
-        return AppNoDataWidget();
+        return const AppNoDataWidget();
     }
   }
 
   Widget _buildBody() {
     return AppScaffold(
-      appBar: AppBarWidget(
-        centerTile: false,
-        title: viewModel.businessDescription?.businessName ?? '',
-        subtitle: viewModel.businessDescription?.businessArea ?? '',
-        useCustomBackButton: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        reverse: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColor.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    spreadRadius: 2,
-                    offset: Offset(-2, 2),
-                  ),
-                ],
+      useGradient: true,
+      backgroundColor: AppColor.premiumBg,
+      isSafe: false,
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(
+            top: -100.h,
+            right: -100.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+              child: Container(
+                width: 400.w,
+                height: 400.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.15),
+                ),
               ),
+            ),
+          ),
+          Positioned(
+            bottom: -50.h,
+            left: -50.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              child: Container(
+                width: 300.w,
+                height: 300.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.1),
+                ),
+              ),
+            ),
+          ),
+
+          // Custom App Bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                child: Row(
                   children: [
-                    AppTextWidget(
-                      text: "ENTER BILL AMOUNT",
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                      color: AppColor.black,
+                    const CustomBackButton(),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            viewModel.businessDescription?.businessName ?? '',
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            viewModel.businessDescription?.businessArea ?? '',
+                            style: GoogleFonts.montserrat(
+                              color: AppColor.premiumTextSecondary,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(top: 60.h),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.all(24.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20.h),
+                    // Amount Entry Card
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(30.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                "ENTER BILL AMOUNT",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColor.premiumTextSecondary,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 30.h),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '₹',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 32.sp,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  IntrinsicWidth(
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(minWidth: 100.w),
+                                      child: TextField(
+                                        controller: viewModel.amountController,
+                                        autofocus: viewModel.autoFocus,
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        textAlign: TextAlign.center,
+                                        cursorColor: AppColor.premiumAccent,
+                                        inputFormatters: [CommaTextInputFormatter()],
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 42.sp,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                        ),
+                                        decoration: InputDecoration(
+                                          hintText: "0",
+                                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.2)),
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
+                                        onChanged: (value) {
+                                          final amount = double.tryParse(value.replaceAll(',', '')) ?? 0.0;
+                                          viewModel.setAmount(amount);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 10.h),
+                              Container(
+                                width: 150.w,
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      AppColor.premiumAccent.withOpacity(0.5),
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 30.h),
+                              Text(
+                                "Proceed for all exclusive offers",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12.sp,
+                                  color: AppColor.premiumTextSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: 30.h),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.only(bottom: 5),
+
+                    // Referral Code Section
+                    Text(
+                      "Referral Code (Optional)",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                        child: Container(
                           decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: AppColor.moreLighterDd, width: 2),
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
                             ),
                           ),
-                          child: AppTextWidget(
-                            text: '₹',
-                            fontSize: 35,
-                            color: AppColor.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Flexible(
-                          child: Container(
-                            width: 165,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(color: AppColor.moreLighterDd, width: 2),
-                              ),
-                            ),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: AppTextField(
-                                maxLines: 1,
-                                controller: viewModel.amountController,
-                                autofocus: viewModel.autoFocus,
-                                cursorColor: AppColor.black,
-                                textColor: AppColor.black,
-                                textSize: 35,
-                                fontWeight: FontWeight.w700,
-                                backgroundColor: AppColor.transparent,
-                                inputFormatters: [CommaTextInputFormatter()],
-                                textInputType: const TextInputType.numberWithOptions(decimal: true),
-                                textAlign: TextAlign.center,
-                                onChanged: (value) {
-                                  final amount = double.tryParse(value.replaceAll(',', '')) ?? 0.0;
-                                  viewModel.setAmount(amount);
-                                },
-                                // inputFormatters: [
-                                //   DecimalTextInputFormatter(decimalRange: 2),
-                                // ],
-                              ),
+                          child: TextField(
+                            controller: viewModel.referralCodeController,
+                            style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14.sp),
+                            decoration: InputDecoration(
+                              hintText: "Enter Referral Code",
+                              hintStyle: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.3)),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                              border: InputBorder.none,
                             ),
                           ),
                         ),
-                        SizedBox(width: 20),
-                      ],
+                      ),
                     ),
-                    SizedBox(height: 30),
-                    AppTextWidget(
-                      text: "Proceed for all offers",
-                      fontSize: 12,
-                      color: AppColor.black,
-                    ),
+                    SizedBox(height: 100.h),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 30.h),
-            Container(
-              width: double.infinity,
-              height: 115,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        AppTextWidget(
-                          text: "Referral Code",
-                          fontSize: 14,
-                        ),
-                        AppTextWidget(
-                          text: " (Optional)",
-                          fontSize: 14,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 6.h),
-                    AppTextField(
-                      controller: viewModel.referralCodeController,
-                      textSize: 14,
-                      hintText: "Enter Referral Code",
-                      borderRadius: 10,
-                      borderColor: AppColor.dd.withOpacity(0.2),
-                      disableBorder: false,
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 80),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20.h),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: AppButton(
           isIconEnabled: true,
           onTap: () async {
-            debugPrint('=== Apply Offers & Pay Button Clicked ===');
-            debugPrint('Amount entered: ${viewModel.amountController.text}');
-            
             if (viewModel.amountController.text.trim().isEmpty) {
-              final errorMsg = 'Amount is required';
-              debugPrint('Validation Error: $errorMsg');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: AppTextWidget(text: errorMsg),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              Utils.toastMessage('Amount is required');
               return;
             }
             
@@ -211,22 +300,12 @@ class _ProceedToCartState extends State<ProceedToCart> {
             final minOrder = viewModel.businessDescription?.minOrder?.toDouble();
             
             if (minOrder != null && amount < minOrder) {
-              final errorMsg = 'Minimum Order amount is: $minOrder';
-              debugPrint('Validation Error: $errorMsg. Entered amount: $amount');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: AppTextWidget(text: errorMsg),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              Utils.toastMessage('Minimum Order amount is: ₹$minOrder');
               return;
             }
             
-            debugPrint('Proceeding with amount: $amount');
             viewModel.autoFocus = false;
-            debugPrint('Calling applyOffersApi...');
             await viewModel.applyOffersApiCall();
-            debugPrint('After applyOffersApi call');
           },
           text: "Apply Offers & Pay",
         ),

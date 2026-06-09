@@ -128,10 +128,14 @@ class SharedPreferencesService {
   void updateGlobal(UserData userData, {bool skip = false}) async {
     token = userData.token;
     userId = userData.id;
+    roleId = userData.roleId;
     user = userData;
     if (!skip) {
       await saveToken(userData.token!);
       await saveUserId(userData.id!);
+      if (userData.roleId != null) {
+        await saveUserRoleId(userData.roleId!);
+      }
     }
   }
 

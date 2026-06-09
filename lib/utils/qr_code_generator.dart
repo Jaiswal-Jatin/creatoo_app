@@ -9,6 +9,12 @@ class QrCodeGenerator {
     return 'https://api.creatoo.co.in/api/scan?businessId=$businessId';
   }
 
+  /// Generate UPI QR code data string
+  /// When scanned by any UPI app, it opens a payment screen with pre-filled details.
+  static String generateUpiQrData(String upiId, String businessName) {
+    return 'upi://pay?pa=$upiId&pn=${Uri.encodeComponent(businessName)}&cu=INR';
+  }
+
   /// Generate QR code widget for a business
   ///
   /// Parameters:
@@ -27,6 +33,30 @@ class QrCodeGenerator {
 
     return QrImageView(
       data: qrUrl,
+      version: QrVersions.auto,
+      size: size,
+      backgroundColor: backgroundColor,
+      eyeStyle: QrEyeStyle(
+        eyeShape: QrEyeShape.square,
+        color: foregroundColor,
+      ),
+      dataModuleStyle: QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: foregroundColor,
+      ),
+      errorCorrectionLevel: QrErrorCorrectLevel.H,
+    );
+  }
+
+  /// Generate QR widget from raw data string
+  static Widget generateQrWidgetForData({
+    required String data,
+    double size = 280.0,
+    Color backgroundColor = Colors.white,
+    Color foregroundColor = Colors.black,
+  }) {
+    return QrImageView(
+      data: data,
       version: QrVersions.auto,
       size: size,
       backgroundColor: backgroundColor,
@@ -65,7 +95,6 @@ class QrCodeGenerator {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Business name header
           Text(
             businessName,
             style: const TextStyle(
@@ -85,7 +114,6 @@ class QrCodeGenerator {
           ),
           const SizedBox(height: 20),
 
-          // QR Code
           generateQrWidget(
             businessId: businessId,
             size: size,
@@ -93,27 +121,40 @@ class QrCodeGenerator {
 
           const SizedBox(height: 20),
 
-          // Footer text
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.qr_code_scanner,
-                size: 16,
-                color: Colors.grey[600],
-              ),
+              Icon(Icons.qr_code_scanner, size: 16, color: Colors.grey[600]),
               const SizedBox(width: 8),
-              Text(
-                'Powered by Creatoo',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
+              Text('Powered by Creatoo', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  /// Generate UPI branded QR widget
+  static Widget generateUpiBrandedQrWidget({
+    required String upiId,
+    required String businessName,
+    double size = 300.0,
+  }) {
+    final upiData = generateUpiQrData(upiId, businessName);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        generateQrWidgetForData(data: upiData, size: size),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.qr_code_scanner, size: 14, color: Colors.grey[500]),
+            const SizedBox(width: 6),
+            Text('Powered by Creatoo', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+          ],
+        ),
+      ],
     );
   }
 

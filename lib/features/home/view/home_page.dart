@@ -6,7 +6,8 @@ import 'dart:ui';
 
 
 import '../../../core.dart';
-import '../../card/view/card_screen.dart';
+import '../../booking/view/booking_history_screen.dart';
+import '../../booking/view/business_bookings_screen.dart';
 import '../../creator_wallet/view/creator_wallet_view.dart';
 import '../../search/view/search_view.dart';
 import '../../settings/view/settings_view.dart';
@@ -23,6 +24,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late HomeViewModel viewModel;
   Upgrader _upgrader = Upgrader();
+  int _lastLockedIndex = -1;
 
   @override
   void initState() {
@@ -39,17 +41,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     viewModel = context.watch<HomeViewModel>();
 
+    final bool isRestaurant = true; // Visits are enabled for all business categories
     List<Widget> _widgetOptions = roleId == Constants.businessUser
         ? [
-            const HomeView(),
-            const VisitsScreen(), // Replaced CardScreen with VisitsScreen
+             HomeView(),
+            if (isRestaurant) VisitsScreen(),
+             const BusinessBookingsScreen(),
             WalletView(),
             SettingsView(),
           ]
         : [
-            const HomeView(),
-            const SearchView(),
-            const CardScreen(),
+             HomeView(),
+             SearchView(),
+             const BookingHistoryScreen(),
             CreatorWalletView(
               key: creatorWalletKey,
               index: viewModel.creatooView ? 1 : 0,
@@ -88,7 +92,7 @@ class _HomePageState extends State<HomePage> {
             showLater: false,
             barrierDismissible: false,
             shouldPopScope: () => false,
-            child: _widgetOptions[viewModel.selectedIndex],
+            child: _buildScreenWithLock(context, _widgetOptions[viewModel.selectedIndex]),
             cupertinoButtonTextStyle: GoogleFonts.montserrat(
               fontWeight: FontWeight.w700,
               fontSize: 14.sp,
@@ -101,8 +105,97 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  bool _isLockedScreen() {
+    if (!viewModel.isSubscriptionLocked) return false;
+    final bool isRestaurant = true;
+    final lockedIndices = roleId == Constants.businessUser
+        ? (isRestaurant ? {1, 2, 3} : {1, 2})
+        : <int>{};
+    return lockedIndices.contains(viewModel.selectedIndex);
+  }
+
+  Widget _buildScreenWithLock(BuildContext context, Widget screen) {
+    if (!_isLockedScreen()) {
+      _lastLockedIndex = -1;
+      return screen;
+    }
+
+    if (viewModel.selectedIndex != _lastLockedIndex) {
+      _lastLockedIndex = viewModel.selectedIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showLockDialog());
+    }
+
+    return GestureDetector(
+      onTap: _showLockDialog,
+      child: Stack(
+        children: [
+          screen,
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(color: Colors.black.withOpacity(0.35)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLockDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      builder: (ctx) => PopScope(
+        canPop: true,
+        child: Center(
+          child: Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 70.w, height: 70.w,
+                    decoration: BoxDecoration(
+                      color: AppColor.kPrimary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.lock_outline, size: 36.sp, color: AppColor.kPrimary),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Subscription Required',
+                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700)),
+                  SizedBox(height: 8.h),
+                  Text('Please purchase a subscription to access this feature.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.sp, color: AppColor.darkGrey)),
+                  SizedBox(height: 20.h),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.kPrimary,
+                        foregroundColor: AppColor.white,
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: Text('Got it', style: TextStyle(fontSize: 14.sp)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAnimatedNavBar(BuildContext context) {
-    final int itemCount = roleId == Constants.businessUser ? 4 : 5;
+    final bool isRestaurant = true; // Visits are enabled for all business categories
+    final int itemCount = roleId == Constants.businessUser ? (isRestaurant ? 5 : 4) : 5;
     final double barWidth = SizeConfig.screenWidth * 0.92;
     final double itemWidth = barWidth / itemCount;
     
@@ -203,21 +296,23 @@ class _HomePageState extends State<HomePage> {
                     
                     if (roleId == Constants.creatorUser) 
                       _buildNavItem(1, AppIcon.search, "Search", isSvg: true)
-                    else
+                    else if (isRestaurant)
                       _buildNavItem(1, AppIcon.calender, "Visits", isSvg: true),
                     
                     if (roleId == Constants.creatorUser)
-                      _buildNavItem(2, AppIcon.creditCard, "Card", isSvg: false),
+                      _buildNavItem(2, AppIcon.calender, "Bookings", isSvg: true)
+                    else
+                      _buildNavItem(isRestaurant ? 2 : 1, AppIcon.calender, "Bookings", isSvg: true),
                     
                     _buildNavItem(
-                      roleId == Constants.creatorUser ? 3 : 2, 
+                      roleId == Constants.creatorUser ? 3 : (isRestaurant ? 3 : 2), 
                       AppIcon.wallet, 
                       "Wallet", 
                       isSvg: true
                     ),
                     
                     _buildNavItem(
-                      roleId == Constants.creatorUser ? 4 : 3, 
+                      roleId == Constants.creatorUser ? 4 : (isRestaurant ? 4 : 3), 
                       AppIcon.profile, 
                       "Profile", 
                       isSvg: true
@@ -235,13 +330,15 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildNavItem(int index, String iconPath, String name, {bool isSvg = true}) {
     final bool isSelected = viewModel.selectedIndex == index;
+    final bool isRestaurant = true; // Visits are enabled for all business categories
+    final int walletIndex = roleId == Constants.creatorUser ? 3 : (isRestaurant ? 3 : 2);
     
     return Expanded(
       child: InkWell(
         onTap: () {
           if (!isSelected) {
             HapticFeedback.mediumImpact();
-            viewModel.changeIndex(index, index == (roleId == Constants.creatorUser ? 3 : 2));
+            viewModel.changeIndex(index, index == walletIndex);
           }
         },
         splashColor: Colors.transparent,

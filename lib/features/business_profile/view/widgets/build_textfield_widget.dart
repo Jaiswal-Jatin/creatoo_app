@@ -1,5 +1,4 @@
 import 'package:creatoo/widgets/app_text_widget.dart';
-
 import '../../../../core.dart';
 import '../../view_model/edit_business_profile_view_model.dart';
 
@@ -20,38 +19,30 @@ Widget buildTextField(
   bool? isRequired = true,
 }) {
   EditBusinessProfileViewModel viewModel = Provider.of<EditBusinessProfileViewModel>(context);
-  return Container(
+  return Padding(
+    padding: EdgeInsets.only(bottom: 20.h),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title.isNotEmpty) ...[
-          AppTextWidget(
-            text: title,
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w400,
+          Padding(
+            padding: EdgeInsets.only(left: 4.w),
+            child: Text(
+              title,
+              style: GoogleFonts.montserrat(
+                color: AppColor.premiumTextSecondary,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           SizedBox(height: 8.h),
         ],
         AppTextField(
-          // onTap: readOnly
-          //     ? () {
-          //         if (hintText != null &&
-          //             viewModel.isEditing &&
-          //             (hintText.toLowerCase().contains("from") || hintText.toLowerCase().contains("to"))) {
-          //           return Utils.snackBar("Mobile number is not editable.");
-          //         } else if (title.toLowerCase().contains("mobile")) {
-          //           if (onTap != null) {
-          //             onTap();
-          //           }
-          //         } else {
-          //           Utils.snackBar("Click the 'Edit' button to make changes.");
-          //         }
-          //       }
-          //     : onTap,
           onTap: readOnly
               ? () {
                   if (!viewModel.isEditing) {
-                    Utils.snackBar("Click the 'Edit' button to make changes.");
+                    Utils.toastMessage("Click 'Edit Details' to make changes");
                   }
                 }
               : onTap,
@@ -69,9 +60,24 @@ Widget buildTextField(
           maxLength: maxLength,
           capitaliseText: capitaliseText,
           hintText: hintText ?? (title.isNotEmpty ? "Enter ${title.toLowerCase()}" : ""),
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
+          textColor: Colors.white,
+          cursorColor: AppColor.premiumAccent,
+          borderColor: Colors.white.withValues(alpha: 0.1),
+          focusedBorderColor: AppColor.premiumAccent,
+          borderRadius: 16,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+          textStyle: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+          ),
+          hintStyle: GoogleFonts.montserrat(
+            color: Colors.white24,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        SizedBox(height: 10.h),
       ],
     ),
   );

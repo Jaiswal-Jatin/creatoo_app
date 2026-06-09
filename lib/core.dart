@@ -25,7 +25,6 @@ export 'package:firebase_core/firebase_core.dart';
 export 'package:firebase_messaging/firebase_messaging.dart';
 export 'package:flutter/foundation.dart';
 export 'package:flutter/material.dart' hide CarouselController;
-export 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
 export 'package:flutter_image_compress/flutter_image_compress.dart';
 export 'package:flutter_local_notifications/flutter_local_notifications.dart';
 export 'package:flutter_native_splash/flutter_native_splash.dart';

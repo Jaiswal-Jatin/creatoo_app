@@ -43,13 +43,21 @@ class RazorpayService {
   void openCheckout({
     required double amount,
     required String orderId,
+    String? keyId,                // ← from backend response (preferred)
     String? contact = "7709551921",
     String email = "support@creatoo.co.in",
     String? paymentDescription,
   }) {
+    // Fallback key if backend doesn't send one
+    final effectiveKey = (keyId != null && keyId.isNotEmpty)
+        ? keyId
+        : 'rzp_test_QRN3MU56A6QLgI';
+
+    final amountInPaise = (amount * 100).round();
+
     var options = {
-      'key': dotenv.env["KEY_ID"],
-      'amount': (amount * 100).round(),
+      'key': effectiveKey,
+      'amount': amountInPaise,
       'name': Constants.appName,
       'description': paymentDescription ?? "Bill Payment",
       'order_id': orderId,
@@ -62,12 +70,11 @@ class RazorpayService {
     };
 
     try {
-      print("Starting Razorpay Checkout...");
-      print("Using KEY_ID: ${dotenv.env["KEY_ID"]}");
-      print("Opening Razorpay with options: $options");
+      log("Razorpay Checkout → key: $effectiveKey, orderId: $orderId, amount: $amountInPaise paise");
       _razorpay.open(options);
-    } catch (e) {
-      print('Error opening Razorpay: $e');
+    } catch (e, stackTrace) {
+      log('Error opening Razorpay: $e');
+      log('Stack trace: $stackTrace');
     }
   }
 

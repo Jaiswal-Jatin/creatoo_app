@@ -188,6 +188,32 @@ class _CardTierSectionState extends State<CardTierSection> {
                     height: 1.5,
                   ),
                 ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () async {
+                    final cardViewModel = Provider.of<CardViewModel>(context, listen: false);
+                    final success = await cardViewModel.autoAssignCard(context);
+                    if (success) {
+                      await cardViewModel.checkCard(context);
+                      await cardViewModel.getUserTierHistory();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.premiumAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Accept',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

@@ -98,6 +98,32 @@ class _BusinessCreatooTabviewState extends State<BusinessCreatooTabview> {
                     ],
                   ),
                   SizedBox(height: 20.h),
+                  Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: AppColor.primary.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColor.primary.withOpacity(0.15)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.stars, color: AppColor.primary, size: 18.h),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: Text(
+                            "Loyalty Rules: Customers earn 10% points on their bills (1 Point = ₹1 discount on regular visits). Tiered Expiry: 25% at 15 days, 50% at 30 days, 100% at 60 days.",
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: AppColor.darkGrey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 15.h),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

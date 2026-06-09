@@ -76,18 +76,7 @@ class _QrScannerViewState extends State<QrScannerView>
                 final barcode = barcodeCapture.barcodes.first;
                 final qrCodeData = barcode.rawValue ?? "";
 
-                log("Scanned result: \$qrCodeData");
-
-                if (_validateAndExtractData(qrCodeData)) {
-                  isScanned = true;
-                  Navigator.pushReplacementNamed(
-                    context,
-                    RoutesName.proceedToCart,
-                    arguments: viewModel.businessId,
-                  );
-                } else {
-                  await _showInvalidScanDialog();
-                }
+                await _handleScannedData(qrCodeData);
               },
               fit: BoxFit.cover,
             ),
@@ -216,16 +205,7 @@ class _QrScannerViewState extends State<QrScannerView>
                           final qrCodeData = barcode.rawValue ?? "";
                           log("Scanned result from gallery: $qrCodeData");
 
-                          if (_validateAndExtractData(qrCodeData)) {
-                            isScanned = true;
-                            Navigator.pushReplacementNamed(
-                              context,
-                              RoutesName.proceedToCart,
-                              arguments: viewModel.businessId,
-                            );
-                          } else {
-                            await _showInvalidScanDialog();
-                          }
+                          await _handleScannedData(qrCodeData);
                         } else {
                           log("No QR code detected in the selected image.");
                           _showNoQrFoundDialog();
@@ -335,6 +315,96 @@ class _QrScannerViewState extends State<QrScannerView>
     } catch (e) {
       log("Error validating QR code data: $e");
       return false;
+    }
+  }
+
+  String? _extractUpiId(String qrCodeData) {
+    final lowerData = qrCodeData.toLowerCase().trim();
+    // 1. Check if it's a upi:// link
+    if (lowerData.startsWith('upi://')) {
+      try {
+        // Replace spaces with %20 to avoid FormatException in Uri.parse
+        final safeUrl = qrCodeData.replaceAll(' ', '%20');
+        final uri = Uri.parse(safeUrl);
+        // Look for 'pa' parameter case-insensitively
+        for (final key in uri.queryParameters.keys) {
+          if (key.toLowerCase() == 'pa') {
+            return uri.queryParameters[key];
+          }
+        }
+      } catch (e) {
+        log("Error parsing UPI URI: $e");
+      }
+    }
+    
+    // 2. Check if it's a direct UPI ID (contains '@' and no spaces)
+    if (qrCodeData.contains('@') && !qrCodeData.contains(' ')) {
+      // Clean query params if any, e.g. test@upi?am=100
+      final cleanData = qrCodeData.split('?').first.trim();
+      return cleanData;
+    }
+
+    return null;
+  }
+
+  Future<void> _handleScannedData(String qrCodeData) async {
+    if (isScanned) return;
+
+    log("Scanned result: $qrCodeData");
+
+    // 1. Check if it is a UPI QR or UPI ID
+    final upiId = _extractUpiId(qrCodeData);
+    if (upiId != null) {
+      isScanned = true;
+      log("Detected UPI ID: $upiId. Querying database...");
+      
+      // Stop scanner temporarily
+      _scannerController.stop();
+
+      // Show loading overlay
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      );
+
+      final businessData = await viewModel.fetchBusinessByUpiId(upiId);
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      if (businessData != null) {
+        log("Business found! Navigating to UserPaymentSubmitScreen with: $businessData");
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.userPaymentSubmitView,
+            arguments: {
+              'businessId': businessData['businessId'],
+              'businessName': businessData['businessName'],
+              'businessImage': businessData['businessImage'],
+            },
+          );
+        }
+      } else {
+        isScanned = false; // Reset scan state so they can scan again
+        _scannerController.start(); // Restart camera scanning
+      }
+      return;
+    }
+
+    // 2. Otherwise, check if it's a standard Creatoo QR
+    if (_validateAndExtractData(qrCodeData)) {
+      isScanned = true;
+      Navigator.pushReplacementNamed(
+        context,
+        RoutesName.proceedToCart,
+        arguments: viewModel.businessId,
+      );
+    } else {
+      await _showInvalidScanDialog();
     }
   }
 

@@ -10,6 +10,7 @@ import '../widgets/visit_tab_view.dart';
 import '../widgets/premium_card.dart';
 import '../widgets/card_tab_button.dart';
 import '../../../widgets/app_text_widget.dart'; // Needed for premium typography
+import 'package:creatoo/widgets/custom_back_button.dart';
 
 class CardScreen extends StatefulWidget {
   const CardScreen({super.key});
@@ -59,10 +60,15 @@ class _CardScreenState extends State<CardScreen>
   }
 
   Widget _buildPremiumHeader() {
+    final canPop = Navigator.canPop(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 17.w),
       child: Row(
         children: [
+          if (canPop) ...[
+            CustomBackButton(onTap: () => Navigator.pop(context)),
+            SizedBox(width: 14.w),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +124,8 @@ class _CardScreenState extends State<CardScreen>
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      useGradient: false,
-      backgroundColor: Colors.transparent, // Inherit Exact HomePage Global Background
+      useGradient: true,
+      backgroundColor: AppColor.premiumBg,
       isSafe: false,
       body: Container(
          width: double.infinity,
@@ -164,15 +170,11 @@ class _CardScreenState extends State<CardScreen>
                     builder: (context, visitViewModel, child) {
                       final recentVisit = visitViewModel.getMostRecentVisit();
 
-                      // Hide if there's no recent visit or if it's older than 2 hours
-                      if (recentVisit == null ||
-                          DateTime.now().difference(recentVisit.date).inHours >=
-                              2) {
-                        return const SizedBox
-                            .shrink(); // Show nothing if no recent visit
+                      // Hide if there's no recent visit
+                      if (recentVisit == null) {
+                        return const SizedBox.shrink();
                       }
 
-                      // Show the card if the visit is within the last 2 hours
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -180,7 +182,7 @@ class _CardScreenState extends State<CardScreen>
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 20.w),
                             child: AppTextWidget(
-                              text: 'Recent Activity',
+                              text: 'Recently Visited',
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w700,
                               color: AppColor.premiumTextPrimary,

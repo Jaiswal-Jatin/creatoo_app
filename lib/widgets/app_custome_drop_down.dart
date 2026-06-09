@@ -1,3 +1,4 @@
+import 'dart:ui';
 import '../core.dart';
 import '../features/business_profile/view_model/edit_business_profile_view_model.dart';
 import 'app_text_widget.dart';
@@ -26,15 +27,15 @@ class AppCustomDropdown extends StatelessWidget {
     required this.onChanged,
     this.selectedItem,
     this.label = "Select Option",
-    this.hintText = "Enter complete expiry (in days)",
+    this.hintText = "Select an option",
     this.dropdownHint = "Select an option",
     this.readOnly = false,
     this.disableBorder = false,
-    this.borderRadius = 30,
-    this.height = 60,
-    this.dropdownMaxHeight = 150,
-    this.fontSize = 15,
-    this.selectedTextColor = AppColor.black,
+    this.borderRadius = 16,
+    this.height = 56,
+    this.dropdownMaxHeight = 200,
+    this.fontSize = 14,
+    this.selectedTextColor = Colors.white,
     this.validator,
   }) : super(key: key);
 
@@ -46,111 +47,127 @@ class AppCustomDropdown extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label.isNotEmpty) ...[
-          AppTextWidget(
-            text: label,
-            fontSize: fontSize.sp,
-            fontWeight: FontWeight.w400,
+          Padding(
+            padding: EdgeInsets.only(left: 4.w),
+            child: Text(
+              label,
+              style: GoogleFonts.montserrat(
+                color: AppColor.premiumTextSecondary,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
         ],
         GestureDetector(
           onTap: () {
             if (!viewModel.isEditing) {
-              Utils.snackBar("Click the 'Edit' button to make changes.");
+              Utils.toastMessage("Click 'Edit Details' to make changes");
             } else {
-              viewModel.toggleDropdown(); // Open/Close dropdown
+              viewModel.toggleDropdown();
             }
           },
           behavior: HitTestBehavior.opaque,
           child: AbsorbPointer(
-            absorbing: !viewModel.isEditing,
+            absorbing: true,
             child: Container(
-              height: height,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              height: height.h,
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               decoration: BoxDecoration(
-                color: AppColor.white,
+                color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(borderRadius),
-                border: disableBorder ? null : Border.all(color: viewModel.errorText != null ? AppColor.darkRed : const Color(0xFFDADADA)),
+                border: Border.all(
+                  color: viewModel.errorText != null 
+                    ? Colors.redAccent.withOpacity(0.5) 
+                    : Colors.white.withOpacity(0.1),
+                  width: 1.5,
+                ),
               ),
               alignment: Alignment.centerLeft,
-              child: AppTextWidget(
-                text: selectedItem?.isNotEmpty == true ? selectedItem! : dropdownHint,
-                fontSize: fontSize,
-                color: selectedItem?.isNotEmpty == true ? selectedTextColor : Colors.grey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    selectedItem?.isNotEmpty == true ? selectedItem! : dropdownHint,
+                    style: GoogleFonts.montserrat(
+                      fontSize: fontSize.sp,
+                      fontWeight: selectedItem?.isNotEmpty == true ? FontWeight.w600 : FontWeight.w500,
+                      color: selectedItem?.isNotEmpty == true ? Colors.white : Colors.white24,
+                    ),
+                  ),
+                  Icon(
+                    viewModel.isDropdownOpen ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white54,
+                    size: 20.sp,
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        Consumer<EditBusinessProfileViewModel>(
-          builder: (context, viewModel, child) {
-            return Column(
-              children: [
-                viewModel.isDropdownOpen
-                    ? Container(
-                        constraints: BoxConstraints(
-                          maxHeight: dropdownMaxHeight,
-                        ),
-                        margin: const EdgeInsets.only(top: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            return InkWell(
-                              onTap: () {
-                                textController.text = item;
-                                onChanged(item);
-
-                                // Perform validation
-                                String? validationMessage = validator?.call(item);
-                                viewModel.setErrorText(validationMessage);
-
-                                viewModel.toggleDropdown();
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                    fontWeight: FontWeight.w400,
-                                    color: item == selectedItem ? AppColor.primary : AppColor.black,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-
-                // Validation error message
-                if (viewModel.errorText != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, left: 12),
-                    child: Text(
-                      viewModel.errorText!,
-                      style: TextStyle(
-                        fontSize: fontSize - 2,
-                        color: AppColor.darkRed,
-                      ),
-                    ),
+        
+        if (viewModel.isDropdownOpen)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: dropdownMaxHeight.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2A2A),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
-              ],
-            );
-          },
-        ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: items.length,
+                    separatorBuilder: (context, index) => const Divider(color: Colors.white10, height: 1),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final isSelected = item == selectedItem;
+                      return InkWell(
+                        onTap: () {
+                          textController.text = item;
+                          onChanged(item);
+                          String? validationMessage = validator?.call(item);
+                          viewModel.setErrorText(validationMessage);
+                          viewModel.toggleDropdown();
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 20.w),
+                          child: Text(
+                            item,
+                            style: GoogleFonts.montserrat(
+                              fontSize: fontSize.sp,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected ? AppColor.premiumAccent : Colors.white70,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        if (viewModel.errorText != null)
+          Padding(
+            padding: EdgeInsets.only(top: 8.h, left: 4.w),
+            child: Text(
+              viewModel.errorText!,
+              style: GoogleFonts.montserrat(
+                fontSize: 11.sp,
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }

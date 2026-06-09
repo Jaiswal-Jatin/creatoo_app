@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:creatoo/features/business_profile/model/business_description_response_model.dart';
 import 'package:creatoo/features/business_profile/model/business_desription_request_model.dart';
 import 'package:creatoo/features/business_profile/model/set_discount_request_model.dart';
 import 'package:creatoo/features/business_profile/model/set_discount_response_model.dart';
+import 'package:creatoo/features/business_profile/model/turf_options_model.dart';
 import 'package:creatoo/features/creator_profile/repository/creator_profile_repository.dart';
 import 'package:creatoo/features/register_business/model/register_business_model.dart';
+import 'package:creatoo/features/search/model/exclusive_offers_response_model.dart';
 
 import '../../../core.dart';
 import '../model/business_profile_response.dart';
@@ -112,6 +115,46 @@ class BusinessProfileRepository extends CreatorProfileRepository {
       Parser.parseSetBusinessDescriptionResponse,
       body: {"business_id": businessId, "token": token},
       filePaths: imageFiles,
+    );
+  }
+
+  Future<Either<AppException, TurfOptionsModel>> fetchTurfOptionsApi() async {
+    return await _apiServices.callGetAPI(
+      AppUrl.turfOptions,
+      {'Content-Type': 'application/json'},
+      Parser.parseTurfOptionsResponse,
+    );
+  }
+
+  Future<Either<AppException, ExclusiveOffersResponseModel>> fetchMyExclusiveOffersApi() async {
+    return await _apiServices.callGetAPI(
+      AppUrl.getMyExclusiveOffers,
+      {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      Parser.parseExclusiveOffersResponse,
+    );
+  }
+
+  Future<Either<AppException, ExclusiveOffersResponseModel>> saveExclusiveOffersApi({
+    required List<Map<String, String>> files,
+    required List<String> keepPremium,
+    required List<String> keepElite,
+    required List<String> keepCore,
+  }) async {
+    return await _apiServices.callPostAPIFormMultipleFiles(
+      AppUrl.saveExclusiveOffers,
+      {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+      Parser.parseExclusiveOffersResponse,
+      body: {
+        "keep_premium": jsonEncode(keepPremium),
+        "keep_elite": jsonEncode(keepElite),
+        "keep_core": jsonEncode(keepCore),
+        "is_active": "1",
+      },
+      filePaths: files,
     );
   }
 }

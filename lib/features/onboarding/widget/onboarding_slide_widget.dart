@@ -1,3 +1,4 @@
+import 'dart:ui';
 import '../../../core.dart';
 
 class OnboardingSlide extends StatelessWidget {
@@ -17,48 +18,56 @@ class OnboardingSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: Container(
-              width: SizeConfig.screenWidth,
-              child: SvgPicture.asset(
-                image,
-                fit: BoxFit.contain,
-              ),
+    return Column(
+      children: <Widget>[
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: EdgeInsets.all(24.w),
+            width: double.infinity,
+            child: SvgPicture.asset(
+              image,
+              fit: BoxFit.contain,
             ),
           ),
-          SizedBox(height: 16.h),
-          Expanded(
-            flex: 4,
-            child: Container(
-              margin: EdgeInsets.only(bottom: 16.h),
-              width: MediaQuery.sizeOf(context).width,
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+        
+        Expanded(
+          flex: 4,
+          child: Container(
+            padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 40.h),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  padding: EdgeInsets.all(30.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1.5,
+                    ),
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
-                        child: Text(
-                          description,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.montserrat(
-                            textStyle: Theme.of(context).textTheme.displayLarge,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w400,
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            description,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withOpacity(0.9),
+                              height: 1.5,
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: 24.h),
                       AppButton(
                         onTap: onNext,
                         isIconEnabled: false,
@@ -70,8 +79,8 @@ class OnboardingSlide extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

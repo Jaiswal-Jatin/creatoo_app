@@ -4,6 +4,8 @@ import 'package:creatoo/features/home/model/home_screen_response_model.dart';
 import 'package:creatoo/features/home/model/subscription_response_model.dart';
 import 'package:creatoo/features/home/repository/home_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
+import 'package:creatoo/features/wallet/repository/business_creatoo_wallet_repository.dart';
+import 'package:creatoo/features/creator_wallet/repository/creator_creatoo_wallet_repository.dart';
 
 import '../../settings/view_model/settings_view_model.dart';
 import '../../../widgets/app_dialog.dart';
@@ -12,6 +14,8 @@ class HomeViewModel with ChangeNotifier {
   final HomeRepository _myRepo = HomeRepository();
   final UrlLauncherService _urlLauncherService = UrlLauncherService();
   final SharedPreferencesService prefs = SharedPreferencesService();
+  final BusinessCreatooWalletRepository _businessWalletRepo = BusinessCreatooWalletRepository();
+  final CreatorCreatooWalletRepository _creatorWalletRepo = CreatorCreatooWalletRepository();
   late UserData? user = UserData();
   bool isTrue = true;
   CarouselSliderController controller = CarouselSliderController();
@@ -20,10 +24,20 @@ class HomeViewModel with ChangeNotifier {
   int _selectedIndex = 0;
   bool _creatooView = false;
   bool? isLogout;
+  num walletCreatooPoints = 0;
+
+  // Category details
+  String? businessCategory;
+  Map<String, dynamic>? categoryAttributes;
 
   // Subscription state for business users
   Subscription? businessSubscription;
   bool hasCheckedSubscription = false;
+
+  bool get isSubscriptionLocked =>
+      roleId == Constants.businessUser &&
+      hasCheckedSubscription &&
+      businessSubscription == null;
 
   int get selectedIndex => _selectedIndex;
   bool get creatooView => _creatooView;
@@ -41,11 +55,9 @@ class HomeViewModel with ChangeNotifier {
   }
 
   init() async {
-    // await FirebaseMessagingService.initialise();
     if (isLogout == null || isLogout == false) {
-      await getHomeData();
       await getProfile();
-      // Check subscription for business users
+      await getHomeData();
       if (roleId == Constants.businessUser) {
         await checkBusinessSubscription();
       }
@@ -79,6 +91,33 @@ class HomeViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _fetchWalletPoints() async {
+    if (roleId == Constants.businessUser) {
+      var data = {
+        "business_id": userId,
+        "from_date": "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}",
+        "to_date": "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}",
+      };
+      var response = await _businessWalletRepo.getBusinessTransactionPointApi(data);
+      response.fold(
+        (l) {},
+        (r) {
+          walletCreatooPoints = r.data?.userCreatooPoints ?? 0;
+        },
+      );
+    } else {
+      var data = {"user_id": '$userId'};
+      var response = await _creatorWalletRepo.fetchCreatooPointsTransactionApi(data);
+      response.fold(
+        (l) {},
+        (r) {
+          walletCreatooPoints = r.data?.creatooPoints ?? 0;
+        },
+      );
+    }
+    notifyListeners();
+  }
+
   Future<void> getHomeData() async {
     setResponse(ApiResponse.loading());
     var response = await _myRepo.getHomeDataApi();
@@ -89,6 +128,7 @@ class HomeViewModel with ChangeNotifier {
       },
       (r) async {
         setResponse(ApiResponse.completed(r));
+        await _fetchWalletPoints();
         if (roleId == Constants.creatorUser) {
           if (r.data?.isPendingReviewFlag != null) {
             Navigator.pushNamed(
@@ -117,12 +157,9 @@ class HomeViewModel with ChangeNotifier {
           // billPaymentViewModel.init();
           // await billPaymentViewModel.checkTransactionStatus('MT6805f3c480');
           if (r.data?.roleSpecificData?.profileCompletionStatus == 0) {
-            await AppDialog.showBusinessInfoIncompleteDialog(
-                title: "Complete Your Basic Registration!",
-                content:
-                    "You haven't finished setting up your business. Complete the process to start attracting customers!",
-                mandatoryFields: "Business Name, Mobile, Area & Address",
-                buttonLabel: "Proceed To Finish",
+            final category = businessCategory ?? 'restaurant';
+            await AppDialog.showCompleteProfileDialog(
+                businessCategory: category,
                 onClicked: () async {
                   Provider.of<HomeViewModel>(navigatorKey.currentContext!,
                           listen: false)
@@ -130,7 +167,7 @@ class HomeViewModel with ChangeNotifier {
                   Navigator.of(navigatorKey.currentContext!).pop(true);
                   await Navigator.pushNamed(navigatorKey.currentContext!,
                       RoutesName.editBusinessProfile,
-                      arguments: "Details");
+                      arguments: "My Profile");
                   await Provider.of<SettingsViewModel>(
                           navigatorKey.currentContext!,
                           listen: false)
@@ -231,6 +268,8 @@ class HomeViewModel with ChangeNotifier {
         user?.image = r.data!.businessImage;
         user?.email = r.data!.businessEmail;
         user?.mobile = r.data!.businessMobile;
+        businessCategory = r.data!.businessCategory;
+        categoryAttributes = r.data!.categoryAttributes;
 
         // if (r.data!.instagramVerificationStatus == InstagramStatus.initial.index ||
         //     r.data!.instagramVerificationStatus == InstagramStatus.rejected.index) {
@@ -275,7 +314,6 @@ class HomeViewModel with ChangeNotifier {
           businessSubscription = r.subscription;
           hasCheckedSubscription = true;
           if (businessSubscription == null) {
-            // Show subscription popup
             Future.delayed(const Duration(milliseconds: 500), () {
               AppDialog.showSubscriptionRequiredDialog();
             });

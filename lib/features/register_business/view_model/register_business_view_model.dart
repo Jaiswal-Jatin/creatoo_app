@@ -10,8 +10,38 @@ class RegisterBusinessViewModel with ChangeNotifier {
   final RegisterBusinessRepository _myRepo = RegisterBusinessRepository();
   late RegisterBusinessModel model;
   List<BusinessType> businessTypeList = [];
+  List<String> businessCategories = ['restaurant', 'salon', 'turf'];
   bool isValidating = false;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  // Core Business Form Controllers
+  late TextEditingController businessNameController;
+  late TextEditingController businessAreaController;
+  late TextEditingController businessAddressController;
+  late TextEditingController businessSiteUrlController;
+
+  // Representative Details
+  late TextEditingController businessFullnameController;
+  late TextEditingController businessDesignationController;
+  late TextEditingController businessEmailController;
+
+  // Documentation
+  late TextEditingController gstNumberController;
+  late TextEditingController upiIdController;
+
+  // Restaurant dynamic inputs
+  late TextEditingController seatingCapacityController;
+  bool isVegOnly = false;
+  List<String> selectedCuisines = [];
+
+  // Salon dynamic inputs
+  late TextEditingController stylistsCountController;
+  String selectedGenderSupport = 'unisex';
+
+  // Turf dynamic inputs
+  String selectedTurfSize = '7v7';
+  String selectedGroundType = 'Artificial Grass';
+  List<String> selectedSports = [];
 
   ApiResponse<RegisterBusinessResponse> businessResponse =
       ApiResponse.initial();
@@ -36,12 +66,86 @@ class RegisterBusinessViewModel with ChangeNotifier {
     model = RegisterBusinessModel();
     model.businessMobile = phone;
     model.roleId = roleId;
+
+    // Initialize core form controllers
+    businessNameController = TextEditingController();
+    businessAreaController = TextEditingController();
+    businessAddressController = TextEditingController();
+    businessSiteUrlController = TextEditingController();
+    businessFullnameController = TextEditingController();
+    businessDesignationController = TextEditingController();
+    businessEmailController = TextEditingController();
+    gstNumberController = TextEditingController();
+    upiIdController = TextEditingController();
+    
+    // Initialize category input controllers and models
+    seatingCapacityController = TextEditingController();
+    stylistsCountController = TextEditingController();
+    isVegOnly = false;
+    selectedCuisines = [];
+    selectedGenderSupport = 'unisex';
+    selectedTurfSize = '7v7';
+    selectedGroundType = 'Artificial Grass';
+    selectedSports = [];
+
     await getBusinessTypes();
+  }
+
+  @override
+  void dispose() {
+    businessNameController.dispose();
+    businessAreaController.dispose();
+    businessAddressController.dispose();
+    businessSiteUrlController.dispose();
+    businessFullnameController.dispose();
+    businessDesignationController.dispose();
+    businessEmailController.dispose();
+    gstNumberController.dispose();
+    upiIdController.dispose();
+    seatingCapacityController.dispose();
+    stylistsCountController.dispose();
+    super.dispose();
   }
 
   Future<void> registerBusiness() async {
     setResponse(ApiResponse.loading());
     notifyListeners();
+
+    // Map core text controllers to model
+    model.businessName = businessNameController.text.trim();
+    model.businessArea = businessAreaController.text.trim();
+    model.businessAddress = businessAddressController.text.trim();
+    model.businessSiteUrl = businessSiteUrlController.text.trim().isNotEmpty ? businessSiteUrlController.text.trim() : null;
+    model.businessFullname = businessFullnameController.text.trim();
+    model.businessDesignation = businessDesignationController.text.trim();
+    model.businessEmail = businessEmailController.text.trim();
+    model.gstNumber = gstNumberController.text.trim().toUpperCase().isNotEmpty ? gstNumberController.text.trim().toUpperCase() : null;
+    model.upiId = upiIdController.text.trim().isNotEmpty ? upiIdController.text.trim() : null;
+
+    // Map dynamic category attributes
+    if (model.businessCategory == 'restaurant') {
+      model.categoryAttributes = {
+        'cuisine_type': selectedCuisines,
+        'is_veg_only': isVegOnly,
+        'seating_capacity': seatingCapacityController.text.trim().isNotEmpty ? int.tryParse(seatingCapacityController.text.trim()) : null,
+      };
+    } else if (model.businessCategory == 'salon') {
+      final attrs = <String, dynamic>{'gender_support': selectedGenderSupport};
+      if (stylistsCountController.text.trim().isNotEmpty) {
+        attrs['stylists'] = List.generate(
+          int.tryParse(stylistsCountController.text.trim()) ?? 1,
+          (i) => "Stylist ${i + 1}",
+        );
+      }
+      model.categoryAttributes = attrs;
+    } else if (model.businessCategory == 'turf') {
+      model.categoryAttributes = {
+        'turf_size': selectedTurfSize,
+        'ground_type': selectedGroundType,
+        'sport_types': selectedSports,
+      };
+    }
+
     var response = await _myRepo.registerBusiness(model);
     response.fold(
       (l) {
@@ -131,6 +235,16 @@ class RegisterBusinessViewModel with ChangeNotifier {
       model.businessType = value;
     }
     // print("GST : ${value} | ${value.length}");
+    notifyListeners();
+  }
+
+  void updateBusinessCategory(String value) {
+    model.businessCategory = value;
+    notifyListeners();
+  }
+
+  void updateUpiId(String value) {
+    model.upiId = value.trim();
     notifyListeners();
   }
 }

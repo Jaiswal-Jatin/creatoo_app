@@ -64,6 +64,7 @@ class BusinessSearchData {
   String? avgExperience;
   int? set_first_time_discount;
   int? set_regular_discount;
+  String? businessCategory;
 
   BusinessSearchData(
       {this.id,
@@ -79,7 +80,8 @@ class BusinessSearchData {
       this.pricingRangeText,
       this.avgExperience,
       this.set_first_time_discount,
-      this.set_regular_discount});
+      this.set_regular_discount,
+      this.businessCategory});
 
   factory BusinessSearchData.fromRawJson(String str) =>
       BusinessSearchData.fromJson(json.decode(str));
@@ -88,7 +90,7 @@ class BusinessSearchData {
 
   factory BusinessSearchData.fromJson(Map<String, dynamic> json) =>
       BusinessSearchData(
-          id: json["id"],
+          id: _toInt(json["id"]),
           businessFullname: json["business_fullname"]?.toString(),
           businessName: json["business_name"]?.toString(),
           businessEmail: json["business_email"]?.toString(),
@@ -97,11 +99,12 @@ class BusinessSearchData {
           businessSiteUrl: json["business_site_url"]?.toString(),
           businessImage: json["business_image"]?.toString(),
           isActive: _toInt(json["is_active"]),
-          roleId: json["role_id"],
+          roleId: _toInt(json["role_id"]),
           pricingRangeText: json["pricing_range_text"]?.toString(),
           avgExperience: json["avg_experience"]?.toString(),
-          set_first_time_discount: json["set_first_time_discount"],
-          set_regular_discount: json["set_regular_discount"]);
+          set_first_time_discount: _toInt(json["set_first_time_discount"]),
+          set_regular_discount: _toInt(json["set_regular_discount"]),
+          businessCategory: json["business_category"]?.toString());
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -117,7 +120,8 @@ class BusinessSearchData {
         "pricing_range_text": pricingRangeText,
         "avg_experience": avgExperience,
         "set_first_time_discount": set_first_time_discount,
-        "set_regular_discount": set_regular_discount
+        "set_regular_discount": set_regular_discount,
+        "business_category": businessCategory
       };
 }
 
@@ -140,10 +144,10 @@ class Pagination {
   String toRawJson() => json.encode(toJson());
 
   factory Pagination.fromJson(Map<String, dynamic> json) => Pagination(
-        currentPage: json["current_page"],
-        lastPage: json["last_page"],
-        perPage: json["per_page"],
-        total: json["total"],
+        currentPage: _toInt(json["current_page"]),
+        lastPage: _toInt(json["last_page"]),
+        perPage: _toInt(json["per_page"]),
+        total: _toInt(json["total"]),
       );
 
   Map<String, dynamic> toJson() => {

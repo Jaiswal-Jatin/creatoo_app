@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:creatoo/widgets/custom_back_button.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +10,9 @@ import '../../../widgets/app_full_screen_image_view.dart';
 import '../../../widgets/app_rating_progress_bar.dart';
 import '../../../widgets/app_text_widget.dart';
 import '../view_model/search_view_model.dart';
+import '../widgets/category_details/restaurant_detail_widget.dart';
+import '../widgets/category_details/salon_detail_widget.dart';
+import '../widgets/category_details/turf_detail_widget.dart';
 
 class BusinessDescriptionView extends StatefulWidget {
   final int businessId;
@@ -20,60 +25,23 @@ class BusinessDescriptionView extends StatefulWidget {
 
 class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   late SearchViewModel viewModel;
-  int rating = 3;
-  Timer? _carouselTimer;
   final PageController _businessPageController = PageController();
   final PageController _menuPageController = PageController();
+  final PageController _goldPC = PageController();
+  final PageController _silverPC = PageController();
+  final PageController _bronzePC = PageController();
 
-  final PageController _goldTierPageController = PageController();
-  final PageController _silverTierPageController = PageController();
-  final PageController _bronzeTierPageController = PageController();
-
+  int rating = 3;
+  Timer? _carouselTimer;
   int _currentBusinessPage = 0;
   int _currentGoldPage = 0;
   int _currentSilverPage = 0;
   int _currentBronzePage = 0;
 
-  // Placeholder images - replace with actual premium images
-  final List<String> goldTierImages = [
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Restaurant interior
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Chef's special dish
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Fine dining setup
-  ];
+  // Selected details for Salon & Turf checkouts
+  final List<Map<String, dynamic>> _selectedServices = [];
 
-  final List<String> silverTierImages = [
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop', // Appetizers
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Main course
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Desserts
-  ];
 
-  final List<String> bronzeTierImages = [
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Drinks
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Snacks
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop', // Combo offers
-  ];
-
-  // Offer images with different categories
-  final List<Map<String, String>> offerImages = [
-    {
-      'url':
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
-      'title': 'Weekend Special',
-      'description': '20% OFF on all main course items'
-    },
-    {
-      'url':
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
-      'title': 'Happy Hours',
-      'description': 'Buy 1 Get 1 Free on all drinks'
-    },
-    {
-      'url':
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop',
-      'title': 'Family Combo',
-      'description': 'Special discount for family of 4'
-    },
-  ];
 
   Timer? _goldSliderTimer;
   Timer? _silverSliderTimer;
@@ -96,47 +64,35 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     _stopTierSlidersAutoSlide();
     _businessPageController.dispose();
     _menuPageController.dispose();
-    _goldTierPageController.dispose();
-    _silverTierPageController.dispose();
-    _bronzeTierPageController.dispose();
+    _goldPC.dispose();
+    _silverPC.dispose();
+    _bronzePC.dispose();
     super.dispose();
   }
 
   void _startTierSlidersAutoSlide() {
-    _goldSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_goldTierPageController.hasClients) {
-        final nextPage =
-            (_goldTierPageController.page!.toInt() + 1) % goldTierImages.length;
-        _goldTierPageController.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+    _goldSliderTimer = Timer.periodic(Duration(seconds: 4), (timer) {
+      if (!_goldPC.hasClients) return;
+      final offers = viewModel.exclusiveOffersData;
+      final count = 1 + (offers?.premiumOffers?.length ?? 0);
+      final nextPage = ((_goldPC.page?.toInt() ?? 0) + 1) % count;
+      _goldPC.animateToPage(nextPage, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     });
 
-    _silverSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_silverTierPageController.hasClients) {
-        final nextPage = (_silverTierPageController.page!.toInt() + 1) %
-            silverTierImages.length;
-        _silverTierPageController.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+    _silverSliderTimer = Timer.periodic(Duration(seconds: 4), (timer) {
+      if (!_silverPC.hasClients) return;
+      final offers = viewModel.exclusiveOffersData;
+      final count = 1 + (offers?.eliteOffers?.length ?? 0);
+      final nextPage = ((_silverPC.page?.toInt() ?? 0) + 1) % count;
+      _silverPC.animateToPage(nextPage, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     });
 
-    _bronzeSliderTimer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_bronzeTierPageController.hasClients) {
-        final nextPage = (_bronzeTierPageController.page!.toInt() + 1) %
-            bronzeTierImages.length;
-        _bronzeTierPageController.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+    _bronzeSliderTimer = Timer.periodic(Duration(seconds: 4), (timer) {
+      if (!_bronzePC.hasClients) return;
+      final offers = viewModel.exclusiveOffersData;
+      final count = 1 + (offers?.coreOffers?.length ?? 0);
+      final nextPage = ((_bronzePC.page?.toInt() ?? 0) + 1) % count;
+      _bronzePC.animateToPage(nextPage, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     });
   }
 
@@ -251,7 +207,6 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   Widget build(BuildContext context) {
     viewModel = Provider.of<SearchViewModel>(context);
 
-    // Check if both business details and exclusive offers are loaded
     if (viewModel.businessDetailsResponse.status == Status.loading ||
         viewModel.exclusiveOffersApiResponse.status == Status.loading) {
       return AppLoadingWidget();
@@ -262,10 +217,6 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
           message: viewModel.businessDetailsResponse.message.toString());
     }
 
-    // Skip showing any error messages for exclusive offers API response
-    // as per requirement to hide 'Exclusive offer not found' message
-    // No error handling needed for exclusive offers API
-
     if (viewModel.businessDetailsResponse.status == Status.completed) {
       return _buildBody();
     }
@@ -275,72 +226,42 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
 
   Widget _buildBody() {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: AppScaffold(
         isSafe: false,
-        useGradient: false,
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                child: Stack(
-                  fit: StackFit.loose,
-                  clipBehavior: Clip.none,
-                  children: [
-                    _buildImageWidget(),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: -0.5,
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColor.white,
-                          border: Border.all(color: AppColor.white),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                        ),
-                        child: _buildSliderDotsWidget(),
-                      ),
-                    ),
-                  ],
-                ),
+        useGradient: true,
+        backgroundColor: AppColor.premiumBg,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildImageWidget(),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+                    child: _buildDescriptionWidget(),
+                  ),
+                  SizedBox(height: 100.h),
+                ],
               ),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                child: _buildDescriptionWidget(),
+            ),
+            
+            // Premium Back Button Overlay
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10.h,
+              left: 16.w,
+              child: CustomBackButton(
+                onTap: () => Navigator.pop(context),
               ),
-              SizedBox(
-                height: 80.h,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        floatingActionButtonLocation:
-            (_showPayBill()) ? FloatingActionButtonLocation.centerFloat : null,
-        floatingActionButton: (_showPayBill())
-            ? Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: AppButton(
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      RoutesName.proceedToCart,
-                      arguments: viewModel.businessDescription?.id ?? 0,
-                    );
-                  },
-                  text: "Pay Bill",
-                ),
-              )
-            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: _buildFloatingActionButton(),
       ),
     );
   }
@@ -349,7 +270,7 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     return Stack(
       children: [
         SizedBox(
-          height: 400.h,
+          height: 380.h,
           width: double.infinity,
           child: PageView.builder(
             controller: _businessPageController,
@@ -360,79 +281,85 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
               });
             },
             itemBuilder: (context, index) {
-              return AppImageWidget(
-                imageUrl: businessImages[index],
-                fit: BoxFit.cover,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FullScreenImageCarouselView(
+                        imageUrls: businessImages,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                },
+                child: AppImageWidget(
+                  imageUrl: businessImages[index],
+                  fit: BoxFit.cover,
+                ),
               );
             },
           ),
         ),
 
-        // Back Button
+        // Bottom Gradient Overlay for readability
         Positioned(
-          top: 40,
-          left: 23,
+          bottom: 0,
+          left: 0,
+          right: 0,
           child: Container(
-            height: 37.h,
-            width: 37.w,
-            decoration: const BoxDecoration(
-              color: Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  height: 37.h,
-                  width: 37.w,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColor.white,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 18,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+            height: 80.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  AppColor.premiumBg.withOpacity(0.8),
+                  AppColor.premiumBg,
+                ],
               ),
             ),
           ),
         ),
+
+        // Slider Dots Overlay
+        if (businessImages.length > 1)
+          Positioned(
+            bottom: 20.h,
+            left: 0,
+            right: 0,
+            child: _buildSliderDotsWidget(),
+          ),
       ],
     );
   }
 
   Widget _buildSliderDotsWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(businessImages.length, (index) {
-            return GestureDetector(
-              onTap: () {
-                _businessPageController.animateToPage(
-                  index,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 3.w),
-                child: CircleAvatar(
-                  radius: _currentBusinessPage == index ? 5.h : 3.h,
-                  backgroundColor: _currentBusinessPage == index
-                      ? AppColor.primary
-                      : Colors.grey,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(businessImages.length, (index) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: EdgeInsets.symmetric(horizontal: 4.w),
+          height: 6.h,
+          width: _currentBusinessPage == index ? 24.w : 6.w,
+          decoration: BoxDecoration(
+            color: _currentBusinessPage == index
+                ? AppColor.premiumAccent
+                : Colors.white.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              if (_currentBusinessPage == index)
+                BoxShadow(
+                  color: AppColor.premiumAccent.withOpacity(0.4),
+                  blurRadius: 4,
+                  spreadRadius: 1,
                 ),
-              ),
-            );
-          }),
-        ),
-      ],
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -441,316 +368,211 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
             viewModel.businessDescription?.averageRatings?.avgExperience ??
                 "0") ??
         0.0;
-    List<String> businessImages = [];
-    var description = viewModel.businessDescription;
-
-    // Populate business images list
-    if (description?.businessImage != null) {
-      businessImages.add(description!.businessImage!);
-    }
-    for (int i = 1; i <= 5; i++) {
-      var imageUrl = description?.toJson()['business_image_$i'];
-      if (imageUrl != null) {
-        businessImages.add(imageUrl);
-      }
-    }
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // SizedBox(height: 5.h),
-            AppTextWidget(
-              text: viewModel.businessDescription?.businessName ?? '',
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-            ),
-            SizedBox(
-              height: 15.h,
-            ),
-            AppTextWidget(
-              text: viewModel.businessDescription?.businessAddress ?? '',
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w400,
-            ),
-            if (viewModel.businessDescription?.pricingRangeText != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 15.h,
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppTextWidget(
-                        text: viewModel.businessDescription?.pricingRangeText ??
-                            '',
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            if (viewModel.businessDescription?.timeFrom != null &&
-                viewModel.businessDescription?.timeTo != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 15.h,
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 15,
-                        height: 15,
-                        decoration: BoxDecoration(
-                          color: AppColor.openNow,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.done,
-                            color: AppColor.white,
-                            size: 12,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10.w,
-                      ),
-                      Row(
-                        children: [
-                          AppTextWidget(
-                            text:
-                                "${getBusinessStatus()} | ${viewModel.businessDescription?.timeFrom ?? ''} to ${viewModel.businessDescription?.timeTo ?? ''}",
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                            color: getBusinessStatus() == "Closed"
-                                ? AppColor.darkRed
-                                : AppColor.black,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            if (viewModel.businessDescription?.totalReviews != null &&
-                viewModel.businessDescription!.totalReviews! > 0)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 15.h,
-                  ),
-                  Container(
-                    constraints: BoxConstraints(maxWidth: 125.w),
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColor.openNow),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          AppTextWidget(
-                            text: avgExperience.toStringAsFixed(1),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(width: 10.h),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: List.generate(5, (index) {
-                                  if (index < avgExperience.floor()) {
-                                    return Icon(Icons.star,
-                                        size: 12, color: AppColor.orange);
-                                  } else if (index == avgExperience.floor() &&
-                                      avgExperience % 1 >= 0.5) {
-                                    return Icon(Icons.star_half,
-                                        size: 12, color: AppColor.orange);
-                                  } else {
-                                    return Icon(Icons.star_border,
-                                        size: 12,
-                                        color: AppColor.moreLighterDd);
-                                  }
-                                }),
-                              ),
-                              Flexible(
-                                child: AppTextWidget(
-                                  text:
-                                      " ${viewModel.businessDescription?.totalReviews ?? 0} Reviews",
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            _buildAssociatesSection(),
-            _buildMenuCarousel(),
-            _buildTierFeatureSection(),
-
-            if (viewModel.businessDescription?.totalReviews != null &&
-                viewModel.businessDescription!.totalReviews! > 0)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 30.h,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppTextWidget(
-                        text: "Reviews",
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.black,
-                      ),
-                      SizedBox(height: 4.h),
-                      Container(
-                        height: 3,
-                        width: 40,
-                        color: AppColor.primary,
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 25.h,
-                  ),
-                  _buildRatingWidget(),
-                ],
-              ),
-            SizedBox(
-              height: 100.h,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuCarousel() {
-    List<String> menuImages = [];
-    var description = viewModel.businessDescription;
-
-    // Populate menu images list
-    for (int i = 1; i <= 5; i++) {
-      var imageUrl = description?.toJson()['menu_card_$i'];
-      if (imageUrl != null) {
-        menuImages
-            .add(imageUrl); // Store only the relative or absolute URL as given
-      }
-    }
-
-    if (menuImages.isEmpty) {
-      return SizedBox.shrink();
-    }
-
-    return Column(
-      children: [
-        SizedBox(height: 10.h),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppTextWidget(
-                text: "Menu",
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColor.black,
-              ),
-              SizedBox(height: 4.h),
-              Container(
-                height: 3,
-                width: 40,
-                color: AppColor.primary,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 15.h),
-        Container(
-          height: 250,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.zero,
-            itemCount: (menuImages.length / 2).ceil(),
-            itemBuilder: (context, rowIndex) {
-              return Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: GridView.builder(
-                  padding: EdgeInsets.zero,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.85,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    mainAxisExtent: 250,
-                  ),
-                  itemCount: (rowIndex * 2 + 2 <= menuImages.length) ? 2 : 1,
-                  itemBuilder: (context, colIndex) {
-                    final index = rowIndex * 2 + colIndex;
-                    if (index >= menuImages.length) return Container();
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FullScreenImageCarouselView(
-                              imageUrls: menuImages,
-                              initialIndex: index,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        margin: EdgeInsets.zero,
-                        padding: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.shade400,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                              8.0), // Slightly smaller to account for border
-                          child: AppImageWidget(
-                            imageUrl: menuImages[index],
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+        // Glassmorphic Info Card
+        ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.12),
+                  width: 1.0,
                 ),
-              );
-            },
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: AppTextWidget(
+                          text: viewModel.businessDescription?.businessName ?? '',
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      // Rating Badge
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: AppColor.mangoYellow.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColor.mangoYellow.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.star_rounded, color: AppColor.mangoYellow, size: 16.sp),
+                            SizedBox(width: 4.w),
+                            AppTextWidget(
+                              text: avgExperience.toStringAsFixed(1),
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.mangoYellow,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  
+                  // Address
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_rounded, color: AppColor.premiumAccent, size: 16.sp),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: AppTextWidget(
+                          text: viewModel.businessDescription?.businessAddress ?? '',
+                          fontSize: 13.sp,
+                          color: AppColor.premiumTextSecondary,
+                          maxLines: 2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.h),
+                  
+                  // Status and Pricing
+                  Row(
+                    children: [
+                      // Status Badge
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        decoration: BoxDecoration(
+                          color: getBusinessStatus() == "Open Now" 
+                              ? AppColor.activeGreen.withOpacity(0.15) 
+                              : Colors.redAccent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: getBusinessStatus() == "Open Now" 
+                                    ? AppColor.activeGreen 
+                                    : Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            AppTextWidget(
+                              text: getBusinessStatus().toUpperCase(),
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w800,
+                              color: getBusinessStatus() == "Open Now" 
+                                  ? AppColor.activeGreen 
+                                  : Colors.redAccent,
+                              letterSpacing: 0.5,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // SizedBox(width: 12.w),
+                      // // Pricing Range
+                      // if (viewModel.businessDescription?.pricingRangeText != null)
+                      //   AppTextWidget(
+                      //     text: viewModel.businessDescription!.pricingRangeText!,
+                      //     fontSize: 13.sp,
+                      //     fontWeight: FontWeight.w600,
+                      //     color: AppColor.premiumAccent,
+                      //   ),
+                    ],
+                  ),
+                  
+                  if (viewModel.businessDescription?.timeFrom != null &&
+                      viewModel.businessDescription?.timeTo != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: 12.h),
+                      child: AppTextWidget(
+                        text: "Timing: ${viewModel.businessDescription?.timeFrom} - ${viewModel.businessDescription?.timeTo}",
+                        fontSize: 12.sp,
+                        color: AppColor.premiumTextSecondary.withOpacity(0.8),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        
+        _buildAssociatesSection(),
+        _buildCategorySpecificDetails(),
+        _buildTierFeatureSection(),
+        
+        if (viewModel.businessDescription?.totalReviews != null &&
+            viewModel.businessDescription!.totalReviews! > 0)
+          _buildRatingSummaryCard(),
+      ],
+    );
+  }
+
+  Widget _buildRatingSummaryCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 32.h),
+        _buildSectionHeader("Customer Reviews"),
+        SizedBox(height: 20.h),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.08)),
+              ),
+              child: _buildRatingWidget(),
+            ),
           ),
         ),
       ],
     );
   }
+
+  Widget _buildSectionHeader(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppTextWidget(
+          text: title,
+          fontSize: 18.sp,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+        SizedBox(height: 6.h),
+        Container(
+          height: 3,
+          width: 40,
+          decoration: BoxDecoration(
+            color: AppColor.premiumAccent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ],
+    );
+  }
+
+
 
   Widget _buildRatingWidget() {
     final averageRatings = viewModel.businessDescription?.averageRatings;
@@ -768,19 +590,22 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                   text: "Overall Experience",
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  color: Colors.white,
                 ),
-                SizedBox(height: 15), // Spacing
-                AppTextWidget(
-                  text: "Expectation Match",
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(height: 15),
-                AppTextWidget(
-                  text: "Future Engagement",
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                // SizedBox(height: 15),
+                // AppTextWidget(
+                //   text: "Expectation Match",
+                //   fontSize: 14,
+                //   fontWeight: FontWeight.w500,
+                //   color: Colors.white,
+                // ),
+                // SizedBox(height: 15),
+                // AppTextWidget(
+                //   text: "Future Engagement",
+                //   fontSize: 14,
+                //   fontWeight: FontWeight.w500,
+                //   color: Colors.white,
+                // ),
               ],
             ),
             // Second Column: Star Ratings
@@ -789,14 +614,14 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
               children: [
                 _buildStarRating(
                     double.tryParse(averageRatings?.avgExperience ?? "0") ?? 0),
-                const SizedBox(height: 15),
-                _buildStarRating(
-                    double.tryParse(averageRatings?.avgExpectation ?? "0") ??
-                        0),
-                const SizedBox(height: 15),
-                _buildStarRating(
-                    double.tryParse(averageRatings?.avgInteraction ?? "0") ??
-                        0),
+                // const SizedBox(height: 15),
+                // _buildStarRating(
+                //     double.tryParse(averageRatings?.avgExpectation ?? "0") ??
+                //         0),
+                // const SizedBox(height: 15),
+                // _buildStarRating(
+                //     double.tryParse(averageRatings?.avgInteraction ?? "0") ??
+                //         0),
               ],
             ),
 
@@ -806,116 +631,53 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                 AppTextWidget(
                   text: "${averageRatings?.avgExperience ?? "0"}/5",
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.premiumAccent,
                 ),
-                SizedBox(height: 15), // Spacing
-                AppTextWidget(
-                  text: "${averageRatings?.avgExpectation ?? "0"}/5",
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(height: 15), // Spacing
-                AppTextWidget(
-                  text: "${averageRatings?.avgInteraction ?? "0"}/5",
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                // SizedBox(height: 15),
+                // AppTextWidget(
+                //   text: "${averageRatings?.avgExpectation ?? "0"}/5",
+                //   fontSize: 14,
+                //   fontWeight: FontWeight.w600,
+                //   color: AppColor.premiumAccent,
+                // ),
+                // SizedBox(height: 15),
+                // AppTextWidget(
+                //   text: "${averageRatings?.avgInteraction ?? "0"}/5",
+                //   fontSize: 14,
+                //   fontWeight: FontWeight.w600,
+                //   color: AppColor.premiumAccent,
+                // ),
               ],
             ),
           ],
         ),
-        SizedBox(
-          height: 15.h,
-        ),
-        AppTextWidget(
-          text: "Recommendation Factor",
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        RatingProgressBar(
-          percentage: double.tryParse(
-                  averageRatings?.avgRecommend?.replaceAll('%', '') ?? "0") ??
-              0.0,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        AppTextWidget(
-          text: "Value For Money",
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        RatingProgressBar(
-          percentage: double.tryParse(
-                  averageRatings?.avgFairMoney?.replaceAll('%', '') ?? "0") ??
-              0.0,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        //Comments Section
-        // if (viewModel.businessDescription?.reviews != null &&
-        //     viewModel.businessDescription!.reviews!
-        //         .any((r) => r.reviewText != null && r.reviewText!.isNotEmpty))
-        //   Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       AppTextWidget(
-        //         text: "Customer Reviews",
-        //         fontWeight: FontWeight.w600,
-        //         fontSize: 16,
-        //       ),
-        //       const SizedBox(height: 10),
-        //       Container(
-        //         height: 2,
-        //         width: 80,
-        //         color: AppColor.primary,
-        //       ),
-        //       SizedBox(height: 10),
-        //       ...viewModel.businessDescription!.reviews!
-        //           .where((r) => r.reviewText != null && r.reviewText!.isNotEmpty)
-        //           .map(
-        //             (review) => Container(
-        //               margin: const EdgeInsets.only(bottom: 8),
-        //               padding: const EdgeInsets.all(12),
-        //               decoration: BoxDecoration(
-        //                 color: Colors.grey.shade100,
-        //                 borderRadius: BorderRadius.circular(12),
-        //                 boxShadow: [
-        //                   BoxShadow(
-        //                     color: Colors.black12,
-        //                     blurRadius: 4,
-        //                     offset: Offset(0, 2),
-        //                   ),
-        //                 ],
-        //               ),
-        //               child: Row(
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   Icon(Icons.format_quote, color: Colors.grey),
-        //                   const SizedBox(width: 8),
-        //                   Expanded(
-        //                     child: Text(
-        //                       review.reviewText ?? "",
-        //                       style: TextStyle(
-        //                         fontSize: 14,
-        //                         fontStyle: FontStyle.italic,
-        //                         color: Colors.black87,
-        //                       ),
-        //                     ),
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //           ),
-        //     ],
-        //   ),
+        // SizedBox(height: 24.h),
+        // AppTextWidget(
+        //   text: "Recommendation Factor",
+        //   fontWeight: FontWeight.w600,
+        //   fontSize: 15,
+        //   color: Colors.white,
+        // ),
+        // SizedBox(height: 12.h),
+        // RatingProgressBar(
+        //   percentage: double.tryParse(
+        //           averageRatings?.avgRecommend?.replaceAll('%', '') ?? "0") ??
+        //       0.0,
+        // ),
+        // SizedBox(height: 20.h),
+        // AppTextWidget(
+        //   text: "Value For Money",
+        //   fontWeight: FontWeight.w600,
+        //   fontSize: 15,
+        //   color: Colors.white,
+        // ),
+        // SizedBox(height: 12.h),
+        // RatingProgressBar(
+        //   percentage: double.tryParse(
+        //           averageRatings?.avgFairMoney?.replaceAll('%', '') ?? "0") ??
+        //       0.0,
+        // ),
       ],
     );
   }
@@ -925,12 +687,12 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
     return Row(
       children: List.generate(5, (index) {
         if (index < rating.floor()) {
-          return const Icon(Icons.star, color: AppColor.orange, size: 20);
+          return const Icon(Icons.star_rounded, color: AppColor.mangoYellow, size: 20);
         } else if (index < rating) {
-          return const Icon(Icons.star_half, color: AppColor.orange, size: 20);
+          return const Icon(Icons.star_half_rounded, color: AppColor.mangoYellow, size: 20);
         } else {
-          return const Icon(Icons.star_border,
-              color: AppColor.moreLighterDd, size: 20);
+          return const Icon(Icons.star_border_rounded,
+              color: Colors.white24, size: 20);
         }
       }),
     );
@@ -938,141 +700,69 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
 
   Widget _buildAssociatesSection() {
     final associates = viewModel.businessDescription?.associates;
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
-
     if (associates == null || associates.isEmpty) {
       return SizedBox.shrink();
-    }
-
-    // More granular responsive breakpoints for different screen sizes
-    final isVerySmall = h < 600; // Very small iPhones (SE, Mini)
-    final isSmall = h < 700 && !isVerySmall; // Small screens
-    final isMedium = h >= 700 && h < 850; // Medium screens
-
-    // Calculate responsive values based on screen size
-    double sectionHeight;
-    double cardWidth;
-    double imageHeight;
-    double cardPadding;
-    double titleFontSize;
-    double borderRadius;
-
-    if (isVerySmall) {
-      sectionHeight = h * 0.17;
-      cardWidth = w * 0.42;
-      imageHeight = h * 0.085;
-      cardPadding = 6;
-      titleFontSize = 12.sp;
-      borderRadius = 12;
-    } else if (isSmall) {
-      sectionHeight = h * 0.19;
-      cardWidth = w * 0.44;
-      imageHeight = h * 0.095;
-      cardPadding = 8;
-      titleFontSize = 13.sp;
-      borderRadius = 14;
-    } else if (isMedium) {
-      sectionHeight = h * 0.21;
-      cardWidth = w * 0.46;
-      imageHeight = h * 0.11;
-      cardPadding = 9;
-      titleFontSize = 14.sp;
-      borderRadius = 15;
-    } else {
-      sectionHeight = 220.h;
-      cardWidth = 210.w;
-      imageHeight = 130.h;
-      cardPadding = 10;
-      titleFontSize = 16.sp;
-      borderRadius = 16;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 30.h),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppTextWidget(
-              text: "Our Associates",
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColor.black,
-            ),
-            SizedBox(height: 8.h),
-            Container(
-              height: 3,
-              width: 50,
-              decoration: BoxDecoration(
-                color: AppColor.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
+        SizedBox(height: 32.h),
+        _buildSectionHeader("Our Associates"),
+        SizedBox(height: 20.h),
         SizedBox(
-          height: sectionHeight,
+          height: 180.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: associates.length,
+            padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
               final associate = associates[index];
-              return Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: Utils.getValueBasedOnIndex(index, associates.length),
+              return InkWell(
+                onTap: () {
+                  if (associate.id != null) {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      RoutesName.businessDescriptionView,
+                      arguments: associate.id,
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 140.w,
+                  margin: EdgeInsets.only(right: 16.w),
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1.0,
+                    ),
                   ),
-                  child: InkWell(
-                    onTap: () {
-                      // if (associate.id != null) {
-                      //   Navigator.pushNamed(
-                      //     context,
-                      //     RoutesName.businessDescriptionView,
-                      //     arguments: associate.id,
-                      //   );
-                      // }
-                    },
-                    child: Container(
-                      width: cardWidth,
-                      padding: EdgeInsets.all(cardPadding),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        color: AppColor.moreLighterDd.withOpacity(0.3),
-                        border: Border.all(
-                          color: AppColor.moreLighterDd,
-                          width: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: AppImageWidget(
+                          height: 100.h,
+                          width: double.infinity,
+                          imageUrl: associate.businessImage ?? '',
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Associate image
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: AppImageWidget(
-                              height: imageHeight,
-                              width: double.infinity,
-                              imageUrl: associate.businessImage ?? '',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          SizedBox(height: cardPadding * 0.8),
-                          // Associate name
-                          AppTextWidget(
-                            text: associate.businessName ?? "N/A",
-                            textOverflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            fontSize: titleFontSize,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ],
+                      SizedBox(height: 10.h),
+                      AppTextWidget(
+                        text: associate.businessName ?? "N/A",
+                        textOverflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
-                    ),
+                    ],
                   ),
                 ),
               );
@@ -1084,100 +774,66 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
   }
 
   Widget _buildTierFeatureSection() {
-    // Check if exclusive offers data is available and not empty
     final exclusiveOffers = viewModel.exclusiveOffersData;
 
-    // If data is null or all tiers are empty, don't show the section
-    if (exclusiveOffers == null ||
-        ((exclusiveOffers.premiumOffers?.isEmpty ?? true) &&
-            (exclusiveOffers.eliteOffers?.isEmpty ?? true) &&
-            (exclusiveOffers.coreOffers?.isEmpty ?? true))) {
-      return SizedBox.shrink();
-    }
+    final premiumOffers = [
+      'assets/images/offers/premium.png',
+      ...?exclusiveOffers?.premiumOffers
+    ];
+    final eliteOffers = [
+      'assets/images/offers/elite.png',
+      ...?exclusiveOffers?.eliteOffers
+    ];
+    final coreOffers = [
+      'assets/images/offers/core.png',
+      ...?exclusiveOffers?.coreOffers
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Modern Section Header
-        Padding(
-          padding: EdgeInsets.fromLTRB(0.w, 24.h, 16.w, 16.h),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppTextWidget(
-                    text: "Exclusive Offers",
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColor.black,
-                  ),
-                  SizedBox(height: 4.h),
-                  Container(
-                    height: 3,
-                    width: 40.w,
-                    decoration: BoxDecoration(
-                      color: AppColor.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Tiers List with consistent spacing
+        SizedBox(height: 32.h),
+        _buildSectionHeader("Exclusive Offers"),
+        SizedBox(height: 20.h),
         ListView(
-          padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
+          padding: EdgeInsets.zero,
           physics: NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           children: [
-            // Show Premium Tier only if business has premium offers
-            if (exclusiveOffers.premiumOffers?.isNotEmpty ?? false)
-              _buildTierItem(
-                title: "Premium",
-                gradientColors: AppColor.goldGradient,
-                controller: _goldTierPageController,
-                images: exclusiveOffers.premiumOffers!,
-                currentPage: _currentGoldPage,
-                onPageChanged: (index) =>
-                    setState(() => _currentGoldPage = index),
-                iconPath: 'assets/icons/insurance.png',
-              ),
-            if (exclusiveOffers.premiumOffers?.isNotEmpty ?? false)
-              SizedBox(height: 10.h),
+            _buildTierItem(
+              title: "Premium",
+              gradientColors: AppColor.goldGradient,
+              controller: _goldPC,
+              images: premiumOffers,
+              currentPage: _currentGoldPage,
+              onPageChanged: (index) =>
+                  setState(() => _currentGoldPage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
+            SizedBox(height: 16.h),
 
-            // Show Elite Tier only if business has elite offers
-            if (exclusiveOffers.eliteOffers?.isNotEmpty ?? false)
-              _buildTierItem(
-                title: "Elite",
-                gradientColors: AppColor.silverGradient,
-                controller: _silverTierPageController,
-                images: exclusiveOffers.eliteOffers!,
-                currentPage: _currentSilverPage,
-                onPageChanged: (index) =>
-                    setState(() => _currentSilverPage = index),
-                iconPath: 'assets/icons/insurance.png',
-              ),
-            if (exclusiveOffers.eliteOffers?.isNotEmpty ?? false)
-              SizedBox(height: 10.h),
+            _buildTierItem(
+              title: "Elite",
+              gradientColors: AppColor.silverGradient,
+              controller: _silverPC,
+              images: eliteOffers,
+              currentPage: _currentSilverPage,
+              onPageChanged: (index) =>
+                  setState(() => _currentSilverPage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
+            SizedBox(height: 16.h),
 
-            // Show Core Tier only if business has core offers
-            if (exclusiveOffers.coreOffers?.isNotEmpty ?? false)
-              _buildTierItem(
-                title: "Core",
-                gradientColors: AppColor.bronzeGradient,
-                controller: _bronzeTierPageController,
-                images: exclusiveOffers.coreOffers!,
-                currentPage: _currentBronzePage,
-                onPageChanged: (index) =>
-                    setState(() => _currentBronzePage = index),
-                iconPath: 'assets/icons/insurance.png',
-              ),
-            if (exclusiveOffers.coreOffers?.isNotEmpty ?? false)
-              SizedBox(height: 10.h),
+            _buildTierItem(
+              title: "Core",
+              gradientColors: AppColor.bronzeGradient,
+              controller: _bronzePC,
+              images: coreOffers,
+              currentPage: _currentBronzePage,
+              onPageChanged: (index) =>
+                  setState(() => _currentBronzePage = index),
+              iconPath: 'assets/icons/insurance.png',
+            ),
           ],
         ),
       ],
@@ -1197,27 +853,20 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 15,
-            offset: Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Stack(
         children: [
-          // Image Slider with Overlay Badge
-          Container(
-            height: 150.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-            ),
+          // Image Slider
+          SizedBox(
+            height: 160.h,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               child: PageView.builder(
                 controller: controller,
                 itemCount: images.length,
@@ -1239,78 +888,85 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                         ),
                       );
                     },
-                    child: CachedNetworkImage(
-                      imageUrl: images[index],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[100],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                gradientColors.first),
+                    child: images[index].startsWith('assets/')
+                        ? Image.asset(
+                            images[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: images[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            placeholder: (context, url) => Container(
+                              color: Colors.white.withOpacity(0.05),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      gradientColors.first),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.white.withOpacity(0.05),
+                              child: Icon(Icons.broken_image_rounded,
+                                  color: Colors.white24),
+                            ),
                           ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[100],
-                        child: Icon(Icons.broken_image_rounded,
-                            color: Colors.grey),
-                      ),
-                    ),
                   );
                 },
               ),
             ),
           ),
 
-          // Floating Gradient Badge (Top Left)
+          // Glassmorphic Badge
           Positioned(
-            top: 16.h,
-            left: 16.w,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: gradientColors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: gradientColors.last.withOpacity(0.4),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    iconPath,
-                    width: 18.w,
-                    height: 18.w,
-                    color: Colors.black,
-                  ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      letterSpacing: 0.5,
+            top: 12.h,
+            left: 12.w,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        gradientColors.first.withOpacity(0.8),
+                        gradientColors.last.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        iconPath,
+                        width: 16.w,
+                        height: 16.w,
+                        color: Colors.black,
+                      ),
+                      SizedBox(width: 6.w),
+                      AppTextWidget(
+                        text: title,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                        letterSpacing: 0.5,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
 
-          // Page Indicators (Bottom Center inside image)
+          // Dots indicator inside image
           if (images.length > 1)
             Positioned(
               bottom: 12.h,
@@ -1321,23 +977,15 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
                 children: List.generate(
                   images.length,
                   (index) => AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
-                    width: currentPage == index ? 20.w : 6.w,
-                    height: 6.h,
-                    margin: EdgeInsets.symmetric(horizontal: 3.w),
+                    duration: const Duration(milliseconds: 300),
+                    width: currentPage == index ? 16.w : 6.w,
+                    height: 4.h,
+                    margin: EdgeInsets.symmetric(horizontal: 2.w),
                     decoration: BoxDecoration(
                       color: currentPage == index
                           ? Colors.white
                           : Colors.white.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        if (currentPage == index)
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          )
-                      ],
                     ),
                   ),
                 ),
@@ -1347,4 +995,203 @@ class _BusinessDescriptionViewState extends State<BusinessDescriptionView> {
       ),
     );
   }
+
+  Widget? _buildFloatingActionButton() {
+    if (!_showPayBill()) return null;
+
+    final business = viewModel.businessDescription;
+    final category = business?.businessCategory?.toLowerCase() ?? 'restaurant';
+    final businessId = business?.id ?? 0;
+    final businessName = business?.businessName ?? 'Business';
+    final businessImage = business?.businessImage;
+
+    void navigateToPayment({double? prefilled}) {
+      Navigator.pushNamed(
+        context,
+        RoutesName.userPaymentSubmitView,
+        arguments: {
+          'businessId': businessId,
+          'businessName': businessName,
+          'businessImage': businessImage,
+          'prefilledAmount': prefilled,
+        },
+      );
+    }
+
+    final rawServices = business?.categoryAttributes?['services'] as List?;
+    final rawAmenities = business?.categoryAttributes?['amenities'] as List?;
+    final rawSports = business?.categoryAttributes?['sport_types'] as List?;
+    final List<dynamic>? filteredServices = (category == 'turf' && rawServices != null)
+        ? rawServices.where((s) {
+            final name = (s as Map)['name']?.toString().toLowerCase().trim() ?? '';
+            
+            // 1. Must NOT be an amenity
+            final isAmenity = rawAmenities != null && rawAmenities.any((a) => a.toString().toLowerCase().trim() == name);
+            if (isAmenity) return false;
+
+            // 2. Must match supported sportTypes if specified
+            if (rawSports != null && rawSports.isNotEmpty) {
+              return rawSports.any((sport) {
+                final sportLower = sport.toString().toLowerCase().trim();
+                return name == sportLower || name.contains(sportLower);
+              });
+            }
+            return true;
+          }).toList()
+        : rawServices;
+
+    void navigateToBookingRequest() {
+      Navigator.pushNamed(
+        context,
+        RoutesName.bookingRequestView,
+        arguments: {
+          'businessId': businessId,
+          'businessName': businessName,
+          'businessImage': businessImage,
+          'businessCategory': category,
+          'services': filteredServices,
+        },
+      );
+    }
+
+    if (category == 'salon') {
+      final total = _selectedServices.fold<double>(0.0, (sum, item) => sum + (item['price'] as num).toDouble());
+      final hasSelection = _selectedServices.isNotEmpty;
+      return Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+        child: hasSelection
+            ? AppButton(
+                onTap: () {
+                  final selectedNames = _selectedServices
+                      .map((e) => e['name'] ?? e['title'] ?? '')
+                      .where((n) => n.isNotEmpty)
+                      .join(', ');
+                  Navigator.pushNamed(
+                    context,
+                    RoutesName.bookingRequestView,
+                    arguments: {
+                      'businessId': businessId,
+                      'businessName': businessName,
+                      'businessImage': businessImage,
+                      'businessCategory': category,
+                      'prefilledService': selectedNames,
+                      'services': filteredServices,
+                    },
+                  );
+                },
+                text: "Book Selected · ₹${total.toInt()}",
+                icon: Icons.calendar_month_rounded,
+                buttonColor: AppColor.premiumAccent,
+              )
+            : AppButton(
+                onTap: () => navigateToPayment(),
+                text: "Pay",
+                icon: Icons.payments_rounded,
+                buttonColor: const Color(0xFF27AA1A), // Vibrant Green theme
+              ),
+      );
+    } else if (category == 'turf') {
+      final total = _selectedServices.fold<double>(0.0, (sum, item) => sum + (item['price'] as num).toDouble());
+      final hasSelection = _selectedServices.isNotEmpty;
+      return Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+        child: hasSelection
+            ? AppButton(
+                onTap: () {
+                  final selectedNames = _selectedServices
+                      .map((e) => e['name'] ?? e['title'] ?? '')
+                      .where((n) => n.isNotEmpty)
+                      .join(', ');
+                  Navigator.pushNamed(
+                    context,
+                    RoutesName.bookingRequestView,
+                    arguments: {
+                      'businessId': businessId,
+                      'businessName': businessName,
+                      'businessImage': businessImage,
+                      'businessCategory': category,
+                      'prefilledSport': selectedNames,
+                      'services': filteredServices,
+                    },
+                  );
+                },
+                text: "Book Selected · ₹${total.toInt()}",
+                icon: Icons.calendar_month_rounded,
+                buttonColor: AppColor.premiumAccent,
+              )
+            : AppButton(
+                onTap: () => navigateToPayment(),
+                text: "Pay",
+                icon: Icons.payments_rounded,
+                buttonColor: const Color(0xFF27AA1A), // Vibrant Green theme
+              ),
+      );
+    } else {
+      // Restaurant Flow (Always 2 separate styled buttons)
+      return Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+        child: Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                onTap: () => navigateToPayment(),
+                text: "Pay Now",
+                icon: Icons.payments_rounded,
+                buttonColor: const Color(0xFF27AA1A), // Vibrant Green theme
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: AppButton(
+                onTap: navigateToBookingRequest,
+                text: "Book Request",
+                icon: Icons.calendar_month_rounded,
+                buttonColor: AppColor.premiumAccent, // Vibrant Neon Accent
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildCategorySpecificDetails() {
+    final business = viewModel.businessDescription;
+    if (business == null) return const SizedBox.shrink();
+
+    final category = business.businessCategory?.toLowerCase() ?? 'restaurant';
+    switch (category) {
+      case 'salon':
+        return SalonDetailWidget(
+          business: business,
+          selectedServices: _selectedServices,
+          onSelectionChanged: (updated) {
+            setState(() {
+              _selectedServices
+                ..clear()
+                ..addAll(updated);
+            });
+          },
+        );
+      case 'turf':
+        return TurfDetailWidget(
+          business: business,
+          selectedServices: _selectedServices,
+          onSelectionChanged: (updated) {
+            setState(() {
+              _selectedServices
+                ..clear()
+                ..addAll(updated);
+            });
+          },
+        );
+      case 'restaurant':
+      default:
+        return RestaurantDetailWidget(business: business);
+    }
+  }
 }
+

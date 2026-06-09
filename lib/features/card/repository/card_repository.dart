@@ -53,6 +53,26 @@ class CardRepository {
     }
   }
 
+  Future<Either<AppException, Map<String, dynamic>>> autoAssignCardApi() async {
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${token ?? ""}',
+      };
+      dynamic response = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
+        AppUrl.autoAssignCard,
+        headers,
+        (response) => jsonDecode(response) as Map<String, dynamic>,
+        body: {},
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+
   Future<Either<AppException, UserTierHistoryResponseModel>> getUserTierHistoryApi() async {
     try {
       Map<String, String> headers = {

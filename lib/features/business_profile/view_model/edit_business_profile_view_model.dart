@@ -4,6 +4,7 @@ import 'package:creatoo/features/business_profile/model/business_profile_respons
 import 'package:creatoo/features/business_profile/model/set_discount_request_model.dart';
 import 'package:creatoo/features/business_profile/repository/business_profile_repository.dart';
 import 'package:creatoo/features/register_business/model/register_business_model.dart';
+import 'package:creatoo/features/search/model/exclusive_offers_response_model.dart';
 
 import '../../verify_otp/model/verify_otp_model.dart';
 
@@ -21,17 +22,47 @@ class EditBusinessProfileViewModel with ChangeNotifier {
   TextEditingController? businessEmailController;
   TextEditingController? businessMobileController;
   TextEditingController? businessGstNoController;
+  TextEditingController? upiIdController;
 
   TextEditingController? priceRangeController;
   TextEditingController? setFirstTimeDiscountController;
   TextEditingController? setRegularDiscountController;
-  TextEditingController? minOrderValueController;
-  TextEditingController? expiryInDaysController;
   TextEditingController? amountController;
   TextEditingController? noOfPeopleController;
 
-  String? selectedExpiryDays;
-  bool showOtherField = false;
+  // Dynamic Category specific controllers
+  TextEditingController? seatingCapacityController;
+  bool isVegOnly = false;
+  List<String> selectedCuisines = [];
+
+  TextEditingController? stylistsCountController;
+  String selectedGenderSupport = 'unisex';
+
+  // Services (for both salon & turf: name, price, duration)
+  List<Map<String, dynamic>> services = [];
+
+  // Turf amenities
+  List<String> selectedAmenities = [];
+
+  String selectedTurfSize = '7v7';
+  String selectedGroundType = 'Artificial Grass';
+  List<String> selectedSports = [];
+
+  // Turf options from DB
+  List<String> turfCourtSizes = [];
+  List<String> turfGroundTypes = [];
+  List<String> turfSportOptions = [];
+  List<String> turfAmenityOptions = [];
+  bool isTurfOptionsLoading = false;
+
+  // Restaurant Exclusive Offers
+  List<BusinessImage> premiumOffers = [];
+  List<BusinessImage> eliteOffers = [];
+  List<BusinessImage> coreOffers = [];
+  bool isOffersLoading = false;
+
+  String? selectedBusinessCategory;
+  List<String> businessCategories = ['restaurant', 'salon', 'turf'];
   String? _selectedTab;
   String? errorText;
 
@@ -96,68 +127,121 @@ class EditBusinessProfileViewModel with ChangeNotifier {
     businessEmailController = TextEditingController();
     businessMobileController = TextEditingController();
     businessGstNoController = TextEditingController();
+    upiIdController = TextEditingController();
     priceRangeController = TextEditingController();
     setFirstTimeDiscountController = TextEditingController();
     setRegularDiscountController = TextEditingController();
-    minOrderValueController = TextEditingController();
-    expiryInDaysController = TextEditingController();
     noOfPeopleController = TextEditingController();
     amountController = TextEditingController();
 
+    // Initialize category specific inputs
+    seatingCapacityController = TextEditingController();
+    stylistsCountController = TextEditingController();
+    isVegOnly = false;
+    selectedCuisines = [];
+    selectedGenderSupport = 'unisex';
+    services = [];
+    selectedAmenities = [];
+    selectedTurfSize = '7v7';
+    selectedGroundType = 'Artificial Grass';
+    selectedSports = [];
+
     await fetchBusinessProfile();
+    await fetchTurfOptions();
+    await fetchMyExclusiveOffers();
     _selectedTab = initialTab;
   }
 
   updateFields() {
     if (profileResponse.data != null && profileResponse.data?.data != null) {
       var item = profileResponse.data!.data!;
-      businessNameController =
-          TextEditingController(text: item.businessName ?? "");
-      businessAreaController =
-          TextEditingController(text: item.businessArea ?? "");
-      businessCompleteAddressController =
-          TextEditingController(text: item.businessAddress ?? "");
-      businessWebsiteController =
-          TextEditingController(text: item.businessSiteUrl ?? "");
-      businessFullNameController =
-          TextEditingController(text: item.businessFullname ?? "");
-      businessDesignationController =
-          TextEditingController(text: item.businessDesignation ?? "");
-      businessEmailController =
-          TextEditingController(text: item.businessEmail ?? "");
-      businessMobileController =
-          TextEditingController(text: item.businessMobile ?? "");
-      businessGstNoController = TextEditingController(
-          text: item.gstNumber == null
-              ? ''
-              : item.gstNumber.toString().toUpperCase());
-      setFirstTimeDiscountController = TextEditingController(
-          text: item.setFirstTimeDiscount?.toString() ?? "");
-      setRegularDiscountController = TextEditingController(
-          text: item.setRegularDiscount?.toString() ?? "");
-      if (item.setExpiry != null) {
-        if (item.setExpiry == 15 ||
-            item.setExpiry == 30 ||
-            item.setExpiry == 365) {
-          selectedExpiryDays = item.setExpiry.toString();
-          showOtherField = false;
+      businessNameController?.text = item.businessName ?? '';
+      businessAreaController?.text = item.businessArea ?? '';
+      businessCompleteAddressController?.text = item.businessAddress ?? '';
+      businessWebsiteController?.text = item.businessSiteUrl ?? '';
+      businessFullNameController?.text = item.businessFullname ?? '';
+      businessDesignationController?.text = item.businessDesignation ?? '';
+      businessEmailController?.text = item.businessEmail ?? '';
+      businessMobileController?.text = item.businessMobile ?? '';
+      businessGstNoController?.text =
+          item.gstNumber == null ? '' : item.gstNumber.toString().toUpperCase();
+      upiIdController?.text = item.upiId ?? '';
+      selectedBusinessCategory = item.businessCategory ?? 'restaurant';
+      setFirstTimeDiscountController?.text =
+          item.setFirstTimeDiscount?.toString() ?? '';
+      setRegularDiscountController?.text =
+          item.setRegularDiscount?.toString() ?? '';
+      toTimeController?.text = item.timeTo ?? '';
+      fromTimeController?.text = item.timeFrom ?? '';
+      priceRangeController?.text = item.pricingRangeText ?? '';
+      extractPricingDetails(item.pricingRangeText);
+
+      // Populate category-specific inputs from database
+      if (item.categoryAttributes != null) {
+        final attrs = item.categoryAttributes!;
+        seatingCapacityController?.text =
+            attrs['seating_capacity']?.toString() ?? '';
+        isVegOnly = attrs['is_veg_only'] == true;
+        selectedCuisines = attrs['cuisine_type'] != null
+            ? List<String>.from(attrs['cuisine_type'])
+            : [];
+
+        selectedGenderSupport = attrs['gender_support']?.toString() ?? "unisex";
+        if (attrs['stylists'] != null && attrs['stylists'] is List) {
+          stylistsCountController?.text =
+              (attrs['stylists'] as List).length.toString();
         } else {
-          showOtherField = true;
-          selectedExpiryDays = "Other";
-          expiryInDaysController = TextEditingController(
-              text: (item.setExpiry != null) ? item.setExpiry.toString() : "");
+          stylistsCountController?.text = '';
+        }
+        services = attrs['services'] != null
+            ? List<Map<String, dynamic>>.from(attrs['services'])
+            : [];
+
+        selectedTurfSize = attrs['turf_size']?.toString() ?? "7v7";
+        selectedGroundType =
+            attrs['ground_type']?.toString() ?? "Artificial Grass";
+        selectedSports = attrs['sport_types'] != null
+            ? List<String>.from(attrs['sport_types'])
+            : [];
+        selectedAmenities = attrs['amenities'] != null
+            ? List<String>.from(attrs['amenities'])
+            : [];
+        services = attrs['services'] != null
+            ? List<Map<String, dynamic>>.from(attrs['services'])
+            : [];
+        // Merge old-format sport_types/amenities into services for backward compatibility
+        if (attrs['sport_types'] != null) {
+          for (final s in List<String>.from(attrs['sport_types'])) {
+            if (!services.any((svc) => svc['name'] == s)) {
+              services.add({'name': s, 'price': 0, 'duration_minutes': 60});
+            }
+            if (!selectedSports.contains(s)) {
+              selectedSports.add(s);
+            }
+          }
+        }
+        if (attrs['amenities'] != null) {
+          for (final a in List<String>.from(attrs['amenities'])) {
+            if (!services.any((svc) => svc['name'] == a)) {
+              services.add({'name': a, 'price': 0, 'duration_minutes': 0});
+            }
+            if (!selectedAmenities.contains(a)) {
+              selectedAmenities.add(a);
+            }
+          }
         }
       } else {
-        showOtherField = false;
-        selectedExpiryDays = null;
+        seatingCapacityController = TextEditingController();
+        stylistsCountController = TextEditingController();
+        isVegOnly = false;
+        selectedCuisines = [];
+        selectedGenderSupport = 'unisex';
+        services = [];
+        selectedAmenities = [];
+        selectedTurfSize = '7v7';
+        selectedGroundType = 'Artificial Grass';
+        selectedSports = [];
       }
-      minOrderValueController =
-          TextEditingController(text: item.minOrder?.toString() ?? "");
-      toTimeController = TextEditingController(text: item.timeTo ?? "");
-      fromTimeController = TextEditingController(text: item.timeFrom ?? "");
-      priceRangeController =
-          TextEditingController(text: item.pricingRangeText ?? '');
-      extractPricingDetails(item.pricingRangeText);
 
       if (item.businessImage != null) {
         businessImage = BusinessImage(url: item.businessImage);
@@ -263,6 +347,11 @@ class EditBusinessProfileViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateBusinessCategory(String value) {
+    selectedBusinessCategory = value;
+    notifyListeners();
+  }
+
   int numberOfImages({required bool isMenu}) {
     int imageCount = 0;
     if (isMenu) {
@@ -336,7 +425,57 @@ class EditBusinessProfileViewModel with ChangeNotifier {
     model.gstNumber = businessGstNoController?.text.toUpperCase();
     model.businessMobile = businessMobileController?.text;
     model.businessEmail = businessEmailController?.text;
+    model.businessCategory = selectedBusinessCategory;
     model.businessImage = model.businessImage ?? "";
+    model.upiId = upiIdController?.text;
+
+    // Map dynamic category attributes
+    if (selectedBusinessCategory == 'restaurant') {
+      model.categoryAttributes = {
+        'cuisine_type': selectedCuisines,
+        'is_veg_only': isVegOnly,
+        'seating_capacity':
+            seatingCapacityController?.text.trim().isNotEmpty == true
+                ? int.tryParse(seatingCapacityController!.text.trim())
+                : null,
+      };
+    } else if (selectedBusinessCategory == 'salon') {
+      final attrs = <String, dynamic>{'gender_support': selectedGenderSupport};
+      if (stylistsCountController?.text.trim().isNotEmpty == true) {
+        attrs['stylists'] = List.generate(
+          int.tryParse(stylistsCountController!.text.trim()) ?? 1,
+          (i) => "Stylist ${i + 1}",
+        );
+      }
+      if (services.isNotEmpty) {
+        attrs['services'] = services;
+      }
+      model.categoryAttributes = attrs;
+    } else if (selectedBusinessCategory == 'turf') {
+      // Synchronize selectedSports and selectedAmenities with services
+      final sportTypes = services
+          .where((s) => turfSportOptions.contains(s['name']))
+          .map((s) => s['name'] as String)
+          .toList();
+      final amenitiesList = services
+          .where((s) => turfAmenityOptions.contains(s['name']))
+          .map((s) => s['name'] as String)
+          .toList();
+
+      final attrs = <String, dynamic>{
+        'turf_size': selectedTurfSize,
+        'ground_type': selectedGroundType,
+        'sport_types': sportTypes.isNotEmpty ? sportTypes : selectedSports,
+        'amenities':
+            amenitiesList.isNotEmpty ? amenitiesList : selectedAmenities,
+      };
+      if (services.isNotEmpty) {
+        attrs['services'] = services;
+      }
+      model.categoryAttributes = attrs;
+    } else {
+      model.categoryAttributes = null;
+    }
 
     var response = await _myRepo.updateBusinessProfileApi(model);
     response.fold(
@@ -401,13 +540,11 @@ class EditBusinessProfileViewModel with ChangeNotifier {
     notifyListeners();
 
     SetDiscountRequestModel setDiscountRequestModel = SetDiscountRequestModel(
-      minOrder: int.parse(minOrderValueController!.text),
       businessId: userId,
-      setFirstTimeDiscount: int.parse(setFirstTimeDiscountController!.text),
-      setRegularDiscount: int.parse(setRegularDiscountController!.text),
-      setExpiry: (selectedExpiryDays == "Other")
-          ? int.parse(expiryInDaysController!.text)
-          : int.parse(selectedExpiryDays ?? '1'),
+      setFirstTimeDiscount:
+          int.tryParse(setFirstTimeDiscountController?.text ?? '') ?? 0,
+      setRegularDiscount:
+          int.tryParse(setRegularDiscountController?.text ?? '') ?? 0,
       token: token,
     );
 
@@ -423,6 +560,7 @@ class EditBusinessProfileViewModel with ChangeNotifier {
         Utils.toastMessage(r.message.toString());
         enableEditing(false);
         token = oldToken;
+        await fetchBusinessProfile();
         Navigator.pop(navigatorKey.currentContext!);
         notifyListeners();
       },
@@ -439,6 +577,7 @@ class EditBusinessProfileViewModel with ChangeNotifier {
         mobile: data.businessMobile,
         name: data.businessName,
         address: data.businessArea,
+        roleId: data.roleId ?? roleId,
       ),
       skip: true,
     );
@@ -541,8 +680,180 @@ class EditBusinessProfileViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearImage(int index, {required bool isMenuCard}) {
+    if (isMenuCard) {
+      switch (index) {
+        case 0:
+          menuImage1 = null;
+          break;
+        case 1:
+          menuImage2 = null;
+          break;
+        case 2:
+          menuImage3 = null;
+          break;
+        case 3:
+          menuImage4 = null;
+          break;
+        case 4:
+          menuImage5 = null;
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          businessImage = null;
+          break;
+        case 1:
+          businessImage1 = null;
+          break;
+        case 2:
+          businessImage2 = null;
+          break;
+        case 3:
+          businessImage3 = null;
+          break;
+        case 4:
+          businessImage4 = null;
+          break;
+        case 5:
+          businessImage5 = null;
+          break;
+      }
+    }
+    notifyListeners();
+  }
+
   void notify() {
     notifyListeners();
+  }
+
+  Future<void> fetchTurfOptions() async {
+    isTurfOptionsLoading = true;
+    notifyListeners();
+    try {
+      final response = await _myRepo.fetchTurfOptionsApi();
+      response.fold(
+        (l) => debugPrint("Failed to fetch turf options: ${l.message}"),
+        (r) {
+          if (r.data != null) {
+            turfCourtSizes = r.data!['court_size'] ?? [];
+            turfGroundTypes = r.data!['ground_type'] ?? [];
+            turfSportOptions = r.data!['sport'] ?? [];
+            turfAmenityOptions = r.data!['amenity'] ?? [];
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint("Error fetching turf options: $e");
+    }
+    isTurfOptionsLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchMyExclusiveOffers() async {
+    isOffersLoading = true;
+    notifyListeners();
+    try {
+      final response = await _myRepo.fetchMyExclusiveOffersApi();
+      response.fold(
+        (l) {
+          debugPrint("Failed to fetch exclusive offers: ${l.message}");
+          premiumOffers = [];
+          eliteOffers = [];
+          coreOffers = [];
+        },
+        (r) {
+          if (r.data != null) {
+            premiumOffers = (r.data!.premiumOffers ?? [])
+                .map((url) => BusinessImage(url: url))
+                .toList();
+            eliteOffers = (r.data!.eliteOffers ?? [])
+                .map((url) => BusinessImage(url: url))
+                .toList();
+            coreOffers = (r.data!.coreOffers ?? [])
+                .map((url) => BusinessImage(url: url))
+                .toList();
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint("Error fetching exclusive offers: $e");
+    }
+    isOffersLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> saveExclusiveOffers() async {
+    isOffersLoading = true;
+    notifyListeners();
+
+    List<Map<String, String>> files = [];
+    List<String> keepPremium = [];
+    List<String> keepElite = [];
+    List<String> keepCore = [];
+
+    // Premium
+    for (final img in premiumOffers) {
+      if (img.url != null) {
+        keepPremium.add(img.url!);
+      } else if (img.file != null) {
+        files.add({
+          "fieldName": "premium",
+          "filePath": img.file!.path,
+        });
+      }
+    }
+
+    // Elite
+    for (final img in eliteOffers) {
+      if (img.url != null) {
+        keepElite.add(img.url!);
+      } else if (img.file != null) {
+        files.add({
+          "fieldName": "elite",
+          "filePath": img.file!.path,
+        });
+      }
+    }
+
+    // Core
+    for (final img in coreOffers) {
+      if (img.url != null) {
+        keepCore.add(img.url!);
+      } else if (img.file != null) {
+        files.add({
+          "fieldName": "core",
+          "filePath": img.file!.path,
+        });
+      }
+    }
+
+    try {
+      final response = await _myRepo.saveExclusiveOffersApi(
+        files: files,
+        keepPremium: keepPremium,
+        keepElite: keepElite,
+        keepCore: keepCore,
+      );
+
+      response.fold(
+        (l) {
+          isOffersLoading = false;
+          notifyListeners();
+          Utils.toastMessage("Failed to save offers: ${l.message}");
+        },
+        (r) async {
+          Utils.toastMessage(r.message ?? "Offers saved successfully!");
+          await fetchMyExclusiveOffers();
+          Navigator.pop(navigatorKey.currentContext!);
+        },
+      );
+    } catch (e) {
+      isOffersLoading = false;
+      notifyListeners();
+      Utils.toastMessage("Error saving offers: $e");
+    }
   }
 }
 

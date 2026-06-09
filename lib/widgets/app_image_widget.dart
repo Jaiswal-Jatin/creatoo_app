@@ -8,6 +8,7 @@ class AppImageWidget extends StatelessWidget {
   final BoxFit fit;
   final double borderRadius;
   final bool isProfile;
+  final bool hasBorder;
 
   AppImageWidget({
     this.height = 120,
@@ -17,6 +18,7 @@ class AppImageWidget extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.borderRadius = 10,
     this.isProfile = false,
+    this.hasBorder = true,
   });
 
   String _getImageUrl(String url) {
@@ -41,7 +43,7 @@ class AppImageWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.grey.shade300),
+        border: hasBorder ? Border.all(color: Colors.grey.shade300) : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),

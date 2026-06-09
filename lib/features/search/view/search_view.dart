@@ -43,6 +43,7 @@ class _SearchViewState extends State<SearchView> {
     bool isLoading = viewModel.searchResponse.status == Status.loading;
     bool isError = viewModel.searchResponse.status == Status.error;
     bool isEmpty = viewModel.businessSearchList == null || viewModel.businessSearchList!.isEmpty;
+    bool showEmptyInsteadOfError = isError && isEmpty;
 
     return AppScaffold(
       useGradient: false,
@@ -62,7 +63,7 @@ class _SearchViewState extends State<SearchView> {
             // if (!isLoading && !isEmpty && !isError)
             //   _buildResultsHeader(),
             Expanded(
-              child: isError 
+              child: (isError && !showEmptyInsteadOfError)
                 ? AppErrorWidget(message: viewModel.searchResponse.message.toString())
                 : (isLoading ? _buildSkeletonList() : _buildBusinessList()),
             ),
@@ -106,97 +107,97 @@ class _SearchViewState extends State<SearchView> {
   }
 
   Widget _buildCategoryFilters() {
+    final categories = [
+      {"key": null, "label": "All", "icon": Icons.grid_view_rounded, "color": const Color(0xFF7C4DFF)},
+      {"key": "restaurant", "label": "Restaurants", "icon": Icons.restaurant_menu, "color": const Color(0xFFFF5722)},
+      {"key": "salon", "label": "Salon", "icon": Icons.content_cut, "color": const Color(0xFFE91E63)},
+      {"key": "turf", "label": "Turf", "icon": Icons.sports_soccer, "color": const Color(0xFF4CAF50)},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Padding(
-        //   padding: EdgeInsets.symmetric(horizontal: 17.w),
-        //   child: AppTextWidget(
-        //     // text: "EXPLORE CATEGORIES",
-        //     fontSize: 12.sp,
-        //     fontWeight: FontWeight.w800,
-        //     color: Colors.white.withOpacity(0.8),
-        //     letterSpacing: 1.2,
-        //   ),
-        // ),
-        // SizedBox(height: 15.h),
         SingleChildScrollView(
-          // scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: 17.w),
           child: Row(
-            children: [
-              _buildFilterItem("Restaurants", Icons.restaurant_menu, Color(0xFFFF5722)),
-              _buildFilterItem("Salon", Icons.content_cut, Color(0xFFE91E63)),
-              _buildFilterItem("Turf", Icons.sports_soccer, Color(0xFF4CAF50)),
-              _buildFilterItem("Bookings", Icons.event_note, Color(0xFFFFC107)),
-              _buildFilterItem("Events", Icons.event_available, Color(0xFF009688)),
-            ],
+            children: categories.map((cat) {
+              final isSelected = viewModel.selectedCategory == cat["key"];
+              return _buildFilterItem(
+                cat["label"] as String,
+                cat["icon"] as IconData,
+                cat["color"] as Color,
+                isSelected: isSelected,
+                onTap: () => viewModel.setCategoryFilter(cat["key"] as String?),
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFilterItem(String title, IconData icon, Color color) {
-    return Container(
-      margin: EdgeInsets.only(right: 10.w),
-      child: Column(
-        children: [
-          Container(
-            width: 58.w,
-            height: 58.w,
-            decoration: BoxDecoration(
-              color: AppColor.premiumCardBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withOpacity(0.2), width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.06),
-                  blurRadius: 10,
+  Widget _buildFilterItem(String title, IconData icon, Color color, {bool isSelected = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: EdgeInsets.only(right: 10.w),
+        child: Column(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 58.w,
+              height: 58.w,
+              decoration: BoxDecoration(
+                color: isSelected ? color.withOpacity(0.15) : AppColor.premiumCardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected ? color : color.withOpacity(0.2),
+                  width: isSelected ? 2.0 : 1.2,
                 ),
-              ],
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: color.withOpacity(0.25),
+                      blurRadius: 14,
+                      spreadRadius: 1,
+                    )
+                  else
+                    BoxShadow(
+                      color: color.withOpacity(0.06),
+                      blurRadius: 10,
+                    ),
+                ],
+              ),
+              child: Center(child: Icon(icon, color: isSelected ? color : color.withOpacity(0.7), size: 24.sp)),
             ),
-            child: Center(child: Icon(icon, color: color, size: 24.sp)),
-          ),
-          SizedBox(height: 8.h),
-          AppTextWidget(
-            text: title,
-            fontSize: 10.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColor.premiumTextSecondary,
-          ),
-        ],
+            SizedBox(height: 8.h),
+            AppTextWidget(
+              text: title,
+              fontSize: 10.sp,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: isSelected ? color : AppColor.premiumTextSecondary,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Map<String, dynamic> _getBusinessTheme(BusinessSearchData item) {
-    final name = item.businessName?.toLowerCase() ?? "";
-    if (name.contains("salon") ||
-        name.contains("spa") ||
-        name.contains("beauty")) {
+    final category = item.businessCategory?.toLowerCase() ?? "";
+    if (category == "salon") {
       return {"icon": Icons.content_cut, "color": Color(0xFFE91E63)};
     }
-    if (name.contains("turf") ||
-        name.contains("football") ||
-        name.contains("cricket")) {
+    if (category == "turf") {
       return {"icon": Icons.sports_soccer, "color": Color(0xFF4CAF50)};
     }
-    if (name.contains("cafe") ||
-        name.contains("restaurant") ||
-        name.contains("food")) {
+    if (category == "restaurant") {
       return {"icon": Icons.restaurant, "color": Color(0xFFFF5722)};
-    }
-    if (name.contains("gym") || name.contains("fitness")) {
-      return {"icon": Icons.fitness_center, "color": Color(0xFF009688)};
     }
 
-    final id = item.id ?? 0;
-    if (id % 3 == 0)
-      return {"icon": Icons.restaurant, "color": Color(0xFFFF5722)};
-    if (id % 3 == 1)
-      return {"icon": Icons.content_cut, "color": Color(0xFFE91E63)};
-    return {"icon": Icons.sports_soccer, "color": Color(0xFF4CAF50)};
+    // Default fallback for businesses without a category set
+    return {"icon": Icons.store_rounded, "color": Color(0xFF7C4DFF)};
   }
 
   Widget _buildHeaderIcon(IconData icon, VoidCallback onTap) {
@@ -352,7 +353,7 @@ class _SearchViewState extends State<SearchView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Lottie.asset('assets/lottie/empty_search.json', height: 180.h, repeat: true),
+            Icon(Icons.search_off_rounded, size: 80.sp, color: AppColor.premiumTextSecondary.withOpacity(0.4)),
             SizedBox(height: 10.h),
             AppTextWidget(
               text: "No Businesses to show",
@@ -403,7 +404,6 @@ class _SearchViewState extends State<SearchView> {
             imageUrl: business.businessImage,
             address: business.businessArea,
             ratings: business.avgExperience,
-            priceRange: business.pricingRangeText,
             discount: (business.set_first_time_discount as num?)?.toInt(),
             business: business,
           ),
@@ -472,10 +472,12 @@ class _SearchViewState extends State<SearchView> {
     required String? businessName,
     required String? address,
     required String? ratings,
-    required String? priceRange,
     required int? discount,
     dynamic business,
   }) {
+    final String? categoryKey = (business is BusinessSearchData) ? business.businessCategory : null;
+    final String categoryLabel = categoryKey != null ? categoryKey[0].toUpperCase() + categoryKey.substring(1) : 'Business';
+
     // Determine the discount to show
     int? displayDiscount = (business is BusinessSearchData) 
         ? (business.set_regular_discount != null && business.set_regular_discount! > 0 
@@ -616,33 +618,35 @@ class _SearchViewState extends State<SearchView> {
                             ],
                           ),
                         ),
+                        SizedBox(width: 8.w),
+                        Icon(Icons.chevron_right, color: AppColor.premiumTextSecondary, size: 22.sp),
                       ],
                     ),
                     SizedBox(height: 10.h),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 13.sp, color: AppColor.premiumTextSecondary),
-                        SizedBox(width: 5.w),
-                        AppTextWidget(
-                          text: '${address ?? 'Pune'} • ',
-                          fontSize: 12.sp,
-                          color: AppColor.premiumTextSecondary,
-                        ),
-                        // Category Theme Badge
                         Container(
                           padding: EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: (theme["color"] as Color).withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(theme["icon"] as IconData, color: theme["color"] as Color, size: 14.sp),
+                          child: Icon(theme["icon"] as IconData, color: theme["color"] as Color, size: 13.sp),
                         ),
                         SizedBox(width: 6.w),
                         AppTextWidget(
-                          text: priceRange?.isNotEmpty == true ? priceRange! : "Premium",
+                          text: categoryLabel,
                           fontSize: 12.sp,
                           color: theme["color"] as Color,
                           fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(width: 10.w),
+                        Icon(Icons.location_on, size: 13.sp, color: AppColor.premiumTextSecondary),
+                        SizedBox(width: 5.w),
+                        AppTextWidget(
+                          text: address ?? 'Pune',
+                          fontSize: 12.sp,
+                          color: AppColor.premiumTextSecondary,
                         ),
                       ],
                     ),

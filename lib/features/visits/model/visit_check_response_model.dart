@@ -54,18 +54,26 @@ class VisitHistoryItem {
   dynamic userId;
   dynamic cardNumber;
   dynamic businessId;
+  String? businessName;
+  String? businessImage;
   String? tier;
   String? time;
+  String? userImage;
+  String? userName;
 
-  VisitHistoryItem({this.id, this.userId, this.cardNumber, this.businessId, this.tier, this.time});
+  VisitHistoryItem({this.id, this.userId, this.cardNumber, this.businessId, this.businessName, this.businessImage, this.tier, this.time, this.userImage, this.userName});
 
   factory VisitHistoryItem.fromJson(Map<String, dynamic> json) => VisitHistoryItem(
         id: json["id"],
         userId: json["user_id"],
         cardNumber: json["card_number"],
         businessId: json["business_id"],
+        businessName: json["business_name"]?.toString(),
+        businessImage: json["business_image"]?.toString(),
         tier: json["tier"],
         time: json["time"],
+        userImage: json["user_image"]?.toString(),
+        userName: json["user_name"]?.toString(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -73,7 +81,11 @@ class VisitHistoryItem {
         "user_id": userId,
         "card_number": cardNumber,
         "business_id": businessId,
+        "business_name": businessName,
+        "business_image": businessImage,
         "tier": tier,
         "time": time,
+        "user_image": userImage,
+        "user_name": userName,
       };
 }

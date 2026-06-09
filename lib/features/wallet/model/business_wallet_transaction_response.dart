@@ -5,11 +5,13 @@ class BusinessWalletTransactionResponse {
   bool? status;
   String? message;
   List<Transaction>? transactions;
+  double? lifetimeEarnings;
 
   BusinessWalletTransactionResponse({
     this.status,
     this.message,
     this.transactions,
+    this.lifetimeEarnings,
   });
 
   factory BusinessWalletTransactionResponse.fromRawJson(String str) =>
@@ -26,6 +28,9 @@ class BusinessWalletTransactionResponse {
             ? List<Transaction>.from(
                 json["data"].map((x) => Transaction.fromJson(x)))
             : [],
+        lifetimeEarnings: json["lifetime_earnings"] != null
+            ? double.tryParse(json["lifetime_earnings"].toString())
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -34,6 +39,7 @@ class BusinessWalletTransactionResponse {
         "data": transactions == null
             ? []
             : List<dynamic>.from(transactions!.map((x) => x.toJson())),
+        "lifetime_earnings": lifetimeEarnings,
       };
 }
 
@@ -115,8 +121,12 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
         totalBill: json["amount"]?.toString(),
         receivedFrom: json["remark"],
-        discountPercentage: null, // Not available in API
-        settlementAmount: null, // Not available in API
+        discountPercentage: json["discount_percentage"] != null
+            ? double.tryParse(json["discount_percentage"].toString())
+            : null,
+        settlementAmount: json["settlementAmount"] != null
+            ? double.tryParse(json["settlementAmount"].toString())
+            : null,
         created_at: json["created_at"] != null
             ? DateTime.parse(json["created_at"])
             : (json["createdAt"] != null

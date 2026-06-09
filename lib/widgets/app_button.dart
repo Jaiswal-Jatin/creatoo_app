@@ -7,9 +7,11 @@ class AppButton extends StatelessWidget {
   final bool isDisabled;
   final bool enableBorder;
   final bool isIconEnabled;
+  final IconData? icon;
   final Color textColor;
   final Color buttonColor;
   final double height;
+  final BorderSide? borderSide;
 
   AppButton({
     super.key,
@@ -20,8 +22,10 @@ class AppButton extends StatelessWidget {
     this.isDisabled = false,
     this.enableBorder = false,
     this.isIconEnabled = true,
+    this.icon,
     this.textColor = AppColor.white,
     this.buttonColor = AppColor.kPrimary,
+    this.borderSide,
   });
 
   @override
@@ -41,7 +45,7 @@ class AppButton extends StatelessWidget {
             decoration: BoxDecoration(
                 color: (isLoading || isDisabled) ? AppColor.primaryDisabled : buttonColor,
                 borderRadius: BorderRadius.circular(isSmall ? 10 : 15),
-                border: enableBorder ? Border.all(color: AppColor.lightGrey) : null),
+                border: borderSide != null ? Border.fromBorderSide(borderSide!) : (enableBorder ? Border.all(color: AppColor.lightGrey) : null)),
             child: Center(
               child: isLoading
                   ? const CircularProgressIndicator(
@@ -67,9 +71,9 @@ class AppButton extends StatelessWidget {
             child: Positioned(
               right: w * 0.025,
               child: Icon(
-                Icons.arrow_forward,
+                icon ?? Icons.arrow_forward,
                 color: (isLoading || isDisabled) ? AppColor.white.withOpacity(0.7) : AppColor.white,
-                size: isSmall ? w * 0.04 : null,
+                size: isSmall ? w * 0.04 : 20.sp,
               ),
             ),
           ),

@@ -6,6 +6,8 @@ class AppForm extends StatefulWidget {
   final Function(List<String> data) onDataChanged;
   final int? maxLength;
   final TextCapitalization capitaliseText;
+  final Color? textColor;
+  final Color? textFieldBackgroundColor;
 
   const AppForm({
     Key? key,
@@ -14,6 +16,8 @@ class AppForm extends StatefulWidget {
     required this.onDataChanged,
     this.maxLength,
     this.capitaliseText = TextCapitalization.sentences,
+    this.textColor,
+    this.textFieldBackgroundColor,
   }) : super(key: key);
 
   @override
@@ -30,7 +34,7 @@ class _AppFormState extends State<AppForm> {
     if (name.toLowerCase().contains("mail")) {
       return TextInputType.emailAddress;
     }
-    if (name.toLowerCase().contains("mobile")) {
+    if (name.toLowerCase().contains("mobile") || name.toLowerCase().contains("phone")) {
       return TextInputType.number;
     }
     return TextInputType.text;
@@ -40,8 +44,7 @@ class _AppFormState extends State<AppForm> {
   Widget build(BuildContext context) {
     if (!isInitialised) {
       formData = List.filled(widget.hintTexts.length, '');
-      focusNodes =
-          List.generate(widget.hintTexts.length, (index) => FocusNode());
+      focusNodes = List.generate(widget.hintTexts.length, (index) => FocusNode());
       hasError = List.filled(widget.hintTexts.length, false);
       isInitialised = true;
     }
@@ -52,27 +55,43 @@ class _AppFormState extends State<AppForm> {
       children: <Widget>[
         ...List.generate(
           widget.hintTexts.length,
-          (index) => Container(
-            margin: const EdgeInsets.symmetric(horizontal: 1.0),
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
+          (index) => Padding(
+            padding: EdgeInsets.only(bottom: 20.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  ' ${widget.hintTexts[index]}',
-                  style: GoogleFonts.montserrat(
-                    textStyle: Theme.of(context).textTheme.displayLarge,
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF191D23),
+                Padding(
+                  padding: EdgeInsets.only(left: 4.w),
+                  child: Text(
+                    widget.hintTexts[index],
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500,
+                      color: widget.textColor?.withOpacity(0.7) ?? AppColor.premiumTextSecondary,
+                    ),
                   ),
                 ),
                 SizedBox(height: 8.h),
                 AppTextField(
-                  hintText: "Enter ${widget.hintTexts[index]}",
+                  hintText: "Enter ${widget.hintTexts[index].toLowerCase()}",
                   textInputType: getTextInputType(widget.hintTexts[index]),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 25.w, vertical: 18.h),
+                  backgroundColor: widget.textFieldBackgroundColor ?? Colors.white.withOpacity(0.05),
+                  textColor: widget.textColor ?? Colors.white,
+                  cursorColor: AppColor.premiumAccent,
+                  borderColor: Colors.white.withOpacity(0.1),
+                  focusedBorderColor: AppColor.premiumAccent,
+                  borderRadius: 16,
+                  textStyle: GoogleFonts.montserrat(
+                    color: widget.textColor ?? Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  hintStyle: GoogleFonts.montserrat(
+                    color: (widget.textColor ?? Colors.white).withOpacity(0.2),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
                   disableBorder: false,
                   maxLength: widget.maxLength,
                   capitaliseText: widget.capitaliseText,

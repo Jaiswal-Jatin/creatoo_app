@@ -1,5 +1,7 @@
 class RoutesName {
+  static const String splashView = 'splashView';
   static const String businessQrView = 'businessQrView';
+  static const String servicesManagement = 'servicesManagement';
   static const String onboardingView = 'onboardingView';
   static const String startupView = 'startUpView';
   static const String authView = 'authView';
@@ -49,5 +51,18 @@ class RoutesName {
   static const String paymentSuccessView = 'paymentSuccessView';
   static const String cardView = 'cardView';
   
+  static const String businessPaymentsView = 'businessPaymentsView';
+  static const String businessVisitsView = 'businessVisitsView';
+  static const String userPaymentsView = 'userPaymentsView';
+  static const String userPaymentSubmitView = 'userPaymentSubmitView';
+  static const String categoryAttributesView = 'categoryAttributesView';
+  static const String userPointsView = 'userPointsView';
   static const String forceUpdateView = 'forceUpdateView';
+  static const String categoryBusinessListView = 'categoryBusinessListView';
+  static const String paymentProcessingView = 'paymentProcessingView';
+
+  // Booking Routes
+  static const String bookingRequestView = 'bookingRequestView';
+  static const String bookingHistoryView = 'bookingHistoryView';
+  static const String businessBookingsView = 'businessBookingsView';
 }

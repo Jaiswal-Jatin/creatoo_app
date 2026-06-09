@@ -12,8 +12,11 @@ class RegisterBusinessModel {
   String? businessDesignation;
   String? gstNumber;
   String? businessType;
+  String? businessCategory;
+  Map<String, dynamic>? categoryAttributes;
   String? businessImage;
   int? roleId;
+  String? upiId;
   // String? token;
 
   RegisterBusinessModel({
@@ -28,8 +31,11 @@ class RegisterBusinessModel {
     this.businessDesignation,
     this.gstNumber,
     this.businessType,
+    this.businessCategory,
+    this.categoryAttributes,
     this.businessImage,
     this.roleId,
+    this.upiId,
     // this.token,
   });
 
@@ -43,13 +49,21 @@ class RegisterBusinessModel {
         businessFullname: json["business_fullname"],
         businessMobile: json["business_mobile"],
         businessEmail: json["business_email"],
-        businessArea: json["business_area"], businessAddress: json["business_address"],
+        businessArea: json["business_area"], 
+        businessAddress: json["business_address"],
         businessSiteUrl: json["business_site_url"],
         businessDesignation: json["business_designation"],
         gstNumber: json["gst_number"],
         businessType: json["business_type"],
+        businessCategory: json["business_category"],
+        categoryAttributes: json["category_attributes"] != null 
+            ? (json["category_attributes"] is String 
+                ? jsonDecode(json["category_attributes"]) 
+                : json["category_attributes"]) 
+            : null,
         businessImage: json["business_image"],
         roleId: json["role_id"],
+        upiId: json["upi_id"],
         // token: json["token"],
       );
 
@@ -65,8 +79,11 @@ class RegisterBusinessModel {
         "business_designation": businessDesignation,
         "gst_number": gstNumber,
         "business_type": businessType,
+        "business_category": businessCategory,
+        "category_attributes": categoryAttributes != null ? json.encode(categoryAttributes) : null,
         "business_image": businessImage,
         "role_id": roleId,
+        "upi_id": upiId,
         // "token": token,
       };
 }

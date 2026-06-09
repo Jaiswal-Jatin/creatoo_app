@@ -1,8 +1,8 @@
-import 'package:creatoo/widgets/app_text_widget.dart';
+import 'dart:ui';
 import 'package:flutter/gestures.dart';
-
 import '../../../core.dart';
 import '../../../widgets/app_dotted_divider.dart';
+import '../../../widgets/custom_back_button.dart';
 import '../view_model/bill_payment_view_model.dart';
 
 class ProceedToPay extends StatefulWidget {
@@ -28,24 +28,30 @@ class _ProceedToPayState extends State<ProceedToPay>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
     );
 
-    _oldAmountPosition = Tween<double>(begin: 0, end: 30).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    _oldAmountPosition = Tween<double>(begin: 0, end: 40).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOutBack),
+      ),
     );
 
-    // New value enters from above (-30 pixels)
-    _newAmountPosition = Tween<double>(begin: -30, end: 0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    _newAmountPosition = Tween<double>(begin: -40, end: 0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack),
+      ),
     );
 
-    // Start animation
     _animationController.forward().then((_) {
-      setState(() {
-        _showNewValue = true;
-        _showStrikethrough = true;
-      });
+      if (mounted) {
+        setState(() {
+          _showNewValue = true;
+          _showStrikethrough = true;
+        });
+      }
     });
 
     super.initState();
@@ -63,131 +69,86 @@ class _ProceedToPayState extends State<ProceedToPay>
 
     switch (viewModel.businessDetailsResponse.status) {
       case Status.loading:
-        return AppLoadingWidget();
+        return const AppLoadingWidget();
       case Status.error:
         return AppErrorWidget(
             message: viewModel.businessDetailsResponse.message.toString());
       case Status.completed:
         return _buildMobileBody();
       default:
-        return AppNoDataWidget();
+        return const AppNoDataWidget();
     }
   }
 
   Widget _buildMobileBody() {
     return AppScaffold(
-        appBar: AppBarWidget(
-          centerTile: false,
-          title: viewModel.businessDescription?.businessName ?? '',
-          subtitle: viewModel.businessDescription?.businessArea ?? '',
-          useCustomBackButton: true,
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRect(
-                //  clipBehavior: Clip.none,
-                child: Stack(
-                  alignment: Alignment.center,
+      useGradient: true,
+      backgroundColor: AppColor.premiumBg,
+      isSafe: false,
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(
+            top: -100.h,
+            right: -100.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+              child: Container(
+                width: 400.w,
+                height: 400.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.15),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50.h,
+            left: -50.w,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              child: Container(
+                width: 300.w,
+                height: 300.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.premiumAccent.withOpacity(0.1),
+                ),
+              ),
+            ),
+          ),
+
+          // Custom App Bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                child: Row(
                   children: [
-                    Container(
-                      margin: const EdgeInsets.all(20.0),
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: AppColor.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(-2, 2), // Bottom shadow stronger
-                          ),
-                        ],
-                      ),
+                    const CustomBackButton(),
+                    SizedBox(width: 16.w),
+                    Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 20),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // New amount (₹450) smoothly enters from top
-                              AnimatedBuilder(
-                                animation: _animationController,
-                                builder: (context, child) {
-                                  return Transform.translate(
-                                    offset: Offset(0, _newAmountPosition.value),
-                                    child: _showNewValue
-                                        ? Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 15.0),
-                                            child: AppTextWidget(
-                                              key: ValueKey(1),
-                                              text:
-                                                  "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
-                                              fontWeight: FontWeight.w500,
-                                              color: AppColor.black,
-                                              fontSize: 36,
-                                            ),
-                                          )
-                                        : SizedBox(),
-                                  );
-                                },
-                              ),
-                              SizedBox(height: 30),
-                              if (viewModel.billSummary?.finalBillAmount !=
-                                      null &&
-                                  viewModel.billSummary?.originalBill != null &&
-                                  viewModel.billSummary!.finalBillAmount! <=
-                                      viewModel.billSummary!.originalBill!)
-                                AnimatedBuilder(
-                                  animation: _animationController,
-                                  builder: (context, child) {
-                                    return Transform.translate(
-                                      offset:
-                                          Offset(0, _oldAmountPosition.value),
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 30.0),
-                                        child: AppTextWidget(
-                                          key: ValueKey(2),
-                                          text:
-                                              "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 30,
-                                          color: AppColor.lighterDd,
-                                          textDecoration: _showStrikethrough
-                                              ? TextDecoration.lineThrough
-                                              : TextDecoration.none,
-                                          textDecorationColor:
-                                              AppColor.lighterDd,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                            ],
+                          Text(
+                            viewModel.businessDescription?.businessName ?? '',
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                          SizedBox(height: 55),
-                          Container(
-                            child: DottedDivider(color: AppColor.dd, height: 1),
-                            margin: EdgeInsets.symmetric(horizontal: 6.w),
-                          ),
-                          SizedBox(
-                            height: 14.h,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: AppTextWidget(
-                              text: "Edit Amount",
-                              color: AppColor.activeGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                          Text(
+                            viewModel.businessDescription?.businessArea ?? '',
+                            style: GoogleFonts.montserrat(
+                              color: AppColor.premiumTextSecondary,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ],
@@ -196,208 +157,224 @@ class _ProceedToPayState extends State<ProceedToPay>
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
+            ),
+          ),
+
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(top: 60.h),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.all(20.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 20.h,
-                    ),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColor.moreLighterDd),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(0, 0),
+                    // Bill Amount Card
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(24.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
+                              width: 1.5,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Theme(
-                        data: Theme.of(context)
-                            .copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          tilePadding:
-                              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                          childrenPadding: EdgeInsets.zero,
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                          child: Column(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 12.0),
-                                child: AppTextWidget(
-                                  text: "Bill Summary",
-                                  fontSize: 14,
+                              Text(
+                                "Total Amount",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14.sp,
+                                  color: AppColor.premiumTextSecondary,
                                   fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  AnimatedBuilder(
+                                    animation: _animationController,
+                                    builder: (context, child) {
+                                      return Transform.translate(
+                                        offset: Offset(0, _newAmountPosition.value),
+                                        child: _showNewValue
+                                            ? Text(
+                                                "₹${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 42.sp,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                  letterSpacing: -1,
+                                                ),
+                                              )
+                                            : const SizedBox(),
+                                      );
+                                    },
+                                  ),
+                                  if (viewModel.billSummary?.finalBillAmount != null &&
+                                      viewModel.billSummary?.originalBill != null &&
+                                      viewModel.billSummary!.finalBillAmount! <=
+                                          viewModel.billSummary!.originalBill!)
+                                    AnimatedBuilder(
+                                      animation: _animationController,
+                                      builder: (context, child) {
+                                        return Transform.translate(
+                                          offset: Offset(0, _oldAmountPosition.value),
+                                          child: Padding(
+                                            padding: EdgeInsets.only(top: 45.h),
+                                            child: Text(
+                                              "₹${viewModel.billSummary?.originalBill.toCommaSeparated()}",
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 24.sp,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white.withOpacity(0.3),
+                                                decoration: _showStrikethrough
+                                                    ? TextDecoration.lineThrough
+                                                    : TextDecoration.none,
+                                                decorationColor: Colors.white.withOpacity(0.3),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
+                              SizedBox(height: 30.h),
+                              DottedDivider(
+                                color: Colors.white.withOpacity(0.1),
+                                height: 1,
+                              ),
+                              SizedBox(height: 20.h),
+                              InkWell(
+                                onTap: () => Navigator.pop(context),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.premiumAccent.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    "Edit Amount",
+                                    style: GoogleFonts.montserrat(
+                                      color: AppColor.premiumAccent,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14.sp,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          children: [
-                            Column(
-                              children: [
-                                _buildBillRowWidget(
-                                  label: "Bill Amount",
-                                  price:
-                                      "\u20B9${viewModel.billSummary?.originalBill.toCommaSeparated()}",
-                                ),
-                                if (viewModel.billSummary?.discountApplied !=
-                                        null &&
-                                    viewModel.billSummary!.discountApplied! > 0)
-                                  _buildBillRowWidget(
-                                    label: "Discount",
-                                    price:
-                                        "${viewModel.billSummary?.discountPercentage}%",
-                                    color: Colors.blue,
-                                  ),
-                                Container(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 20.w),
-                                  alignment: Alignment.centerLeft,
-                                  child: AppTextWidget(
-                                    text: Constants.hiddenCharges,
-                                    fontSize: 9.sp,
-                                    color: AppColor.grey,
-                                  ),
-                                ),
-                                // _buildBillRowWidget(
-                                //   label: "Convenience Fee & Charges",
-                                //   price: "\u20B9${viewModel.billSummary?.convenienceFee}",
-                                // ),
-                                SizedBox(height: 10.0),
-                                DottedDivider(color: Colors.grey, height: 1),
-                                SizedBox(height: 10.0),
-                                _buildBillRowWidget(
-                                  label: "To be paid",
-                                  labelFontSize: 16,
-                                  priceFontSize: 16,
-                                  price:
-                                      "\u20B9${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                SizedBox(height: 10.0),
-                              ],
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: 20.h,
-                    ),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColor.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColor.moreLighterDd),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(0, 0),
-                          ),
-                        ],
-                      ),
-                      child: Theme(
-                        data: Theme.of(context)
-                            .copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          tilePadding:
-                              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                          childrenPadding: EdgeInsets.zero,
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 12.0),
-                                child: AppTextWidget(
-                                  text: "Points Summary",
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          children: [
-                            Column(
-                              children: [
-                                _buildBillRowWidget(
-                                  label: "Total Points",
-                                  price:
-                                      "${viewModel.billSummary?.totalPointsForBusiness.toCommaSeparated()}",
-                                ),
-                                _buildBillRowWidget(
-                                  label: "Points Redeemed Here",
-                                  price:
-                                      "${viewModel.billSummary?.pointsRedeemedHere.toCommaSeparated()}",
-                                ),
-                                _buildBillRowWidget(
-                                  label: "Points You’ll Earn",
-                                  price:
-                                      "${viewModel.billSummary?.pointsYouWillEarn.toCommaSeparated()}",
-                                ),
-                                SizedBox(height: 10.0),
-                              ],
-                            ),
-                          ],
+                    SizedBox(height: 24.h),
+
+                    // Summary Sections
+                    _buildSummaryCard(
+                      title: "Bill Summary",
+                      children: [
+                        _buildBillRow(
+                          label: "Original Bill",
+                          price: "₹${viewModel.billSummary?.originalBill.toCommaSeparated()}",
                         ),
-                      ),
+                        if (viewModel.billSummary?.discountApplied != null &&
+                            viewModel.billSummary!.discountApplied! > 0)
+                          _buildBillRow(
+                            label: "Discount (${viewModel.billSummary?.discountPercentage}%)",
+                            price: "-₹${(viewModel.billSummary!.originalBill! - viewModel.billSummary!.finalBillAmount!).toCommaSeparated()}",
+                            priceColor: AppColor.premiumAccent,
+                          ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          Constants.hiddenCharges,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 10.sp,
+                            color: AppColor.premiumTextSecondary,
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        const Divider(color: Colors.white10),
+                        SizedBox(height: 12.h),
+                        _buildBillRow(
+                          label: "To be paid",
+                          price: "₹${viewModel.billSummary?.finalBillAmount.toCommaSeparated()}",
+                          isBold: true,
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      height: 20.h,
+                    SizedBox(height: 20.h),
+
+                    _buildSummaryCard(
+                      title: "Points Summary",
+                      children: [
+                        _buildBillRow(
+                          label: "Total Points Available",
+                          price: "${viewModel.billSummary?.totalPointsForBusiness.toCommaSeparated()}",
+                        ),
+                        _buildBillRow(
+                          label: "Points Redeemed",
+                          price: "${viewModel.billSummary?.pointsRedeemedHere.toCommaSeparated()}",
+                        ),
+                        _buildBillRow(
+                          label: "Points You’ll Earn",
+                          price: "+${viewModel.billSummary?.pointsYouWillEarn.toCommaSeparated()}",
+                          priceColor: Colors.greenAccent,
+                        ),
+                      ],
                     ),
+                    SizedBox(height: 24.h),
+
+                    // Terms
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4.w),
-                      child: AppTextWidget(
-                        text: "Terms & Condition",
-                        fontSize: 14,
-                      ),
-                    ),
-                    // SizedBox(
-                    //   height: 10.h,
-                    // ),
-                    Padding(
-                      padding:
-                          EdgeInsets.only(top: 8.h, bottom: 8.h, left: 4.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            "Terms & Conditions",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
                           RichText(
                             text: TextSpan(
-                              style: GoogleFonts.inter(
-                                  color: Colors.black, fontSize: 12.0),
+                              style: GoogleFonts.montserrat(
+                                color: AppColor.premiumTextSecondary,
+                                fontSize: 12.sp,
+                              ),
                               children: [
-                                TextSpan(
-                                  text: 'By using this app, you agree to the ',
-                                  style: GoogleFonts.inter(),
-                                ),
+                                const TextSpan(text: 'By proceeding, you agree to the '),
                                 TextSpan(
                                   text: 'Terms & Conditions.',
-                                  style: GoogleFonts.inter(
-                                    color: Colors.blue,
+                                  style: GoogleFonts.montserrat(
+                                    color: AppColor.premiumAccent,
                                     decoration: TextDecoration.underline,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      await Navigator.pushNamed(
-                                        navigatorKey.currentContext!,
+                                      Navigator.pushNamed(
+                                        context,
                                         RoutesName.webView,
                                         arguments: WebViewData(
-                                          "",
+                                          "Terms & Conditions",
                                           "${AppUrl.host}/api/Terms-And-Conditions.html",
                                           enableAppBar: true,
                                         ),
                                       );
-
-                                      print('Terms & Conditions tapped');
                                     },
                                 ),
                               ],
@@ -406,67 +383,101 @@ class _ProceedToPayState extends State<ProceedToPay>
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 70.h,
-                    ),
+                    SizedBox(height: 100.h),
                   ],
                 ),
-              )
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        child: AppButton(
+          isIconEnabled: true,
+          onTap: () async {
+            try {
+              if (viewModel.billSummary?.finalBillAmount != null) {
+                await viewModel.processPaymentStatusApiCall();
+                await viewModel.startPayment(
+                  amount: viewModel.billSummary!.finalBillAmount!,
+                  mobileNumber: user?.mobile,
+                  orderId: viewModel.billSummary!.merchantTransactionId!,
+                );
+              }
+            } catch (e) {
+              debugPrint("Transaction Error: $e");
+            }
+          },
+          text: "Proceed To Pay",
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard({required String title, required List<Widget> children}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.05),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              ...children,
             ],
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Container(
-          margin: EdgeInsets.symmetric(horizontal: 20.h),
-          child: AppButton(
-            isIconEnabled: true,
-            // buttonColor: AppColor.buttonPay,
-            onTap: () async {
-              try {
-                if (viewModel.billSummary?.finalBillAmount != null) {
-                  // Step 2: Mark as processing on backend
-                  await viewModel.processPaymentStatusApiCall();
-
-                  // Step 2.5: Open Razorpay Checkout overlay
-                  await viewModel.startPayment(
-                    amount: viewModel.billSummary!.finalBillAmount!,
-                    mobileNumber: user?.mobile,
-                    orderId: viewModel.billSummary!.merchantTransactionId!,
-                  );
-                }
-              } catch (e) {
-                debugPrint("Transaction Error: $e");
-              }
-            },
-            text: "Proceed To Pay",
-          ),
-        ));
+      ),
+    );
   }
 
-  Widget _buildBillRowWidget({
+  Widget _buildBillRow({
     required String label,
     required String price,
-    Color? color,
-    FontWeight? fontWeight,
-    double? labelFontSize, // Allow custom font size for label
-    double? priceFontSize, // Allow custom font size for price
+    Color? priceColor,
+    bool isBold = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          AppTextWidget(
-            text: label,
-            fontSize: labelFontSize ?? 12, // Default size if not provided
-            color: color,
-            fontWeight: fontWeight,
+          Text(
+            label,
+            style: GoogleFonts.montserrat(
+              fontSize: isBold ? 15.sp : 13.sp,
+              color: isBold ? Colors.white : AppColor.premiumTextSecondary,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+            ),
           ),
-          AppTextWidget(
-            text: price,
-            fontSize: priceFontSize ?? 12, // Default size if not provided
-            color: color,
-            fontWeight: fontWeight,
+          Text(
+            price,
+            style: GoogleFonts.montserrat(
+              fontSize: isBold ? 18.sp : 14.sp,
+              color: priceColor ?? Colors.white,
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
         ],
       ),

@@ -4,7 +4,9 @@ import 'package:creatoo/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:creatoo/features/card/widgets/activate_card.dart'; // Import ActivateCardModal
-
+import 'package:creatoo/features/card/view_model/card_view_model.dart';
+import 'package:provider/provider.dart';
+import 'package:creatoo/features/card/data/activate_card_request_model.dart';
 // App Colors - Same as your original
 // class AppColor {
 //   static const Color white = Colors.white;
@@ -443,7 +445,7 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
   // Activate Button for inactive card
   Widget _buildActivateButton(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showActivateCardModal(context),
+      onTap: () => _activateCardDirectly(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
@@ -480,32 +482,9 @@ class _PremiumGlassCardState extends State<PremiumGlassCard>
     );
   }
 
-  void _showActivateCardModal(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: '',
-      barrierColor: AppColor.transparent,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Material(
-          color: AppColor.black.withOpacity(0.5), // Full-screen translucent background
-          child: ScaleTransition(
-            scale: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            ),
-            child: FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOut,
-              ),
-              child: const QRScannerScreen(),
-            ),
-          ),
-        );
-      },
-    );
+  void _activateCardDirectly(BuildContext context) {
+    final cardViewModel = Provider.of<CardViewModel>(context, listen: false);
+    cardViewModel.autoAssignCard(context);
   }
 }
 

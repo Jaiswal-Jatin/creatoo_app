@@ -1,11 +1,9 @@
 import 'dart:math';
-
+import 'dart:ui';
 import 'package:confetti/confetti.dart';
 import 'package:creatoo/core.dart';
-import 'package:creatoo/widgets/app_text_widget.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-
 import '../../../widgets/app_dotted_divider.dart';
 import '../view_model/bill_payment_view_model.dart';
 
@@ -24,23 +22,7 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView> {
   @override
   void initState() {
     super.initState();
-
     viewModel = Provider.of<BillPaymentViewModel>(context, listen: false);
-
-    // Debug print to check data availability
-    debugPrint('\n\n=== PaymentSuccessView initState Debug ===');
-    debugPrint('📊 ViewModel Data Check:');
-    debugPrint('🔹 paymentData: ${viewModel.paymentData}');
-    debugPrint('🔹 paymentData.totalBill: ${viewModel.paymentData?.totalBill}');
-    debugPrint('🔹 paymentData.finalBill: ${viewModel.paymentData?.finalBill}');
-    debugPrint('🔹 paymentData.receiptName: ${viewModel.paymentData?.receiptName}');
-    debugPrint('🔹 paymentData.createdAt: ${viewModel.paymentData?.createdAt}');
-    debugPrint('🔹 businessName: ${viewModel.businessName}');
-    debugPrint('🔹 businessId: ${viewModel.businessId}');
-    debugPrint('🔹 orderId: ${viewModel.orderId}');
-    debugPrint('🔹 businessDescription: ${viewModel.businessDescription}');
-    debugPrint('🔹 businessDescription.businessName: ${viewModel.businessDescription?.businessName}');
-    debugPrint('==================================================\n');
 
     _confettiControllerTopLeft = ConfettiController(duration: const Duration(seconds: 3));
     _confettiControllerTopRight = ConfettiController(duration: const Duration(seconds: 3));
@@ -58,261 +40,305 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView> {
     super.dispose();
   }
 
-  double _getFontSize(double amount) {
-    return amount.toStringAsFixed(2).length > 7 ? 40.0 : 55.0;
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+      onWillPop: () async => false,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle(
+        value: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
         child: AppScaffold(
+          useGradient: true,
+          backgroundColor: AppColor.premiumBg,
           isSafe: false,
-          // floatingActionButton: FloatingActionButton(onPressed: () {
-          //   _confettiControllerTopLeft.play();
-          //   _confettiControllerTopRight.play();
-          // }),
           body: Stack(
             children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF9759C4), Color(0xFF6A359C)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+              // Background Glows
+              Positioned(
+                top: -150.h,
+                left: -100.w,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+                  child: Container(
+                    width: 400.w,
+                    height: 400.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColor.premiumAccent.withOpacity(0.2),
                     ),
                   ),
                 ),
               ),
+              Positioned(
+                bottom: -100.h,
+                right: -50.w,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+                  child: Container(
+                    width: 350.w,
+                    height: 350.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.greenAccent.withOpacity(0.15),
+                    ),
+                  ),
+                ),
+              ),
+
               Positioned.fill(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: ClipPath(
-                          clipper: TicketClipper(),
-                          child: Container(
-                            height: 600,
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                            decoration: const BoxDecoration(
-                              color: Colors.white, // Keep ticket white
-                              borderRadius: BorderRadius.all(Radius.circular(12)),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const AppTextWidget(text: "Total Bill", fontSize: 16, fontWeight: FontWeight.w600),
-                                const SizedBox(height: 15),
-                                AppTextWidget(
-                                  text: "₹${viewModel.paymentData?.totalBill?.toStringAsFixed(2) ?? '0.00'}",
-                                  fontSize: _getFontSize((viewModel.paymentData?.totalBill ?? 0.0).toDouble()),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                const SizedBox(height: 8),
-                                Padding(padding: const EdgeInsets.only(left: 50.0, right: 50), child: DottedDivider()),
-                                const SizedBox(height: 8),
-                                const AppTextWidget(
-                                  text: "You Paid",
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                const SizedBox(height: 6),
-                                AppTextWidget(
-                                  text: "₹${viewModel.paymentData?.finalBill?.toStringAsFixed(2) ?? '0.00'}",
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                const SizedBox(height: 26),
-                                const DottedDivider(
-                                  height: 3,
-                                  color: AppColor.kPrimary,
-                                  dashWidth: 18,
-                                  dashSpace: 10,
-                                ),
-                                const SizedBox(height: 25),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Center(
-                                      child: AppTextWidget(
-                                        text: (viewModel.businessDescription?.businessName != null || viewModel.businessName != null)
-                                            ? "Paid to  ${viewModel.businessName}"
-                                            : '---',
-                                        fontSize: 14,
-                                        maxLines: 4,
-                                        fontWeight: FontWeight.w600,
-                                        textOverflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                      ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 20.h),
+                        // Success Icon with Glow
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.greenAccent.withOpacity(0.1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.greenAccent.withOpacity(0.2),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.greenAccent,
+                            size: 64.sp,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          "Payment Successful!",
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: 30.h),
+                        
+                        // Ticket Section
+                        Expanded(
+                          child: Center(
+                            child: ClipPath(
+                              clipper: TicketClipper(),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.1),
+                                      width: 1.5,
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 25),
-                                _buildReceiptDetail(
-                                  "Date",
-                                  viewModel.paymentData?.createdAt != null
-                                      ? "${viewModel.paymentData!.createdAt!.day}/${viewModel.paymentData!.createdAt!.month}/${viewModel.paymentData!.createdAt!.year}"
-                                      : '---',
-                                ),
-                                const SizedBox(height: 20),
-                                _buildReceiptDetail(
-                                  "Time",
-                                  viewModel.paymentData?.createdAt != null
-                                      ? DateFormat('hh:mm a').format(viewModel.paymentData!.createdAt!)
-                                      : '---',
-                                ),
-                                const SizedBox(height: 20),
-                                _buildReceiptDetail("Receipt Name", viewModel.paymentData?.receiptName ?? ''),
-                                const SizedBox(height: 20),
-                                _buildReceiptDetail("Order Id: ", viewModel.orderId ?? ''),
-                                const SizedBox(height: 35),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 12.0, right: 12),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  ),
+                                  child: Column(
                                     children: [
-                                      const AppTextWidget(
-                                        text: 'Note: ',
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 11,
-                                      ),
-                                      Flexible(
-                                        child: AppTextWidget(
-                                          text: "You can check the transaction in wallet tab",
+                                      SizedBox(height: 30.h),
+                                      Text(
+                                        "Total Bill Amount",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14.sp,
+                                          color: AppColor.premiumTextSecondary,
                                           fontWeight: FontWeight.w500,
-                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8.h),
+                                      Text(
+                                        "₹${viewModel.paymentData?.totalBill?.toStringAsFixed(2) ?? '0.00'}",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 36.sp,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      SizedBox(height: 16.h),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 60.w),
+                                        child: const DottedDivider(color: Colors.white24),
+                                      ),
+                                      SizedBox(height: 16.h),
+                                      Text(
+                                        "You Paid",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12.sp,
+                                          color: AppColor.premiumTextSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        "₹${viewModel.paymentData?.finalBill?.toStringAsFixed(2) ?? '0.00'}",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 20.sp,
+                                          color: Colors.greenAccent,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      SizedBox(height: 30.h),
+                                      // Dash line for ticket cutout
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                        child: Row(
+                                          children: List.generate(
+                                            20,
+                                            (index) => Expanded(
+                                              child: Container(
+                                                height: 1.5,
+                                                margin: EdgeInsets.symmetric(horizontal: 2.w),
+                                                color: Colors.white.withOpacity(0.1),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 30.h),
+                                      
+                                      // Transaction Details
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          padding: EdgeInsets.symmetric(horizontal: 24.w),
+                                          child: Column(
+                                            children: [
+                                              _buildDetailRow("Paid to", viewModel.businessName ?? '---', isTitle: true),
+                                              _buildDetailRow("Date", viewModel.paymentData?.createdAt != null
+                                                  ? DateFormat('dd MMM yyyy').format(viewModel.paymentData!.createdAt!)
+                                                  : '---'),
+                                              _buildDetailRow("Time", viewModel.paymentData?.createdAt != null
+                                                  ? DateFormat('hh:mm a').format(viewModel.paymentData!.createdAt!)
+                                                  : '---'),
+                                              _buildDetailRow("Receipt Name", viewModel.paymentData?.receiptName ?? '---'),
+                                              _buildDetailRow("Order ID", viewModel.orderId ?? '---'),
+                                              SizedBox(height: 24.h),
+                                              
+                                              // Info Note
+                                              Container(
+                                                padding: EdgeInsets.all(12.w),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.03),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.info_outline_rounded, color: AppColor.premiumAccent, size: 16.sp),
+                                                    SizedBox(width: 8.w),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "You can check this transaction in your wallet",
+                                                        style: GoogleFonts.montserrat(
+                                                          fontSize: 10.sp,
+                                                          color: AppColor.premiumTextSecondary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      
+                                      // Bottom Message
+                                      Padding(
+                                        padding: EdgeInsets.all(24.w),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "Tap next to complete review and earn points!",
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 11.sp,
+                                                color: Colors.white.withOpacity(0.6),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            SizedBox(height: 16.h),
+                                            AppButton(
+                                              text: "Next",
+                                              onTap: () async {
+                                                Navigator.pop(context);
+                                                Navigator.pushNamed(
+                                                  context, 
+                                                  RoutesName.feedbackScreen, 
+                                                  arguments: {
+                                                    'businessName': viewModel.businessName,
+                                                    'businessId': viewModel.businessId,
+                                                    'orderId': viewModel.orderId,
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Spacer(),
-                                Center(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Flexible(
-                                        child: AppTextWidget(
-                                          text: "To earn points tap on next and complete the review",
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 11,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                AppRoundButton(
-                                  title: 'Next',
-                                  borderRadius: 16,
-                                  onPress: () async {
-                                    try {
-                                      // First pop the current screen
-                                      if (Navigator.canPop(context)) {
-                                        Navigator.pop(context);
-                                      }
-                                      // Then navigate to feedback screen
-                                      if (context.mounted) {
-                                        Navigator.pushNamed(
-                                          context, 
-                                          RoutesName.feedbackScreen, 
-                                          arguments: {
-                                            'businessName': viewModel.businessName,
-                                            'businessId': viewModel.businessId,
-                                            'orderId': viewModel.orderId,
-                                          },
-                                        );
-                                      }
-                                    } catch (e) {
-                                      debugPrint('Navigation error: $e');
-                                      // Fallback to home if navigation fails
-                                      if (context.mounted) {
-                                        Navigator.pushNamedAndRemoveUntil(
-                                          context,
-                                          RoutesName.homeView,
-                                          (route) => false,
-                                        );
-                                      }
-                                    }
-                                  },
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 30.h,
-                left: 40.w,
-                child: IgnorePointer(
-                  child: ConfettiWidget(
-                    confettiController: _confettiControllerTopLeft,
-                    blastDirectionality: BlastDirectionality.directional,
-                    blastDirection: -pi / 4,
-                    shouldLoop: false,
-                    emissionFrequency: 0.03,
-                    numberOfParticles: 10,
-                    maxBlastForce: 10,
-                    minBlastForce: 5,
-                    gravity: 0.3,
                   ),
                 ),
               ),
-              Positioned(
-                top: 30.h,
-                right: 40.w,
-                child: IgnorePointer(
-                  child: ConfettiWidget(
-                    confettiController: _confettiControllerTopRight,
-                    blastDirectionality: BlastDirectionality.explosive,
-                    // blastDirectionality: BlastDirectionality.directional,
-                    // blastDirection: -3 * pi / 4,
-                    shouldLoop: false,
-                    emissionFrequency: 0.03,
-                    numberOfParticles: 10,
-                    maxBlastForce: 10,
-                    minBlastForce: 5,
-                    gravity: 0.3,
-                  ),
+
+              // Confetti
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiControllerTopLeft,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                  colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
                 ),
               ),
             ],
           ),
-          // floatingActionButton: FloatingActionButton(onPressed: () {
-          //   _confettiController.play();
-          // }),
         ),
       ),
     );
   }
 
-  Widget _buildReceiptDetail(String title, String value) {
+  Widget _buildDetailRow(String label, String value, {bool isTitle = false}) {
     return Padding(
-      padding: const EdgeInsets.only(right: 12, left: 12),
+      padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-              )),
-          Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 12)),
+          Text(
+            label,
+            style: GoogleFonts.montserrat(
+              fontSize: 12.sp,
+              color: AppColor.premiumTextSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(width: 20.w),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.montserrat(
+                fontSize: 12.sp,
+                color: Colors.white,
+                fontWeight: isTitle ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -322,37 +348,38 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView> {
 class TicketClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    double cutoutRadius = 30.0;
-    double cutPosition = size.height * 0.35;
-
+    double cutoutRadius = 20.0;
+    double cutoutY = size.height * 0.35;
     Path path = Path();
 
-    // Top left cut
-    path.moveTo(0, cutoutRadius);
-    path.quadraticBezierTo(cutoutRadius, cutoutRadius, cutoutRadius, 0);
-    path.lineTo(size.width - cutoutRadius, 0);
+    path.moveTo(24, 0);
+    path.lineTo(size.width - 24, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, 24);
+    
+    // Right side cutout
+    path.lineTo(size.width, cutoutY - cutoutRadius);
+    path.arcToPoint(
+      Offset(size.width, cutoutY + cutoutRadius),
+      radius: Radius.circular(cutoutRadius),
+      clockwise: false,
+    );
+    
+    path.lineTo(size.width, size.height - 24);
+    path.quadraticBezierTo(size.width, size.height, size.width - 24, size.height);
+    path.lineTo(24, size.height);
+    path.quadraticBezierTo(0, size.height, 0, size.height - 24);
+    
+    // Left side cutout
+    path.lineTo(0, cutoutY + cutoutRadius);
+    path.arcToPoint(
+      Offset(0, cutoutY - cutoutRadius),
+      radius: Radius.circular(cutoutRadius),
+      clockwise: false,
+    );
+    
+    path.lineTo(0, 24);
+    path.quadraticBezierTo(0, 0, 24, 0);
 
-    // Top right cut
-    path.quadraticBezierTo(size.width - cutoutRadius, cutoutRadius, size.width, cutoutRadius);
-    path.lineTo(size.width, cutPosition - cutoutRadius);
-
-    // Right side cut (Shifted slightly upward)
-    path.quadraticBezierTo(size.width - cutoutRadius, cutPosition, size.width, cutPosition + cutoutRadius);
-    path.lineTo(size.width, size.height - cutoutRadius);
-
-    // Bottom right cut
-    path.quadraticBezierTo(size.width - cutoutRadius, size.height - cutoutRadius, size.width - cutoutRadius, size.height);
-    path.lineTo(cutoutRadius, size.height);
-
-    // Bottom left cut
-    path.quadraticBezierTo(cutoutRadius, size.height - cutoutRadius, 0, size.height - cutoutRadius);
-    path.lineTo(0, cutPosition + cutoutRadius);
-
-    // Left side cut (Shifted slightly upward)
-    path.quadraticBezierTo(cutoutRadius, cutPosition, 0, cutPosition - cutoutRadius);
-    path.lineTo(0, cutoutRadius);
-
-    path.close();
     return path;
   }
 

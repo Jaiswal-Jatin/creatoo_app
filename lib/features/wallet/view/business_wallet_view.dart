@@ -1,9 +1,6 @@
-import '../../../core.dart';
-import '../widgets/business_creatoo_tabview.dart';
-import 'wallet_view.dart';
-
-final GlobalKey<_BusinessWalletViewState> businessWalletKey =
-    GlobalKey<_BusinessWalletViewState>();
+import 'package:creatoo/core.dart';
+import '../widgets/business_booking_transactions_tab.dart';
+import '../widgets/business_wallet_payments_tab.dart';
 
 class BusinessWalletView extends StatefulWidget {
   final int index;
@@ -16,22 +13,17 @@ class BusinessWalletView extends StatefulWidget {
 class _BusinessWalletViewState extends State<BusinessWalletView> {
   int _currentSelection = 0;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    WalletView(),
-    BusinessCreatooTabview(),
+  final List<Widget> _widgetOptions = const <Widget>[
+    BusinessWalletPaymentsTab(),
+    BusinessBookingTransactionsTab(),
   ];
+
+  final List<String> _tabLabels = ["UPI Transactions", "Booking Transactions"];
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      if (widget.index == 1) _currentSelection = widget.index;
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    if (widget.index < _tabLabels.length) _currentSelection = widget.index;
   }
 
   void changeIndex(int index) {
@@ -43,36 +35,75 @@ class _BusinessWalletViewState extends State<BusinessWalletView> {
   @override
   void didUpdateWidget(covariant BusinessWalletView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update _currentSelection if widget.index changes
     if (oldWidget.index != widget.index) {
-      setState(() {
-        _currentSelection = widget.index;
-      });
+      if (widget.index < _tabLabels.length) _currentSelection = widget.index;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
-            child: AppSlidingSegmentController(
-              name1: "Earning",
-              name2: "Creatoo",
-              index: widget.index,
-              onTap: (index) {
-                setState(() {
-                  _currentSelection = index;
-                });
-              },
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextWidget(
+                    text: "CREATOO",
+                    fontSize: 11.sp,
+                    color: AppColor.premiumAccent,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
+                  SizedBox(height: 2.h),
+                  AppTextWidget(
+                    text: "My Wallet",
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w800,
+                    color: AppColor.premiumTextPrimary,
+                  ),
+                  SizedBox(height: 16.h),
+                  Row(
+                    children: List.generate(_tabLabels.length, (i) {
+                      final sel = _currentSelection == i;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _currentSelection = i),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4.w),
+                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                            decoration: BoxDecoration(
+                              color: sel ? AppColor.premiumAccent.withOpacity(0.2) : Colors.white.withOpacity(0.03),
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: sel ? AppColor.premiumAccent : Colors.white.withOpacity(0.08),
+                              ),
+                            ),
+                            child: Text(
+                              _tabLabels[i],
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: sel ? AppColor.premiumAccent : Colors.white60,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 10.h),
-          Expanded(child: _widgetOptions[_currentSelection]),
-        ],
+            SizedBox(height: 10.h),
+            Expanded(child: _widgetOptions[_currentSelection]),
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:creatoo/features/bill_payment/model/payment_status_response.dart
 import 'package:creatoo/features/bill_payment/model/process_payment_status_response.dart';
 import 'package:creatoo/features/business_profile/model/business_description_response_model.dart';
 import 'package:creatoo/features/business_profile/model/set_discount_response_model.dart';
+import 'package:creatoo/features/business_profile/model/turf_options_model.dart';
 import 'package:creatoo/features/category/model/BusinessTypeResponseModel.dart';
 import 'package:http/http.dart' as http;
 
@@ -64,12 +65,16 @@ class Parser {
     String message = "";
 
     try {
-      if (response.statusCode != HttpStatus.ok) {
-        dynamic body = jsonDecode(response.body);
-        if (body["status"] == HttpStatus.unauthorized) {
-          message = (body["error"] ?? "").toString();
-        } else {
-          message = (body["message"] ?? "").toString();
+      if (response.statusCode != HttpStatus.ok && response.statusCode != HttpStatus.created) {
+        try {
+          dynamic body = jsonDecode(response.body);
+          if (body["status"] == HttpStatus.unauthorized) {
+            message = (body["error"] ?? "").toString();
+          } else {
+            message = (body["message"] ?? "").toString();
+          }
+        } catch (_) {
+          message = "HTTP Error ${response.statusCode}: ${response.reasonPhrase ?? 'Unknown Error'}";
         }
       }
 
@@ -443,5 +448,9 @@ class Parser {
 
   static Future<SubscriptionResponse> parseSubscriptionResponse(String responseBody) async {
     return SubscriptionResponse.fromJson(json.decode(responseBody));
+  }
+
+  static Future<TurfOptionsModel> parseTurfOptionsResponse(String responseBody) async {
+    return TurfOptionsModel.fromJson(json.decode(responseBody));
   }
 }

@@ -47,6 +47,11 @@ class NetworkApiService extends BaseApiServices {
       http.Response response = await http.post(Uri.parse(apiURL), body: requestBody, headers: headers, encoding: Encoding.getByName('utf-8')).timeout(apiTimeOut);
       log('statusCode : ${response.statusCode}');
       log('response body : ${response.body}');
+      if (apiURL.contains('create-advance-order')) {
+        print('🌐 RAW HTTP [create-advance-order] statusCode: ${response.statusCode}');
+        final bodyPreview = response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body;
+        print('🌐 RAW HTTP body: $bodyPreview');
+      }
       return Parser.parseResponse(response, callback);
     } on SocketException {
       return Left(NoInternetError());

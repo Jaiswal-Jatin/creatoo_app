@@ -80,6 +80,9 @@ class BusinessDescription {
   int? totalReviews;
   List<Review>? reviews;
   List<BusinessAssociate>? associates;
+  String? upiId;
+  String? businessCategory;
+  Map<String, dynamic>? categoryAttributes;
 
   BusinessDescription({
     this.id,
@@ -116,6 +119,9 @@ class BusinessDescription {
     this.totalReviews,
     this.reviews,
     this.associates,
+    this.upiId,
+    this.businessCategory,
+    this.categoryAttributes,
   });
 
   factory BusinessDescription.fromRawJson(String str) =>
@@ -169,7 +175,7 @@ class BusinessDescription {
     }
 
     return BusinessDescription(
-      id: json["id"],
+      id: _toInt(json["id"]),
       businessFullname: json["business_fullname"],
       businessName: json["business_name"],
       businessEmail: json["business_email"],
@@ -181,7 +187,7 @@ class BusinessDescription {
       gstNumber: json["gst_number"],
       businessDesignation: json["business_designation"],
       isActive: _toInt(json["is_active"]),
-      roleId: json["role_id"],
+      roleId: _toInt(json["role_id"]),
       timeFrom: json["time_from"],
       timeTo: json["time_to"],
       pricingRangeText: json["pricing_range_text"],
@@ -195,17 +201,24 @@ class BusinessDescription {
       businessImage3: json["business_image_3"],
       businessImage4: json["business_image_4"],
       businessImage5: json["business_image_5"],
-      setFirstTimeDiscount: json["set_first_time_discount"],
-      setRegularDiscount: json["set_regular_discount"],
-      minOrder: json["min_order"],
-      setExpiry: json["set_expiry"],
+      setFirstTimeDiscount: _toInt(json["set_first_time_discount"]),
+      setRegularDiscount: _toInt(json["set_regular_discount"]),
+      minOrder: _toInt(json["min_order"]),
+      setExpiry: _toInt(json["set_expiry"]),
       averageRatings: avgRatings,
-      totalReviews: json["total_reviews"],
+      totalReviews: _toInt(json["total_reviews"]),
       reviews: reviewsList,
       associates: json["associates"] == null
           ? []
           : List<BusinessAssociate>.from(
               json["associates"]!.map((x) => BusinessAssociate.fromJson(x))),
+      upiId: json["upi_id"],
+      businessCategory: json["business_category"],
+      categoryAttributes: json["category_attributes"] != null
+          ? (json["category_attributes"] is String
+              ? jsonDecode(json["category_attributes"]) as Map<String, dynamic>
+              : Map<String, dynamic>.from(json["category_attributes"]))
+          : null,
     );
   }
 
@@ -248,6 +261,9 @@ class BusinessDescription {
         "associates": associates == null
             ? []
             : List<dynamic>.from(associates!.map((x) => x.toJson())),
+        "upi_id": upiId,
+        "business_category": businessCategory,
+        "category_attributes": categoryAttributes,
       };
 }
 
@@ -269,11 +285,11 @@ class Review {
   });
 
   factory Review.fromJson(Map<String, dynamic> json) => Review(
-        experience: json["experience"],
-        expectation: json["expectation"],
-        recommend: json["recommend"],
-        fairMoney: json["fair_money"],
-        interaction: json["interaction"],
+        experience: _toInt(json["experience"]),
+        expectation: _toInt(json["expectation"]),
+        recommend: _toInt(json["recommend"]),
+        fairMoney: _toInt(json["fair_money"]),
+        interaction: _toInt(json["interaction"]),
         reviewText: json["review_text"],
       );
 
@@ -349,7 +365,7 @@ class BusinessAssociate {
 
   factory BusinessAssociate.fromJson(Map<String, dynamic> json) =>
       BusinessAssociate(
-        id: json["id"],
+        id: _toInt(json["id"]),
         businessName: json["business_name"],
         businessFullname: json["business_fullname"],
         businessImage: json["business_image"],

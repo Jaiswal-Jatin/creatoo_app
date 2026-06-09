@@ -4,8 +4,11 @@ import 'dart:convert';
 int? _toInt(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;
+  if (value is double) return value.toInt();
   if (value is bool) return value ? 1 : 0;
-  if (value is String) return int.tryParse(value);
+  if (value is String) {
+    return int.tryParse(value) ?? double.tryParse(value)?.toInt();
+  }
   return null;
 }
 
@@ -278,6 +281,9 @@ class Business {
   int? set_first_time_discount;
   int? set_regular_discount;
   String? discount_type;
+  String? businessCategory;
+  Map<String, dynamic>? categoryAttributes;
+  num? averageRating;
 
   Business(
       {this.id,
@@ -293,7 +299,10 @@ class Business {
       this.roleId,
       this.set_first_time_discount,
       this.set_regular_discount,
-      this.discount_type});
+      this.discount_type,
+      this.businessCategory,
+      this.categoryAttributes,
+      this.averageRating});
 
   factory Business.fromRawJson(String str) =>
       Business.fromJson(json.decode(str));
@@ -312,9 +321,21 @@ class Business {
         isActive: _toInt(json["is_active"]),
         isTop: _toInt(json["is_top"]),
         roleId: json["role_id"],
-        set_first_time_discount: json["set_first_time_discount"],
-        set_regular_discount: json["set_regular_discount"],
+        set_first_time_discount: _toInt(json["set_first_time_discount"]),
+        set_regular_discount: _toInt(json["set_regular_discount"]),
         discount_type: json["discount_type"],
+        businessCategory: json["business_category"],
+        averageRating: json["average_rating"] != null
+            ? (json["average_rating"] is String
+                ? double.tryParse(json["average_rating"])
+                : (json["average_rating"] as num))
+            : null,
+        categoryAttributes: json["category_attributes"] != null 
+
+            ? (json["category_attributes"] is String 
+                ? jsonDecode(json["category_attributes"]) 
+                : json["category_attributes"]) 
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -332,6 +353,9 @@ class Business {
         "set_first_time_discount": set_first_time_discount,
         "set_regular_discount": set_regular_discount,
         "discount_type": discount_type,
+        "business_category": businessCategory,
+        "average_rating": averageRating,
+        "category_attributes": categoryAttributes != null ? json.encode(categoryAttributes) : null,
       };
 }
 

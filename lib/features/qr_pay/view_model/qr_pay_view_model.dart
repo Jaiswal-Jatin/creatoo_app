@@ -19,7 +19,8 @@ class QrPayViewModel with ChangeNotifier {
   TextEditingController? amountController = TextEditingController();
   TextEditingController pointsController = TextEditingController();
 
-  ApiResponse<ViewProfileResponseModel> businessResponse = ApiResponse.loading();
+  ApiResponse<ViewProfileResponseModel> businessResponse =
+      ApiResponse.loading();
 
   void setResponse(ApiResponse<ViewProfileResponseModel> response) {
     businessResponse = response;
@@ -29,7 +30,8 @@ class QrPayViewModel with ChangeNotifier {
     return (value * 100).round() / 100;
   }
 
-  ApiResponse<ValidatePointsResponseModel> validateResponse = ApiResponse.initial();
+  ApiResponse<ValidatePointsResponseModel> validateResponse =
+      ApiResponse.initial();
 
   void setValidateResponse(ApiResponse<ValidatePointsResponseModel> response) {
     validateResponse = response;
@@ -125,12 +127,37 @@ class QrPayViewModel with ChangeNotifier {
         transferredPoints = r.data?.transferredPoints;
         isLoading = false;
         notifyListeners();
-        Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.payTransferSuccessView);
+        Navigator.pushNamed(
+            navigatorKey.currentContext!, RoutesName.payTransferSuccessView);
       },
     );
   }
 
   void notify() {
     notifyListeners();
+  }
+
+  Future<Map<String, dynamic>?> fetchBusinessByUpiId(String upiId) async {
+    isLoading = true;
+    notifyListeners();
+    var response = await _myRepo.getBusinessByUpiIdApi(upiId: upiId);
+    isLoading = false;
+    notifyListeners();
+
+    return response.fold(
+      (l) {
+        Utils.toastMessage(l.message.toString());
+        return null;
+      },
+      (r) {
+        if (r['status'] == true && r['data'] != null) {
+          return r['data'] as Map<String, dynamic>;
+        } else {
+          Utils.toastMessage(r['message'] ??
+              'This UPI ID is not registered with any business.');
+          return null;
+        }
+      },
+    );
   }
 }

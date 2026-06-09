@@ -80,9 +80,13 @@ class SettingsViewModel with ChangeNotifier {
       },
       (r) async {
         userData?.gst = r.data!.gstNumber;
-        userData?.image = r.data!.businessImage!;
-        userData?.name = r.data!.businessFullname!;
+        if (r.data!.businessImage != null) {
+          userData?.image = r.data!.businessImage!;
+        }
+        userData?.name = r.data!.businessName ?? r.data!.businessFullname ?? '';
         userData?.mobile = r.data!.businessMobile!;
+        userData?.email = r.data!.businessEmail;
+        userData?.address = r.data!.businessArea ?? r.data!.businessAddress;
       },
     );
     isLoading = false;
@@ -133,12 +137,13 @@ class SettingsViewModel with ChangeNotifier {
           }
         },
       ),
-      // if (roleId == Constants.creatorUser)
+      // if (roleId == Constants.businessUser)
       //   SettingsItem(
-      //     iconData: Icons.account_balance_wallet_outlined,
-      //     name: "Bank Details",
+      //     iconData: Icons.list_alt_rounded,
+      //     name: "Services",
       //     onTap: () async {
-      //       Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.paymentDetail);
+      //       await Navigator.pushNamed(navigatorKey.currentContext!, RoutesName.servicesManagement);
+      //       await fetchUserProfileDetails();
       //     },
       //   ),
       SettingsItem(
@@ -189,30 +194,30 @@ class SettingsViewModel with ChangeNotifier {
           await init();
         },
       ),
-      SettingsItem(
-        iconData: Icons.currency_rupee_rounded,
-        name: "Pricing",
-        onTap: () async {
-          await AppDialog.showPricingDialog();
-        },
-      ),
+      // SettingsItem(
+      //   iconData: Icons.currency_rupee_rounded,
+      //   name: "Pricing",
+      //   onTap: () async {
+      //     await AppDialog.showPricingDialog();
+      //   },
+      // ),
       // ProfileItem(
       //     iconData: Icons.contact_phone_outlined,
       //     name: "Contact Us",
       //     onTap: () async {}),
-      SettingsItem(
-        iconData: Icons.manage_accounts_outlined,
-        name: "Delete My Account",
-        onTap: () async {
-          bool? confirm = await AppDialog.showConfirmationDialog(content: "Are you sure you want to delete your account?");
-          if (confirm == null) {
-            return Utils.toastMessage("Something went wrong, Please try again!");
-          }
-          if (confirm) {
-            await inactiveUser();
-          }
-        },
-      ),
+      // SettingsItem(
+      //   iconData: Icons.manage_accounts_outlined,
+      //   name: "Delete My Account",
+      //   onTap: () async {
+      //     bool? confirm = await AppDialog.showConfirmationDialog(content: "Are you sure you want to delete your account?");
+      //     if (confirm == null) {
+      //       return Utils.toastMessage("Something went wrong, Please try again!");
+      //     }
+      //     if (confirm) {
+      //       await inactiveUser();
+      //     }
+      //   },
+      // ),
       SettingsItem(
         iconData: Icons.logout,
         name: "Logout",

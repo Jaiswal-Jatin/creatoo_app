@@ -27,6 +27,8 @@ class _CreatooTabViewState extends State<CreatooTabView> {
         return 'Earned';
       case "debit":
         return 'Redeemed';
+      case "expired":
+        return 'Expired';
       default:
         return 'Unknown';
     }
@@ -38,6 +40,8 @@ class _CreatooTabViewState extends State<CreatooTabView> {
         return 'CREDITED';
       case "debit":
         return 'DEBITED';
+      case "expired":
+        return 'EXPIRED';
       default:
         return 'Unknown';
     }
@@ -248,6 +252,33 @@ class _CreatooTabViewState extends State<CreatooTabView> {
               viewModel.changeExpandedStates(expanded, index);
             },
             children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+                child: Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: AppColor.premiumAccent.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColor.premiumAccent.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColor.premiumAccent, size: 16.h),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Text(
+                          "Points expire gradually: 25% after 15 days, 50% after 30 days, 100% after 60 days. Valid only at this business.",
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColor.premiumTextSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               ListView.separated(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
@@ -274,7 +305,9 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                       label2: (status == "Earned")
                           ? ((transaction.expiryDate != null)
                               ? _formatDate(transaction.expiryDate.toString())
-                              : '')
+                              : (transaction.createdAt != null
+                                  ? _formatDate(transaction.createdAt.toString())
+                                  : ''))
                           : ((transaction.createdAt != null)
                               ? _formatDate(transaction.createdAt.toString())
                               : ''),
@@ -306,7 +339,8 @@ class _CreatooTabViewState extends State<CreatooTabView> {
     final isEarned = label1 == 'Earned';
     final isRejected = label1 == 'Rejected';
     final isPending = label1 == 'Pending';
-
+    final isExpiredTx = label1 == 'Expired';
+ 
     String formattedExpirationDate = '';
     if (isEarned && value3 != null && value3 > 0) {
       final DateTime currentDate = DateTime.now();
@@ -314,12 +348,12 @@ class _CreatooTabViewState extends State<CreatooTabView> {
       formattedExpirationDate =
           DateFormat('dd-MMM-yyyy').format(expirationDate);
     }
-
+ 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
       width: double.maxFinite,
       decoration: BoxDecoration(
-        color: (isEarned && label3 == "Expired")
+        color: (isExpiredTx || (isEarned && label3 == "Expired"))
             ? AppColor.lightGrey.withOpacity(0.4)
             : AppColor.transparent,
       ),
@@ -334,7 +368,9 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColor.premiumAccent.withOpacity(0.15),
+                  color: isExpiredTx
+                      ? AppColor.darkRed.withOpacity(0.15)
+                      : AppColor.premiumAccent.withOpacity(0.15),
                 ),
                 child: Icon(
                   isEarned
@@ -343,7 +379,9 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                           ? Icons.close
                           : isPending
                               ? Icons.access_time
-                              : Icons.arrow_upward,
+                              : isExpiredTx
+                                  ? Icons.history
+                                  : Icons.arrow_upward,
                   color: isEarned
                       ? (isExpired)
                           ? AppColor.premiumTextSecondary
@@ -352,7 +390,9 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                           ? AppColor.darkRed
                           : isPending
                               ? AppColor.mangoYellow
-                              : AppColor.premiumAccent,
+                              : isExpiredTx
+                                  ? AppColor.darkRed
+                                  : AppColor.premiumAccent,
                   size: 24,
                 ),
               ),
@@ -368,24 +408,28 @@ class _CreatooTabViewState extends State<CreatooTabView> {
                             style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: AppColor.premiumTextSecondary)),
+                                color: isExpiredTx
+                                    ? AppColor.darkRed
+                                    : AppColor.premiumTextSecondary)),
                         Text(value1,
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColor.premiumTextPrimary)),
+                                color: isExpiredTx
+                                    ? AppColor.darkRed
+                                    : AppColor.premiumTextPrimary)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 5),
-                        if (isEarned)
-                          Text("Valid Through:",
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColor.premiumTextSecondary)),
+                        // if (isEarned)
+                        //   Text("Valid Through:",
+                        //       style: TextStyle(
+                        //           fontSize: 12,
+                        //           fontWeight: FontWeight.w500,
+                        //           color: AppColor.premiumTextSecondary)),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

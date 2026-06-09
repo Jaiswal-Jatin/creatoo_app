@@ -16,7 +16,7 @@ class Constants {
       " will be \nbased on your Bill or product.\n\nFor redeem of cash please share "
       "the screenshot on email: ";
   static const String walletInfo =
-      "Note : Track all your earned and redeemed loyalty points in one place! Unlock even more rewards and enjoy your loyalty with Creatoo on every bill. Exclusive benefits await with every transaction.";
+      "Note: Track all your earned loyalty points here! Points are business-specific and can only be redeemed at the business where they were earned (1 Point = ₹1 discount on future bills). Earning is 10% of bill amount.\n\n⚠️ Expiry Rule:\n• After 15 Days: 25% of points expire\n• After 30 Days: 50% of points expire\n• After 60 Days: 100% of points expire";
   static const String walletInfo2 =
       "Note: The balance displayed reflects your final settled amount after applicable discounts. Creatoo covers all additional costs, including payment gateway fees, ensuring that you receive the exact payout shown. No additional charges are deducted from your earnings.";
   static const String offlineMode = "In this mode, the influencer visits your venue to create and share promotional content on-site.";

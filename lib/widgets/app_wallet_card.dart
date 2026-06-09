@@ -33,7 +33,7 @@ class AppWalletCard extends StatelessWidget {
           ),
           SizedBox(height: 10.h),
           Text(
-            "Your ${(roleId == Constants.businessUser) ? "Settlement" : "Points"}",
+            "Your ${(roleId == Constants.businessUser) ? "Earnings" : "Points"}",
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w400,

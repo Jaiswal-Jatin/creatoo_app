@@ -5,7 +5,7 @@ class AppUrl {
 
  
   // static const String host = 'http://dev-api.creatoo.co.in';
-  
+  // static const String host = 'http://192.168.1.3:3000';
   static const String host = 'https://api.creatoo.co.in';
 
 
@@ -31,6 +31,7 @@ class AppUrl {
   static const String registerCreator = '$baseUrl/auth/creatorRegister'; //done
   static const String logout = '$baseUrl/auth/logout'; //done
   static const String inactiveUser = '$baseUrl/users/inactiveUser';
+  static const String getBusinessByUpiId = '$baseUrl/users/getBusinessByUpiId';
 
   // User Profile Endpoints
   static const String viewProfile = '$baseUrl/auth/viewProfile'; //done
@@ -48,6 +49,9 @@ class AppUrl {
   static const String searchUser = '$baseUrl/users/search'; //done
   static const String searchBusinessAndCreator =
       '$baseUrl/users/searchBusinessAndCreator'; //done
+  static const String turfOptions = '$baseUrl/turf/options';
+  static const String getMyExclusiveOffers = '$baseUrl/exclusiveOffer/by-business';
+  static const String saveExclusiveOffers = '$baseUrl/exclusiveOffer/save';
   static const String getBusinessListApi = '$baseUrl/business/getBusinessList';
   static const String getBusinessTypes =
       '$baseUrl/businessType/getBusinessTypes'; //done
@@ -55,6 +59,8 @@ class AppUrl {
 //card api
   static const String cardCheck = '$baseUrl/cards/check'; // done
   static const String activeCard = '$baseUrl/cards/verify'; //done
+  static const String autoAssignCard = '$baseUrl/cards/auto-assign'; //done
+  static const String todayVisitCount = '$baseUrl/visit/today-count'; //done
   static const String visitByRestaurant = '$baseUrl/visit/user-history'; //done
   static const String userTierHistory =
       '$baseUrl/visit/user-all-history'; //done
@@ -62,6 +68,8 @@ class AppUrl {
   static const String Addvisit = '$baseUrl/visit'; //done
   static const String busineesHistory =
       '$baseUrl/visit/history?mobile=true'; //done
+  static const String businessVisits =
+      '$baseUrl/visit/business-visits';
 
   // Post & Opportunities Endpoints
   static const String viewMyPost = '$baseUrl/post/myPost';
@@ -90,6 +98,17 @@ class AppUrl {
       '$baseUrl/payment/paymentReleaseToCreator';
   static const String postPaymentStatus = '$baseUrl/post/postPaymentStatus';
   static const String paymentStatus = '$baseUrl/payment/paymentSuccess';
+
+  // Manual Payment Endpoints
+  static const String manualCalculatePayment = '$baseUrl/manual-payment/calculatePayment';
+  static const String manualSubmitPayment = '$baseUrl/manual-payment/submitPayment';
+  static const String manualConfirmPayment = '$baseUrl/manual-payment/confirmPayment';
+  static const String manualCancelPayment = '$baseUrl/manual-payment/cancelPayment';
+  static const String manualBusinessPayments = '$baseUrl/manual-payment/businessPayments';
+  static const String manualBusinessPaymentStats = '$baseUrl/manual-payment/businessPaymentStats';
+  static const String manualBusinessWalletPayments = '$baseUrl/manual-payment/businessWalletPayments';
+  static const String manualUserPayments = '$baseUrl/manual-payment/userPayments';
+  static const String manualSetPaymentPaidAt = '$baseUrl/manual-payment/setPaymentPaidAt';
 
   // Creatoo Points Endpoints
   static const String creatooPointsTransactionApi =
@@ -137,6 +156,22 @@ class AppUrl {
 
 //version verify
   static const String versionVerify = '$baseUrl/version/verify';
+
+  // Settlement / Wallet Endpoints
+  static const String businessWalletSummary = '$baseUrl/settlement/business/summary';
+  static const String businessWalletTransactions = '$baseUrl/settlement/business/transactions';
+  static const String businessSettlementHistory = '$baseUrl/settlement/business/history';
+  static const String businessAdvancePayments = '$baseUrl/settlement/business/advance-payments';
+
+  // Booking Endpoints
+  static const String createBookingRequest = '$baseUrl/booking/create';
+  static const String bookingUserHistory = '$baseUrl/booking/user-history';
+  static const String businessBookingList = '$baseUrl/booking/business-list';
+  static const String updateBookingStatus = '$baseUrl/booking/update-status';
+  static const String cancelBooking = '$baseUrl/booking/cancel';
+  static const String createAdvanceOrder = '$baseUrl/booking/create-advance-order';
+  static const String verifyAdvancePayment = '$baseUrl/booking/verify-advance-payment';
+  static const String advancePaymentSettings = '$baseUrl/setting/advance-payment/public';
 
   //Exclusive Offers
   static const String getExclusiveOffers =

@@ -4,7 +4,8 @@ import 'package:creatoo/features/register_creator/model/register_creator_respons
 import 'package:creatoo/features/register_creator/repository/register_creator_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
 import 'package:creatoo/utils/deep_link_service.dart';
-
+import 'package:creatoo/features/card/view_model/card_view_model.dart';
+import 'package:provider/provider.dart';
 class RegisterCreatorViewModel with ChangeNotifier {
   final RegisterCreatorRepository _myRepo = RegisterCreatorRepository();
   late RegisterCreator model;
@@ -52,6 +53,14 @@ class RegisterCreatorViewModel with ChangeNotifier {
         Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!,
             RoutesName.homePage, (route) => false);
         await saveUserData(r.data!);
+
+        // Auto-assign a card to the new creator
+        try {
+          final cardViewModel = Provider.of<CardViewModel>(navigatorKey.currentContext!, listen: false);
+          await cardViewModel.autoAssignCard(navigatorKey.currentContext!);
+        } catch (e) {
+          debugPrint("Card auto-assign failed: $e");
+        }
 
         // Check for pending deep link navigation after successful registration
         await Future.delayed(const Duration(milliseconds: 500));

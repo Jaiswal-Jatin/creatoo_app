@@ -32,4 +32,13 @@ class QrPayRepository {
       body: body,
     );
   }
+
+  Future<Either<AppException, Map<String, dynamic>>> getBusinessByUpiIdApi({required String upiId}) async {
+    return await _apiServices.callPostAPI(
+      AppUrl.getBusinessByUpiId,
+      {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      (response) => jsonDecode(response) as Map<String, dynamic>,
+      body: {'upi_id': upiId},
+    );
+  }
 }

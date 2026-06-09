@@ -134,6 +134,39 @@ class CardViewModel with ChangeNotifier {
     }
   }
 
+  Future<bool> autoAssignCard(BuildContext context) async {
+    try {
+      final result = await _myRepo.autoAssignCardApi();
+      return result.fold((error) {
+        showStatusDialog(context, DialogStatus.error, error.message, title: "Card Assignment Failed");
+        return false;
+      }, (response) {
+        if (response['status'] == true) {
+          setCardData(CardData(
+            cardNumber: response['card_number']?.toString(),
+            name: response['name']?.toString(),
+            status: 'active',
+          ));
+          setActivatedCard(ActivateCardResponseModel(
+            status: true,
+            message: response['message']?.toString(),
+            cardNumber: response['card_number'],
+            name: response['name']?.toString(),
+            userId: null,
+          ));
+          showStatusDialog(context, DialogStatus.success, response['message']?.toString() ?? "Card assigned", title: "Card Activated");
+          return true;
+        } else {
+          showStatusDialog(context, DialogStatus.error, response['message']?.toString() ?? "Failed", title: "Card Assignment Failed");
+          return false;
+        }
+      });
+    } catch (e) {
+      showStatusDialog(context, DialogStatus.error, e.toString(), title: "Error");
+      return false;
+    }
+  }
+
   Future<void> getUserTierHistory() async {
     try {
       // Only update if not already loading to avoid unnecessary rebuilds

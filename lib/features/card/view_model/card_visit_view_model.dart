@@ -52,8 +52,8 @@ class CardVisitViewModel with ChangeNotifier {
       final apiResponse = visitResponse.data!;
       List<Visit> allVisits = [];
 
-      if (apiResponse.restaurants != null) {
-        for (var restaurant in apiResponse.restaurants!) {
+      if (apiResponse.businesses != null) {
+        for (var restaurant in apiResponse.businesses!) {
           if (restaurant.visits != null && restaurant.visits!.isNotEmpty) {
             for (var visit in restaurant.visits!) {
               allVisits.add(

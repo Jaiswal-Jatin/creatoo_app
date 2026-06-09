@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/feedback/view_model/feedback_view_model.dart';
 
@@ -39,68 +41,114 @@ class _Question2State extends State<Question2> {
 
     return Stack(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 100),
-            Center(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CustomPaint(
-                    size: const Size(220, 120),
-                    painter: SemiArchPainter(
-                      gradientColors: [Colors.red, Colors.orange, Colors.yellow, Colors.lightGreen, Colors.green],
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 30.h),
+
+              // Arc Visualization Card
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: EdgeInsets.all(24.w),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CustomPaint(
+                                size: Size(240.w, 130.h),
+                                painter: SemiArchPainter(
+                                  gradientColors: [
+                                    Colors.redAccent,
+                                    Colors.orangeAccent,
+                                    Colors.yellowAccent,
+                                    Colors.lightGreenAccent,
+                                    Colors.greenAccent
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10.h,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AppTextWidget(
+                                      text: satisfactionLevels[selectedDotIndex],
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColor.premiumAccent,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    AppTextWidget(
+                                      text: "${selectedDotIndex + 1}",
+                                      fontSize: 24.sp,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        SizedBox(height: 40.h),
+                        AppTextWidget(
+                          text: "How satisfied are you with\nour service quality?",
+                          fontSize: 18.sp,
+                          textAlign: TextAlign.center,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        
+                        SizedBox(height: 32.h),
+                        
+                        CustomProgressBar(
+                          selectedIndex: selectedDotIndex,
+                          onDotTap: (index) {
+                            updateSelection(index);
+                          },
+                          progressColor: AppColor.premiumAccent,
+                          backgroundColor: Colors.white.withOpacity(0.05),
+                          selectedDotColor: Colors.black,
+                          dotColor: Colors.white30,
+                        ),
+                      ],
                     ),
                   ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 40),
-                      AppTextWidget(
-                        text: satisfactionLevels[selectedDotIndex],
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.darkRed,
-                      ),
-                      const SizedBox(height: 12),
-                      AppTextWidget(
-                        text: "${selectedDotIndex + 1}",
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColor.black,
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-            AppTextWidget(
-              text: "How satisfied are you with\n    our service quality?",
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-            ),
-            const SizedBox(height: 40),
-            CustomProgressBar(
-              selectedIndex: selectedDotIndex,
-              onDotTap: (index) {
-                updateSelection(index);
-              },
-              progressColor: AppColor.kPrimary,
-              backgroundColor: AppColor.scaffoldColor,
-              selectedDotColor: Colors.white,
-              dotColor: Colors.black,
-            ),
-          ],
+              
+              SizedBox(height: 100.h),
+            ],
+          ),
         ),
 
         // Next Button
-        NextButtonWidget(
-          onNext: () {
-            widget.onNext((selectedDotIndex + 1));
-          },
-          answer: (selectedDotIndex + 1),
+        Positioned(
+          bottom: 20.h,
+          right: 0,
+          left: 0,
+          child: NextButtonWidget(
+            onNext: () {
+              widget.onNext((selectedDotIndex + 1));
+            },
+            answer: (selectedDotIndex + 1),
+          ),
         )
       ],
     );

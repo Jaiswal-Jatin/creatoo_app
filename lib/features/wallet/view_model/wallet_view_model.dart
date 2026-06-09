@@ -77,6 +77,38 @@ class WalletViewModel with ChangeNotifier {
     return total;
   }
 
+  // Get lifetime total earnings (from API's lifetime_earnings, or fallback to sum)
+  double get lifetimeTotalEarnings {
+    final apiLifetime = walletResponse.data?.lifetimeEarnings;
+    if (apiLifetime != null && apiLifetime > 0) return apiLifetime;
+    if (walletResponse.data?.transactions == null) return 0.0;
+    double total = 0.0;
+    for (var t in walletResponse.data!.transactions!) {
+      total += t.settlementAmount ?? 0.0;
+    }
+    return total;
+  }
+
+  // Get dates with their total earnings (sorted descending)
+  List<MapEntry<DateTime, double>> get datesWithTotals {
+    final grouped = groupedTransactions;
+    final entries = grouped.entries.map((e) {
+      double total = 0.0;
+      for (var t in e.value) {
+        total += t.settlementAmount ?? 0.0;
+      }
+      return MapEntry(e.key, total);
+    }).toList();
+    entries.sort((a, b) => b.key.compareTo(a.key));
+    return entries;
+  }
+
+  // Get transactions for a specific date
+  List<Transaction> getTransactionsForDate(DateTime date) {
+    DateTime normalized = DateTime(date.year, date.month, date.day);
+    return groupedTransactions[normalized] ?? [];
+  }
+
   // Get transactions for a date range
   List<Transaction> getTransactionsForDateRange(
       DateTime startDate, DateTime endDate) {
@@ -104,8 +136,11 @@ class WalletViewModel with ChangeNotifier {
     var data = {
       "user_id": userId,
       "search": searchController.text,
-      // Always fetch all data, do not send from_date or to_date
     };
+    if (fromDate != null && toDate != null) {
+      data["from_date"] = fromDate!.toIso8601String();
+      data["to_date"] = toDate!.toIso8601String();
+    }
     var response = await _myRepo.fetchBusinessWalletTransactionsApi(data);
     response.fold(
       (l) {
