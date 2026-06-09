@@ -4,6 +4,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:creatoo/core.dart';
 import '../../user_payments/view_model/user_payments_view_model.dart';
 
+class _UpiApp {
+  final String name;
+  final String url;
+  const _UpiApp(this.name, this.url);
+}
+
 class UserPaymentSubmitScreen extends StatefulWidget {
   final int businessId;
   final String businessName;
@@ -99,17 +105,152 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
       return;
     }
 
-    final uri = Uri.parse(
-      "upi://pay?pa=${calc.upiId}&am=${calc.finalAmount.toStringAsFixed(0)}&tn=Payment+to+${widget.businessName}&cu=INR",
-    );
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (Platform.isIOS) {
+      await _showUpiAppPicker(calc);
     } else {
-      Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
+      final uri = Uri.parse(
+        "upi://pay?pa=${calc.upiId}&am=${calc.finalAmount.toStringAsFixed(0)}&tn=Payment+to+${widget.businessName}&cu=INR",
+      );
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
+      }
+      if (!mounted) return;
+      _navigateToPaymentProcessing(calc);
+    }
+  }
+
+  Future<void> _showUpiAppPicker(PaymentCalculation calc) async {
+    final upiParams =
+        "pa=${calc.upiId}"
+        "&pn=${Uri.encodeComponent(widget.businessName)}"
+        "&am=${calc.finalAmount.toStringAsFixed(0)}"
+        "&tn=Payment+to+${Uri.encodeComponent(widget.businessName)}"
+        "&cu=INR";
+
+    final upiApps = [
+      _UpiApp("Google Pay", "tez://upi/pay?$upiParams"),
+      _UpiApp("PhonePe", "phonepe://pay?$upiParams"),
+      _UpiApp("Paytm", "paytmmp://upi/pay?$upiParams"),
+      _UpiApp("CRED", "credpay://upi/pay?$upiParams"),
+      _UpiApp("BHIM", "bhim://upi/pay?$upiParams"),
+      _UpiApp("Amazon Pay", "amazonpay://upi/pay?$upiParams"),
+      _UpiApp("MobiKwik", "mobikwik://upi/pay?$upiParams"),
+      _UpiApp("Freecharge", "freecharge://upi/pay?$upiParams"),
+      _UpiApp("WhatsApp", "whatsapp://upi/pay?$upiParams"),
+      _UpiApp("PayZapp", "payzapp://upi/pay?$upiParams"),
+      _UpiApp("Navi", "navi://upi/pay?$upiParams"),
+      _UpiApp("Kiwi", "kiwi://upi/pay?$upiParams"),
+      _UpiApp("Jupiter", "jupiter://upi/pay?$upiParams"),
+      _UpiApp("SBI Yono", "sbiyono://upi/pay?$upiParams"),
+      _UpiApp("MyJio", "myjio://upi/pay?$upiParams"),
+      _UpiApp("BOB UPI", "bobupi://upi/pay?$upiParams"),
+      _UpiApp("ICICI ICash", "icici://upi/pay?$upiParams"),
+      _UpiApp("Slice", "slice-upi://upi://pay?$upiParams"),
+      _UpiApp("OMNI Card", "omnicard://upi/pay?$upiParams"),
+      _UpiApp("Shriram One", "shriramone://upi/pay?$upiParams"),
+      _UpiApp("Indus Mobile", "indusmobile://upi/pay?$upiParams"),
+    ];
+
+    final availableApps = <_UpiApp>[];
+    for (final app in upiApps) {
+      final uri = Uri.parse(app.url);
+      if (await canLaunchUrl(uri)) {
+        availableApps.add(app);
+      }
     }
 
     if (!mounted) return;
+
+    if (availableApps.isEmpty) {
+      Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
+      _navigateToPaymentProcessing(calc);
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColor.premiumCardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(25),
+          topRight: Radius.circular(25),
+        ),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Text(
+                "Pay via",
+                style: GoogleFonts.montserrat(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            ...availableApps.map(
+              (app) => GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  launchUrl(Uri.parse(app.url), mode: LaunchMode.externalApplication);
+                  _navigateToPaymentProcessing(calc);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
+                  margin: EdgeInsets.only(bottom: 8.h),
+                  decoration: BoxDecoration(
+                    color: AppColor.premiumLightCardBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40.h,
+                        height: 40.h,
+                        decoration: BoxDecoration(
+                          color: AppColor.premiumAccent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            app.name[0],
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.premiumAccent,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Text(
+                        app.name,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Spacer(),
+                      Icon(Icons.chevron_right, color: Colors.white38),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToPaymentProcessing(PaymentCalculation calc) {
     Navigator.pushReplacementNamed(context, RoutesName.paymentProcessingView, arguments: {
       'businessId': widget.businessId,
       'businessName': widget.businessName,
