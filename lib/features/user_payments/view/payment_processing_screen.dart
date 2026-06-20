@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:creatoo/core.dart';
 import 'package:creatoo/utils/routes/routes_name.dart';
 import 'package:creatoo/features/user_payments/view_model/user_payments_view_model.dart';
+import 'package:creatoo/core/services/upi_intent_service.dart';
 
 class PaymentProcessingScreen extends StatefulWidget {
   final int businessId;
@@ -14,6 +15,9 @@ class PaymentProcessingScreen extends StatefulWidget {
   final int? pointsRedeemed;
   final int? discountPercentage;
   final double? discountAmount;
+  final String transactionRef;
+  final Map<String, dynamic>? upiResponse;
+  final String? upiApp;
 
   const PaymentProcessingScreen({
     super.key,
@@ -24,6 +28,9 @@ class PaymentProcessingScreen extends StatefulWidget {
     this.pointsRedeemed,
     this.discountPercentage,
     this.discountAmount,
+    this.transactionRef = '',
+    this.upiResponse,
+    this.upiApp,
   });
 
   @override
@@ -38,10 +45,15 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
   Timer? _timer;
   bool _showCheck = false;
 
+  late String _status;
+
   @override
   void initState() {
     super.initState();
+    _status = UpiIntentService.parseStatus(widget.upiResponse?['Status']?.toString());
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(seconds: 3));
       final vm = context.read<UserPaymentsViewModel>();
       await vm.submitPayment(
         businessId: widget.businessId,
@@ -51,6 +63,10 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
         finalAmount: widget.amount,
         discountPercentage: widget.discountPercentage,
         discountAmount: widget.discountAmount,
+        transactionRef: widget.transactionRef,
+        status: _status,
+        paymentApp: widget.upiApp,
+        upiResponse: widget.upiResponse,
       );
       final pid = vm.lastPaymentId;
       if (pid != null) {
@@ -66,14 +82,14 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
     );
     _animCtrl.repeat(reverse: true);
 
-    _timer = Timer(const Duration(seconds: 15), () {
+    _timer = Timer(const Duration(seconds: 4), () {
       if (!mounted) return;
       setState(() => _showCheck = true);
       _animCtrl.stop();
       _animCtrl.reset();
       _animCtrl.forward();
       
-      Future.delayed(const Duration(seconds: 5), () {
+      Future.delayed(const Duration(seconds: 4), () {
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, RoutesName.feedbackScreen, arguments: {
           'businessName': widget.businessName,
@@ -156,20 +172,55 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                         height: 100.w,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColor.mangoYellow.withValues(alpha: 0.15),
-                          border: Border.all(color: AppColor.mangoYellow.withValues(alpha: 0.4), width: 2),
+                          color: _status == 'SUCCESS' 
+                              ? Colors.green.withValues(alpha: 0.15)
+                              : (_status == 'FAILED' || _status == 'CANCELLED')
+                                  ? Colors.red.withValues(alpha: 0.15)
+                                  : AppColor.mangoYellow.withValues(alpha: 0.15),
+                          border: Border.all(
+                            color: _status == 'SUCCESS' 
+                                ? Colors.green.withValues(alpha: 0.4)
+                                : (_status == 'FAILED' || _status == 'CANCELLED')
+                                    ? Colors.red.withValues(alpha: 0.4)
+                                    : AppColor.mangoYellow.withValues(alpha: 0.4), 
+                            width: 2
+                          ),
                         ),
-                        child: Icon(Icons.hourglass_top_rounded, color: AppColor.mangoYellow, size: 44.sp),
+                        child: Icon(
+                          _status == 'SUCCESS' 
+                              ? Icons.check_circle_rounded
+                              : (_status == 'FAILED' || _status == 'CANCELLED')
+                                  ? Icons.error_rounded
+                                  : Icons.hourglass_top_rounded, 
+                          color: _status == 'SUCCESS' 
+                              ? Colors.green
+                              : (_status == 'FAILED' || _status == 'CANCELLED')
+                                  ? Colors.red
+                                  : AppColor.mangoYellow, 
+                          size: 44.sp
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(height: 32.h),
-                  Text("Payment Pending",
+                  Text(_status == 'SUCCESS' 
+                          ? "Payment Successful" 
+                          : (_status == 'FAILED' || _status == 'CANCELLED') 
+                              ? "Payment Failed" 
+                              : "Payment Pending",
                     style: GoogleFonts.montserrat(fontSize: 22.sp, fontWeight: FontWeight.w800, color: Colors.white),
                   ),
                   SizedBox(height: 8.h),
                   Text("₹${widget.amount.toStringAsFixed(0)} to ${widget.businessName}",
-                    style: GoogleFonts.montserrat(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColor.mangoYellow),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16.sp, 
+                      fontWeight: FontWeight.w600, 
+                      color: _status == 'SUCCESS' 
+                          ? Colors.green
+                          : (_status == 'FAILED' || _status == 'CANCELLED')
+                              ? Colors.red
+                              : AppColor.mangoYellow
+                    ),
                   ),
                   SizedBox(height: 24.h),
                   Container(
@@ -185,7 +236,11 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                         Icon(Icons.stars_rounded, color: AppColor.premiumAccent, size: 28.sp),
                         SizedBox(height: 12.h),
                         Text(
-                          "The business will confirm your payment soon. Once confirmed, you will receive your loyalty points!",
+                          _status == 'SUCCESS'
+                              ? "Your payment was automatically confirmed! You've earned loyalty points."
+                              : (_status == 'FAILED' || _status == 'CANCELLED')
+                                  ? "There was an issue with your payment. Please try again."
+                                  : "The business will confirm your payment soon. Once confirmed, you will receive your loyalty points!",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(fontSize: 13.sp, color: Colors.white70, height: 1.5, fontWeight: FontWeight.w500),
                         ),

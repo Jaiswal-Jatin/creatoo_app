@@ -84,6 +84,7 @@
     </array>
     <key>LSApplicationQueriesSchemes</key>
     <array>
+        <string>gpay</string>
         <string>tez</string>
         <string>phonepe</string>
         <string>paytmmp</string>

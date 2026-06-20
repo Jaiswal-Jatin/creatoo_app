@@ -1,7 +1,10 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:creatoo/features/user_payments/repository/user_payments_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:creatoo/core.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:creatoo/core/services/upi_intent_service.dart';
 import '../../user_payments/view_model/user_payments_view_model.dart';
 
 class _UpiApp {
@@ -97,6 +100,32 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
     }
   }
 
+  /// Generate a unique transaction reference for UPI payments.
+  /// Format: CR{timestamp}{random4}  e.g., CR17123456789011234
+  String _generateTransactionRef() {
+    final r = Random().nextInt(9999).toString().padLeft(4, '0');
+    return 'CR${DateTime.now().millisecondsSinceEpoch}$r';
+  }
+
+  /// Build a proper UPI URI string for both QR codes and intents.
+  /// [tr] = Transaction Reference (required by GPay/PhonePe, optional for CRED)
+  /// [tn] = Transaction Note (helps user identify the payment)
+  String _buildUpiString(PaymentCalculation calc, {String? transactionRef}) {
+    final tr = transactionRef ?? _generateTransactionRef();
+    
+    // Manually construct the URI to ensure spaces are encoded as '%20'
+    // Dart's Uri(queryParameters: ...) encodes spaces as '+' which breaks GPay and PhonePe.
+    final String pa = calc.upiId;
+    final String pn = Uri.encodeComponent(widget.businessName);
+    final String am = calc.finalAmount.toStringAsFixed(2);
+    final String tn = Uri.encodeComponent('Payment to ${widget.businessName}');
+    final String cu = 'INR';
+    
+    // Default merchant code '0000' is added because when 'tr' is present,
+    // Google Pay and PhonePe assume it's a P2M transaction and require 'mc'.
+    return 'upi://pay?pa=$pa&pn=$pn&am=$am&tr=$tr&tn=$tn&cu=$cu&mc=0000';
+  }
+
   Future<void> _payViaUpi() async {
     final vm = context.read<UserPaymentsViewModel>();
     final calc = vm.calculation;
@@ -105,52 +134,186 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
       return;
     }
 
+    final tr = _generateTransactionRef();
+
     if (Platform.isIOS) {
-      await _showUpiAppPicker(calc);
+      await _showUpiAppPicker(calc, transactionRef: tr);
     } else {
-      final uri = Uri.parse(
-        "upi://pay?pa=${calc.upiId}&am=${calc.finalAmount.toStringAsFixed(0)}&tn=Payment+to+${widget.businessName}&cu=INR",
-      );
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
-      }
+      final upiString = _buildUpiString(calc, transactionRef: tr);
+      debugPrint('UPI URL: $upiString');
+      
+      final response = await UpiIntentService.launchUpi(upiString);
+      
       if (!mounted) return;
-      _navigateToPaymentProcessing(calc);
+      _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: response, upiApp: 'Generic Android Chooser');
     }
   }
 
-  Future<void> _showUpiAppPicker(PaymentCalculation calc) async {
-    final upiParams =
-        "pa=${calc.upiId}"
-        "&pn=${Uri.encodeComponent(widget.businessName)}"
-        "&am=${calc.finalAmount.toStringAsFixed(0)}"
-        "&tn=Payment+to+${Uri.encodeComponent(widget.businessName)}"
-        "&cu=INR";
+  /// Show a QR code bottom sheet so user can scan from ANY UPI app.
+  void _showQrCode(PaymentCalculation calc) {
+    final tr = _generateTransactionRef();
+    final upiString = _buildUpiString(calc, transactionRef: tr);
+    debugPrint('UPI QR Data: $upiString');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 40.h),
+        decoration: BoxDecoration(
+          color: AppColor.premiumCardBg,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              "Scan QR to Pay",
+              style: GoogleFonts.montserrat(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              "Open any UPI app → Scan QR → Pay",
+              style: GoogleFonts.montserrat(
+                fontSize: 12.sp,
+                color: Colors.white54,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            // QR Code container with white background
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.premiumAccent.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: upiString,
+                version: QrVersions.auto,
+                size: 220.w,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Color(0xFF1A1A2E),
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            // Amount display
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: AppColor.premiumAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColor.premiumAccent.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.currency_rupee_rounded, color: AppColor.premiumAccent, size: 18.sp),
+                  SizedBox(width: 4.w),
+                  Text(
+                    calc.finalAmount.toStringAsFixed(0),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColor.premiumAccent,
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "to ${widget.businessName}",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12.sp,
+                      color: Colors.white60,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            // Supported apps info
+            Text(
+              "Works with GPay, PhonePe, Paytm, CRED & all UPI apps",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 10.sp,
+                color: Colors.white30,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            // Done button — navigate to processing
+            AppButton(
+              onTap: () {
+                Navigator.pop(ctx);
+                _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: {'Status': 'APP_CLOSED_OR_NO_RESPONSE'}, upiApp: 'QR Code Fallback');
+              },
+              text: "I've completed the payment",
+              icon: Icons.check_circle_rounded,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showUpiAppPicker(PaymentCalculation calc, {String? transactionRef}) async {
+    final tr = transactionRef ?? _generateTransactionRef();
+    final baseUriString = _buildUpiString(calc, transactionRef: tr);
+    // Extract query directly from the string to preserve '%20' encoding
+    final encodedQuery = baseUriString.contains('?') ? baseUriString.split('?').last : '';
 
     final upiApps = [
-      _UpiApp("Google Pay", "tez://upi/pay?$upiParams"),
-      _UpiApp("PhonePe", "phonepe://pay?$upiParams"),
-      _UpiApp("Paytm", "paytmmp://upi/pay?$upiParams"),
-      _UpiApp("CRED", "credpay://upi/pay?$upiParams"),
-      _UpiApp("BHIM", "bhim://upi/pay?$upiParams"),
-      _UpiApp("Amazon Pay", "amazonpay://upi/pay?$upiParams"),
-      _UpiApp("MobiKwik", "mobikwik://upi/pay?$upiParams"),
-      _UpiApp("Freecharge", "freecharge://upi/pay?$upiParams"),
-      _UpiApp("WhatsApp", "whatsapp://upi/pay?$upiParams"),
-      _UpiApp("PayZapp", "payzapp://upi/pay?$upiParams"),
-      _UpiApp("Navi", "navi://upi/pay?$upiParams"),
-      _UpiApp("Kiwi", "kiwi://upi/pay?$upiParams"),
-      _UpiApp("Jupiter", "jupiter://upi/pay?$upiParams"),
-      _UpiApp("SBI Yono", "sbiyono://upi/pay?$upiParams"),
-      _UpiApp("MyJio", "myjio://upi/pay?$upiParams"),
-      _UpiApp("BOB UPI", "bobupi://upi/pay?$upiParams"),
-      _UpiApp("ICICI ICash", "icici://upi/pay?$upiParams"),
-      _UpiApp("Slice", "slice-upi://upi://pay?$upiParams"),
-      _UpiApp("OMNI Card", "omnicard://upi/pay?$upiParams"),
-      _UpiApp("Shriram One", "shriramone://upi/pay?$upiParams"),
-      _UpiApp("Indus Mobile", "indusmobile://upi/pay?$upiParams"),
+      _UpiApp("Google Pay", "gpay://upi/pay?$encodedQuery"), // Newer scheme
+      _UpiApp("GPay (Old)", "tez://upi/pay?$encodedQuery"),
+      _UpiApp("PhonePe", "phonepe://pay?$encodedQuery"),
+      _UpiApp("Paytm", "paytmmp://upi/pay?$encodedQuery"),
+      _UpiApp("CRED", "credpay://upi/pay?$encodedQuery"),
+      _UpiApp("BHIM", "bhim://upi/pay?$encodedQuery"),
+      _UpiApp("Amazon Pay", "amazonpay://upi/pay?$encodedQuery"),
+      _UpiApp("MobiKwik", "mobikwik://upi/pay?$encodedQuery"),
+      _UpiApp("Freecharge", "freecharge://upi/pay?$encodedQuery"),
+      _UpiApp("WhatsApp", "whatsapp://upi/pay?$encodedQuery"),
+      _UpiApp("PayZapp", "payzapp://upi/pay?$encodedQuery"),
+      _UpiApp("Navi", "navi://upi/pay?$encodedQuery"),
+      _UpiApp("Kiwi", "kiwi://upi/pay?$encodedQuery"),
+      _UpiApp("Jupiter", "jupiter://upi/pay?$encodedQuery"),
+      _UpiApp("SBI Yono", "sbiyono://upi/pay?$encodedQuery"),
+      _UpiApp("MyJio", "myjio://upi/pay?$encodedQuery"),
+      _UpiApp("BOB UPI", "bobupi://upi/pay?$encodedQuery"),
+      _UpiApp("ICICI ICash", "icici://upi/pay?$encodedQuery"),
+      _UpiApp("Slice", "slice-upi://upi/pay?$encodedQuery"),
+      _UpiApp("OMNI Card", "omnicard://upi/pay?$encodedQuery"),
+      _UpiApp("Shriram One", "shriramone://upi/pay?$encodedQuery"),
+      _UpiApp("Indus Mobile", "indusmobile://upi/pay?$encodedQuery"),
     ];
 
     final availableApps = <_UpiApp>[];
@@ -165,7 +328,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
 
     if (availableApps.isEmpty) {
       Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
-      _navigateToPaymentProcessing(calc);
+      _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: {'Status': 'APP_CLOSED_OR_NO_RESPONSE'}, upiApp: 'None');
       return;
     }
 
@@ -196,10 +359,11 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
             SizedBox(height: 20.h),
             ...availableApps.map(
               (app) => GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(ctx);
-                  launchUrl(Uri.parse(app.url), mode: LaunchMode.externalApplication);
-                  _navigateToPaymentProcessing(calc);
+                  final response = await UpiIntentService.launchUpi(app.url);
+                  if (!mounted) return;
+                  _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: response, upiApp: app.name);
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
@@ -250,7 +414,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
     );
   }
 
-  void _navigateToPaymentProcessing(PaymentCalculation calc) {
+  void _navigateToPaymentProcessing(PaymentCalculation calc, {String? transactionRef, Map<String, dynamic>? upiResponse, String? upiApp}) {
     Navigator.pushReplacementNamed(context, RoutesName.paymentProcessingView, arguments: {
       'businessId': widget.businessId,
       'businessName': widget.businessName,
@@ -259,6 +423,9 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
       'pointsRedeemed': calc.pointsRedeemed,
       'discountPercentage': calc.discountPercentage,
       'discountAmount': calc.discountAmount,
+      'transactionRef': transactionRef ?? '',
+      'upiResponse': upiResponse,
+      'upiApp': upiApp,
     });
   }
 
@@ -768,25 +935,56 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
       SizedBox(height: 16.h),
 
       Text(
-        "You will be redirected to your UPI app to complete the payment",
+        "Choose how you want to pay",
         textAlign: TextAlign.center,
-        style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white38),
+        style: GoogleFonts.montserrat(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.white54),
       ),
-      SizedBox(height: 8.h),
+      SizedBox(height: 16.h),
 
-      Text(
-        "Amount is pre-filled and cannot be edited in the UPI app",
-        textAlign: TextAlign.center,
-        style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white24),
-      ),
-      SizedBox(height: 24.h),
+      // // Primary: QR Code option (works with ALL UPI apps guaranteed)
+      // Consumer<UserPaymentsViewModel>(
+      //   builder: (context, vm, _) => AppButton(
+      //     onTap: (vm.isLoading || calc.upiId.isEmpty) ? null : () => _showQrCode(calc),
+      //     text: "Scan QR to Pay ₹${calc.finalAmount.toStringAsFixed(0)}",
+      //     icon: Icons.qr_code_2_rounded,
+      //     buttonColor: const Color(0xFF4CAF50),
+      //   ),
+      // ),
+      // SizedBox(height: 8.h),
+      // Text(
+      //   "✅ Works with GPay, PhonePe, Paytm & all UPI apps",
+      //   textAlign: TextAlign.center,
+      //   style: GoogleFonts.montserrat(fontSize: 10.sp, color: const Color(0xFF4CAF50).withValues(alpha: 0.7)),
+      // ),
+      // SizedBox(height: 16.h),
 
+      // Divider with "or"
+      // Row(
+      //   children: [
+      //     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
+      //     Padding(
+      //       padding: EdgeInsets.symmetric(horizontal: 12.w),
+      //       child: Text("or", style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white24)),
+      //     ),
+      //     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
+      //   ],
+      // ),
+      // SizedBox(height: 16.h),
+
+      // Secondary: Direct UPI App intent
       Consumer<UserPaymentsViewModel>(
         builder: (context, vm, _) => AppButton(
           onTap: (vm.isLoading || calc.upiId.isEmpty) ? null : _payViaUpi,
-          text: vm.isLoading ? "Processing..." : "Pay ₹${calc.finalAmount.toStringAsFixed(0)} via UPI",
-          icon: vm.isLoading ? null : Icons.payments_rounded,
+          text: vm.isLoading ? "Processing..." : "Open UPI App directly",
+          icon: vm.isLoading ? null : Icons.open_in_new_rounded,
+          buttonColor: AppColor.premiumAccent.withValues(alpha: 0.8),
         ),
+      ),
+      SizedBox(height: 6.h),
+      Text(
+        "May not work on some UPI apps due to security restrictions",
+        textAlign: TextAlign.center,
+        style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white24),
       ),
     ];
   }

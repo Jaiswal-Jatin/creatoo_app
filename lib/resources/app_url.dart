@@ -5,8 +5,8 @@ class AppUrl {
 
  
   // static const String host = 'http://dev-api.creatoo.co.in';
-  // static const String host = 'http://192.168.1.3:3000';
-  static const String host = 'https://api.creatoo.co.in';
+  static const String host = 'http://192.168.29.40:3000';
+  // static const String host = 'https://api.creatoo.co.in';
 
 
 

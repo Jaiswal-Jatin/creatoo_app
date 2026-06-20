@@ -382,6 +382,9 @@ class Routes {
             pointsRedeemed: args['pointsRedeemed'] as int?,
             discountPercentage: args['discountPercentage'] as int?,
             discountAmount: args['discountAmount'] as double?,
+            transactionRef: args['transactionRef'] as String? ?? '',
+            upiResponse: args['upiResponse'] as Map<String, dynamic>?,
+            upiApp: args['upiApp'] as String?,
           ),
         );
 

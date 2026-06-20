@@ -11,8 +11,10 @@ class QrCodeGenerator {
 
   /// Generate UPI QR code data string
   /// When scanned by any UPI app, it opens a payment screen with pre-filled details.
-  static String generateUpiQrData(String upiId, String businessName) {
-    return 'upi://pay?pa=$upiId&pn=${Uri.encodeComponent(businessName)}&cu=INR';
+  /// [transactionRef] is required by GPay/PhonePe; omitting it causes payment failures.
+  static String generateUpiQrData(String upiId, String businessName, {String? transactionRef}) {
+    final tr = transactionRef ?? 'CR${DateTime.now().millisecondsSinceEpoch}';
+    return 'upi://pay?pa=$upiId&pn=${Uri.encodeComponent(businessName)}&tr=$tr&tn=Payment%20to%20${Uri.encodeComponent(businessName)}&cu=INR';
   }
 
   /// Generate QR code widget for a business

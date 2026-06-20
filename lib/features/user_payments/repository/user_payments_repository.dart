@@ -160,6 +160,10 @@ class UserPaymentsRepository {
     required double finalAmount,
     int? discountPercentage,
     double? discountAmount,
+    String transactionRef = '',
+    String status = 'PENDING',
+    String? paymentApp,
+    Map<String, dynamic>? upiResponse,
   }) async {
     try {
       Map<String, String> headers = {
@@ -175,6 +179,11 @@ class UserPaymentsRepository {
       };
       if (discountPercentage != null) body['discount_percentage'] = discountPercentage;
       if (discountAmount != null) body['discount_amount'] = discountAmount;
+      if (transactionRef.isNotEmpty) body['transaction_ref'] = transactionRef;
+      body['status'] = status;
+      if (paymentApp != null) body['payment_app'] = paymentApp;
+      if (upiResponse != null) body['payment_response'] = upiResponse;
+
       dynamic response = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
         AppUrl.manualSubmitPayment,
         headers,

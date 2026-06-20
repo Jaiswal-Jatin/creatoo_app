@@ -102,6 +102,10 @@ class UserPaymentsViewModel extends ChangeNotifier {
     required double finalAmount,
     int? discountPercentage,
     double? discountAmount,
+    String transactionRef = '',
+    String status = 'PENDING',
+    String? paymentApp,
+    Map<String, dynamic>? upiResponse,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -113,6 +117,10 @@ class UserPaymentsViewModel extends ChangeNotifier {
       finalAmount: finalAmount,
       discountPercentage: discountPercentage,
       discountAmount: discountAmount,
+      transactionRef: transactionRef,
+      status: status,
+      paymentApp: paymentApp,
+      upiResponse: upiResponse,
     );
     final success = result.fold((error) {
       _error = error.message;
