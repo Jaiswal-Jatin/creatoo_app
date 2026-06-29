@@ -17,11 +17,15 @@ class BusinessPaymentStatsResponse {
 class BusinessPaymentStatsData {
   final double dailyTotal;
   final double monthlyTotal;
+  final double dailyBookingTotal;
+  final double monthlyBookingTotal;
   final List<ManualPayment> recentPayments;
 
   BusinessPaymentStatsData({
     required this.dailyTotal,
     required this.monthlyTotal,
+    required this.dailyBookingTotal,
+    required this.monthlyBookingTotal,
     required this.recentPayments,
   });
 
@@ -29,6 +33,8 @@ class BusinessPaymentStatsData {
     return BusinessPaymentStatsData(
       dailyTotal: (json['daily_total'] ?? 0).toDouble(),
       monthlyTotal: (json['monthly_total'] ?? 0).toDouble(),
+      dailyBookingTotal: (json['daily_booking_total'] ?? 0).toDouble(),
+      monthlyBookingTotal: (json['monthly_booking_total'] ?? 0).toDouble(),
       recentPayments: (json['recent_payments'] as List<dynamic>?)
               ?.map((e) => ManualPayment.fromJson(e))
               .toList() ??

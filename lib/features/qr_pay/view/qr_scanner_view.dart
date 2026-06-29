@@ -398,11 +398,34 @@ class _QrScannerViewState extends State<QrScannerView>
     // 2. Otherwise, check if it's a standard Creatoo QR
     if (_validateAndExtractData(qrCodeData)) {
       isScanned = true;
-      Navigator.pushReplacementNamed(
-        context,
-        RoutesName.proceedToCart,
-        arguments: viewModel.businessId,
+      _scannerController.stop();
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       );
+
+      await viewModel.getBusinessData();
+
+      if (mounted) Navigator.of(context).pop();
+
+      if (viewModel.businessData != null && mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          RoutesName.userPaymentSubmitView,
+          arguments: {
+            'businessId': viewModel.businessId,
+            'businessName': viewModel.businessData!.businessName ?? 'Business',
+            'businessImage': viewModel.businessData!.businessImage,
+          },
+        );
+      } else {
+        isScanned = false;
+        _scannerController.start();
+      }
     } else {
       await _showInvalidScanDialog();
     }

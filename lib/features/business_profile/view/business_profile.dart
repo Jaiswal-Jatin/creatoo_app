@@ -125,7 +125,7 @@ class _BusinessProfileViewState extends State<BusinessProfileView> {
                     _buildDiscountSection(item),
                     SizedBox(height: 16.h),
                     AppButton(
-                      onTap: () => Navigator.pushNamed(context, RoutesName.businessQrView, arguments: {'businessId': item.id ?? 0, 'businessName': item.businessName ?? 'Business', 'upiId': item.upiId}),
+                      onTap: () => Navigator.pushNamed(context, RoutesName.businessQrView, arguments: {'businessId': item.id ?? 0, 'businessName': item.businessName ?? 'Business'}),
                       text: "Business QR Code", isIconEnabled: true, icon: Icons.qr_code_rounded,
                     ),
                     SizedBox(height: 40.h),

@@ -16,6 +16,10 @@ class QrPayViewModel with ChangeNotifier {
   bool isLoading = false;
   double percentageAmount = 0.0;
 
+  int signupBonusPoints = 0;
+  bool isFirstVisit = false;
+  String signupBonusMessage = '';
+
   TextEditingController? amountController = TextEditingController();
   TextEditingController pointsController = TextEditingController();
 
@@ -39,7 +43,38 @@ class QrPayViewModel with ChangeNotifier {
 
   init() async {
     creatooBalance = 0;
-    // await getBusinessData();
+  }
+
+  Future<void> fetchBusinessBonusInfo() async {
+    try {
+      final response = await _myRepo.getBusinessBonusInfo(
+        body: {
+          "user_id": int.parse('$userId'),
+          "business_id": businessId,
+        },
+      );
+      response.fold(
+        (error) {
+          signupBonusPoints = 0;
+          isFirstVisit = false;
+          signupBonusMessage = '';
+        },
+        (data) {
+          isFirstVisit = data['data']['is_first_visit'] ?? false;
+          signupBonusPoints = data['data']['signup_bonus_points'] ?? 0;
+          if (isFirstVisit && signupBonusPoints > 0) {
+            signupBonusMessage = "Signup Bonus: $signupBonusPoints points for this business!";
+          } else {
+            signupBonusMessage = '';
+          }
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      signupBonusPoints = 0;
+      isFirstVisit = false;
+      signupBonusMessage = '';
+    }
   }
 
   Future<bool> getBusinessData() async {

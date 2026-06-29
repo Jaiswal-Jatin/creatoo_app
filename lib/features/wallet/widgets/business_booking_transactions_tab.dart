@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../model/settlement_response_model.dart';
 import '../view_model/settlement_view_model.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class BusinessBookingTransactionsTab extends StatefulWidget {
   const BusinessBookingTransactionsTab({super.key});
@@ -14,12 +13,7 @@ class BusinessBookingTransactionsTab extends StatefulWidget {
 }
 
 class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransactionsTab> {
-  DateTime? _selectedDate;
-  DateTime _focusedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
   final Set<String> _expandedDates = {};
-  bool _isCalendarExpanded = false;
-  int _settlementFilter = 0; // 0 = All, 1 = Unsettled, 2 = Settled
 
   @override
   void initState() {
@@ -28,6 +22,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
       final vm = context.read<SettlementViewModel>();
       vm.fetchSummary();
       vm.fetchTransactions();
+      vm.fetchCombinedSettlement();
     });
   }
 
@@ -49,262 +44,23 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
     final summary = vm.summary;
     final txns = vm.transactions;
 
-    final allTxns = txns;
-    final unsettledTxns = txns.where((t) => t.settlementStatus == 'pending').toList();
-    final settledTxns = txns.where((t) => t.settlementStatus == 'settled').toList();
-    final displayTxns = _settlementFilter == 0 ? allTxns
-        : _settlementFilter == 1 ? unsettledTxns
-        : settledTxns;
-
-    final settledAmount = displayTxns.where((t) => t.settlementStatus == 'settled').fold<double>(0, (sum, t) => sum + t.amount);
-    final unsettledAmount = displayTxns.where((t) => t.settlementStatus == 'pending').fold<double>(0, (sum, t) => sum + t.amount);
-
-    final transactionDates = txns
-        .map((t) => DateFormat('yyyy-MM-dd').format(t.createdAt))
-        .toSet();
-
-    String dateText = "All Time";
-    if (_selectedDate != null) {
-      dateText = DateFormat('dd MMM yyyy').format(_selectedDate!);
-    }
+    final totalAmount = summary?.totalAmount ?? 0;
+    final unsettledAmount = vm.combinedSettlement?.bookingPending ?? 0;
 
     return Container(
       margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildEarningCard(settledAmount, unsettledAmount, dateText, vm, transactionDates),
+          _buildEarningCard(totalAmount, unsettledAmount),
           SizedBox(height: 16.h),
-          _buildSubFilter(txns.length, unsettledTxns.length, settledTxns.length),
-          SizedBox(height: 12.h),
-          _buildTransactionsHeader(vm),
-          SizedBox(height: 10.h),
-          Expanded(child: _buildTransactionList(vm, displayTxns)),
+          Expanded(child: _buildTransactionList(vm, txns)),
         ],
       ),
     );
   }
 
-  void _showCalendarDialog(SettlementViewModel vm, Set<String> transactionDates) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: "CalendarDialog",
-      barrierColor: Colors.black.withOpacity(0.7),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (dialogContext, anim1, anim2) {
-        return Center(
-          child: Material(
-            color: Colors.transparent,
-            child: StatefulBuilder(
-              builder: (dialogContext, setStateDialog) {
-                return Container(
-                  margin: EdgeInsets.all(24.w),
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColor.premiumCardBg,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Select Date",
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close_rounded, color: Colors.white60, size: 20.sp),
-                            onPressed: () => Navigator.pop(dialogContext),
-                          ),
-                        ],
-                      ),
-                      const Divider(color: Colors.white10),
-                      SizedBox(height: 8.h),
-                      TableCalendar(
-                        firstDay: DateTime.utc(2024, 1, 1),
-                        lastDay: DateTime.now().add(const Duration(days: 365)),
-                        focusedDay: _focusedDay,
-                        calendarFormat: _calendarFormat,
-                        selectedDayPredicate: (day) {
-                          return isSameDay(_selectedDate, day);
-                        },
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            if (isSameDay(_selectedDate, selectedDay)) {
-                              _selectedDate = null;
-                              vm.fetchTransactions();
-                            } else {
-                              _selectedDate = selectedDay;
-                              final fromStr = DateFormat('yyyy-MM-dd').format(selectedDay);
-                              vm.fetchTransactions(
-                                fromDate: fromStr,
-                                toDate: fromStr,
-                              );
-                            }
-                            _focusedDay = focusedDay;
-                          });
-                          setStateDialog(() {});
-                          Navigator.pop(dialogContext);
-                        },
-                        onFormatChanged: (format) {
-                          setState(() {
-                            _calendarFormat = format;
-                          });
-                          setStateDialog(() {});
-                        },
-                        onPageChanged: (focusedDay) {
-                          setState(() {
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        calendarStyle: CalendarStyle(
-                          defaultTextStyle: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11.sp),
-                          weekendTextStyle: GoogleFonts.montserrat(color: Colors.redAccent.withOpacity(0.8), fontSize: 11.sp),
-                          outsideTextStyle: GoogleFonts.montserrat(color: Colors.white24, fontSize: 11.sp),
-                          todayDecoration: BoxDecoration(
-                            color: AppColor.premiumAccent.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          todayTextStyle: GoogleFonts.montserrat(color: AppColor.premiumAccent, fontWeight: FontWeight.bold, fontSize: 11.sp),
-                          selectedDecoration: const BoxDecoration(
-                            color: AppColor.premiumAccent,
-                            shape: BoxShape.circle,
-                          ),
-                          selectedTextStyle: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.sp),
-                        ),
-                        headerStyle: HeaderStyle(
-                          titleCentered: true,
-                          titleTextStyle: GoogleFonts.montserrat(
-                            color: Colors.white,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          leftChevronIcon: Icon(Icons.chevron_left_rounded, color: AppColor.premiumAccent, size: 20.sp),
-                          rightChevronIcon: Icon(Icons.chevron_right_rounded, color: AppColor.premiumAccent, size: 20.sp),
-                          formatButtonVisible: true,
-                          formatButtonShowsNext: false,
-                          formatButtonDecoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.1)),
-                          ),
-                          formatButtonTextStyle: GoogleFonts.montserrat(
-                            color: AppColor.premiumAccent,
-                            fontSize: 9.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        daysOfWeekStyle: DaysOfWeekStyle(
-                          weekdayStyle: GoogleFonts.montserrat(color: Colors.white38, fontSize: 10.sp, fontWeight: FontWeight.w600),
-                          weekendStyle: GoogleFonts.montserrat(color: Colors.redAccent.withOpacity(0.5), fontSize: 10.sp, fontWeight: FontWeight.w600),
-                        ),
-                        calendarBuilders: CalendarBuilders(
-                          markerBuilder: (context, date, events) {
-                            final dateStr = DateFormat('yyyy-MM-dd').format(date);
-                            if (transactionDates.contains(dateStr)) {
-                              return Positioned(
-                                bottom: 4.h,
-                                child: Container(
-                                  width: 5.w,
-                                  height: 5.h,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.greenAccent,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              );
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedDate = null;
-                              });
-                              vm.fetchTransactions();
-                              Navigator.pop(dialogContext);
-                            },
-                            child: Text(
-                              "Clear Filter",
-                              style: GoogleFonts.montserrat(
-                                color: AppColor.premiumAccent,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13.sp,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.premiumAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                            ),
-                            onPressed: () => Navigator.pop(dialogContext),
-                            child: Text(
-                              "Done",
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13.sp,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, anim1, anim2, child) {
-        return ScaleTransition(
-          scale: CurvedAnimation(
-            parent: anim1,
-            curve: Curves.easeOutBack,
-          ),
-          child: FadeTransition(
-            opacity: anim1,
-            child: child,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEarningCard(
-    double settledAmount,
-    double unsettledAmount,
-    String dateText,
-    SettlementViewModel vm,
-    Set<String> transactionDates,
-  ) {
+  Widget _buildEarningCard(double totalAmount, double unsettledAmount) {
     return Container(
       width: double.infinity,
       height: 140.h,
@@ -349,7 +105,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Total Settled",
+                            "Total Amount",
                             style: GoogleFonts.montserrat(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
@@ -358,7 +114,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            "₹ ${settledAmount.toCommaSeparated()}",
+                            "₹ ${totalAmount.toCommaSeparated()}",
                             style: GoogleFonts.montserrat(
                               fontSize: 22.sp,
                               fontWeight: FontWeight.w800,
@@ -366,40 +122,6 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                             ),
                           ),
                         ],
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          _showCalendarDialog(vm, transactionDates);
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.12)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.calendar_month_rounded, size: 12.sp, color: AppColor.premiumAccent),
-                              SizedBox(width: 4.w),
-                              Text(
-                                dateText,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 9.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                              SizedBox(width: 4.w),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 14.sp,
-                                color: Colors.white60,
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -439,99 +161,6 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
     );
   }
 
-  Widget _buildSubFilter(int total, int unsettledCount, int settledCount) {
-    final labels = [
-      "All ($total)",
-      "Unsettled ($unsettledCount)",
-      "Settled ($settledCount)",
-    ];
-    return Row(
-      children: List.generate(3, (i) {
-        final sel = _settlementFilter == i;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _settlementFilter = i),
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 3.w),
-              padding: EdgeInsets.symmetric(vertical: 10.h),
-              decoration: BoxDecoration(
-                color: sel ? AppColor.premiumAccent.withOpacity(0.2) : Colors.white.withOpacity(0.03),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: sel ? AppColor.premiumAccent : Colors.white.withOpacity(0.08),
-                ),
-              ),
-              child: Text(
-                labels[i],
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.w700,
-                  color: sel ? AppColor.premiumAccent : Colors.white60,
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _buildTransactionsHeader(SettlementViewModel vm) {
-    final headerLabels = ["Booking Transactions", "Unsettled Payments", "Settled Payments"];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          headerLabels[_settlementFilter],
-          style: GoogleFonts.montserrat(
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        if (_selectedDate != null)
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedDate = null;
-              });
-              vm.fetchTransactions();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: AppColor.premiumAccent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: AppColor.premiumAccent,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.cancel_rounded,
-                    size: 14.sp,
-                    color: AppColor.premiumAccent,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Clear Filter',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColor.premiumAccent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildTransactionList(SettlementViewModel vm, List<WalletTransactionItem> displayTxns) {
     if (displayTxns.isEmpty) {
       return Center(
@@ -540,10 +169,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
           children: [
             Icon(Icons.receipt_long_outlined, size: 60.sp, color: AppColor.premiumTextSecondary.withOpacity(0.3)),
             SizedBox(height: 12.h),
-            Text(
-              _settlementFilter == 0 ? 'No booking transactions found'
-                  : _settlementFilter == 1 ? 'No unsettled payments'
-                  : 'No settled payments',
+            Text('No booking transactions found',
               style: GoogleFonts.montserrat(fontSize: 14.sp, color: AppColor.premiumTextSecondary)),
           ],
         ),
@@ -703,38 +329,8 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
     );
   }
 
-  Widget _buildSettlementBadge(String status) {
-    final isSettled = status == 'settled';
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        color: isSettled
-            ? AppColor.activeGreen.withOpacity(0.12)
-            : Colors.orange.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSettled
-              ? AppColor.activeGreen.withOpacity(0.3)
-              : Colors.orange.withOpacity(0.3),
-          width: 0.5,
-        ),
-      ),
-      child: Text(
-        isSettled ? "SETTLED" : "UNSETTLED",
-        style: GoogleFonts.montserrat(
-          fontSize: 9.sp,
-          fontWeight: FontWeight.w800,
-          color: isSettled ? AppColor.activeGreen : Colors.orange,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-
   Widget _buildTransactionTile(WalletTransactionItem txn) {
-    final isSettled = txn.isSettled;
     final isCredit = txn.creditDebit == 'credit';
-    final statusColor = isSettled ? AppColor.activeGreen : Colors.orange;
     final amountColor = isCredit ? AppColor.activeGreen : Colors.redAccent;
     final leadingBg = amountColor.withOpacity(0.08);
 
@@ -744,12 +340,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
       decoration: BoxDecoration(
         color: AppColor.premiumCardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSettled 
-              ? AppColor.activeGreen.withOpacity(0.2) 
-              : Colors.orange.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
       ),
       child: InkWell(
         onTap: () => _showTransactionReceipt(txn),
@@ -807,8 +398,6 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                     ],
                   ),
                 ),
-                SizedBox(width: 8.w),
-                _buildSettlementBadge(txn.settlementStatus),
               ],
             ),
             SizedBox(height: 12.h),
@@ -848,9 +437,7 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
   }
 
   void _showTransactionReceipt(WalletTransactionItem txn) {
-    final isSettled = txn.isSettled;
     final isCredit = txn.creditDebit == 'credit';
-    final statusColor = isSettled ? AppColor.activeGreen : Colors.orange;
     final amountColor = isCredit ? AppColor.activeGreen : Colors.redAccent;
     
     showModalBottomSheet(
@@ -884,18 +471,18 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                   padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: statusColor.withOpacity(0.12),
-                    border: Border.all(color: statusColor.withOpacity(0.3), width: 2),
+                    color: amountColor.withOpacity(0.12),
+                    border: Border.all(color: amountColor.withOpacity(0.3), width: 2),
                   ),
                   child: Icon(
-                    isSettled ? Icons.check_circle_rounded : Icons.pending_rounded,
+                    isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
                     size: 40.sp,
-                    color: statusColor,
+                    color: amountColor,
                   ),
                 ),
                 SizedBox(height: 12.h),
                 Text(
-                  isSettled ? 'Transaction Settled' : 'Settlement Pending',
+                  isCredit ? 'Payment Received' : 'Payment Sent',
                   style: GoogleFonts.montserrat(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
@@ -956,7 +543,6 @@ class _BusinessBookingTransactionsTabState extends State<BusinessBookingTransact
                         _receiptRow('Payment Gateway', txn.via!),
 
                       _receiptRow('Type', isCredit ? 'Credit (Inflow)' : 'Debit (Outflow)'),
-                      _receiptRow('Settlement Status', isSettled ? 'Settled' : 'Pending'),
                       _receiptRow('Created Date & Time', DateFormat("dd MMM yyyy, hh:mm a").format(txn.createdAt)),
                     ],
                   ),

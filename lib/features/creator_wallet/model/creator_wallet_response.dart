@@ -29,7 +29,7 @@ class CreatorWalletTransactionResponse {
 }
 
 class Data {
-  int? walletAmount;
+  num? walletAmount;
   List<Transaction>? transactions;
 
   Data({
@@ -42,7 +42,7 @@ class Data {
   String toRawJson() => json.encode(toJson());
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        walletAmount: json["wallet_amount"],
+        walletAmount: (json["wallet_amount"] as num?),
         transactions: json["transactions"] == null ? [] : List<Transaction>.from(json["transactions"]!.map((x) => Transaction.fromJson(x))),
       );
 

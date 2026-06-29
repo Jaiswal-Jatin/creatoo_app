@@ -45,7 +45,7 @@ class CreatorCreatooPointTransactionResponse {
 }
 
 class Data {
-  int? creatooPoints;
+  num? creatooPoints;
   List<BusinessTransaction>? businessTransactions;
 
   Data({
@@ -58,7 +58,7 @@ class Data {
   String toRawJson() => json.encode(toJson());
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        creatooPoints: json["creatoo_points"],
+        creatooPoints: (json["creatoo_points"] as num?),
         businessTransactions: json["businessTransactions"] == null
             ? []
             : List<BusinessTransaction>.from(json["businessTransactions"]!.map((x) => BusinessTransaction.fromJson(x))),
@@ -73,7 +73,7 @@ class Data {
 class BusinessTransaction {
   int? businessId;
   String? businessName;
-  int? totalPoints;
+  num? totalPoints;
   List<Transaction>? transactions;
 
   BusinessTransaction({
@@ -90,7 +90,7 @@ class BusinessTransaction {
   factory BusinessTransaction.fromJson(Map<String, dynamic> json) => BusinessTransaction(
         businessId: json["business_id"],
         businessName: json["business_name"],
-        totalPoints: json["total_points"],
+        totalPoints: (json["total_points"] as num?),
         transactions: json["transactions"] == null ? [] : List<Transaction>.from(json["transactions"]!.map((x) => Transaction.fromJson(x))),
       );
 
@@ -107,14 +107,14 @@ class Transaction {
   int? userId;
   int? businessId;
   String? orderId;
-  int? points;
+  num? points;
   DateTime? expiryDate;
   String? creditDebitRemainingStatus;
   String? businessName;
   String? totalBill;
   String? finalBill;
   String? receiptName;
-  int? remainingPoints;
+  num? remainingPoints;
   DateTime? createdAt;
   DateTime? updatedAt;
   bool? isExpired;
@@ -146,14 +146,14 @@ class Transaction {
         userId: json["user_id"],
         businessId: json["business_id"],
         orderId: json["order_id"],
-        points: json["points"],
+        points: (json["points"] as num?),
         expiryDate: _parseDate(json["expiry_date"]),
         creditDebitRemainingStatus: json["credit_debit_remaining_status"],
         businessName: json["business_name"],
         totalBill: json["total_bill"],
         finalBill: json["final_bill"],
         receiptName: json["receipt_name"],
-        remainingPoints: json["remaining_points"],
+        remainingPoints: (json["remaining_points"] as num?),
         createdAt: _parseDate(json["created_at"]) ?? _parseDate(json["createdAt"]),
         updatedAt: _parseDate(json["updated_at"]) ?? _parseDate(json["updatedAt"]),
         isExpired: json["is_expired"],

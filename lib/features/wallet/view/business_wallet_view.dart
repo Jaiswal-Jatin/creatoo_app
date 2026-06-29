@@ -1,6 +1,7 @@
 import 'package:creatoo/core.dart';
 import '../widgets/business_booking_transactions_tab.dart';
 import '../widgets/business_wallet_payments_tab.dart';
+import '../widgets/business_wallet_settlements_tab.dart';
 
 class BusinessWalletView extends StatefulWidget {
   final int index;
@@ -16,9 +17,10 @@ class _BusinessWalletViewState extends State<BusinessWalletView> {
   final List<Widget> _widgetOptions = const <Widget>[
     BusinessWalletPaymentsTab(),
     BusinessBookingTransactionsTab(),
+    BusinessWalletSettlementsTab(),
   ];
 
-  final List<String> _tabLabels = ["UPI Transactions", "Booking Transactions"];
+  final List<String> _tabLabels = ["Payments", "Booking Transactions", "Settlements"];
 
   @override
   void initState() {

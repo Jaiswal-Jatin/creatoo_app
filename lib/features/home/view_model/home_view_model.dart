@@ -6,6 +6,11 @@ import 'package:creatoo/features/home/repository/home_repository.dart';
 import 'package:creatoo/features/verify_otp/model/verify_otp_model.dart';
 import 'package:creatoo/features/wallet/repository/business_creatoo_wallet_repository.dart';
 import 'package:creatoo/features/creator_wallet/repository/creator_creatoo_wallet_repository.dart';
+import 'package:creatoo/features/business_payments/repository/business_payments_repository.dart';
+import 'package:creatoo/features/business_payments/model/payment_stats_response.dart';
+import 'package:creatoo/features/business_payments/model/manual_payment_model.dart';
+import 'package:creatoo/features/business_visits/repository/business_visits_repository.dart';
+import 'package:creatoo/features/wallet/repository/settlement_repository.dart';
 
 import '../../settings/view_model/settings_view_model.dart';
 import '../../../widgets/app_dialog.dart';
@@ -16,6 +21,9 @@ class HomeViewModel with ChangeNotifier {
   final SharedPreferencesService prefs = SharedPreferencesService();
   final BusinessCreatooWalletRepository _businessWalletRepo = BusinessCreatooWalletRepository();
   final CreatorCreatooWalletRepository _creatorWalletRepo = CreatorCreatooWalletRepository();
+  final BusinessPaymentsRepository _paymentsRepo = BusinessPaymentsRepository();
+  final BusinessVisitsRepository _visitsRepo = BusinessVisitsRepository();
+  final SettlementRepository _settlementRepo = SettlementRepository();
   late UserData? user = UserData();
   bool isTrue = true;
   CarouselSliderController controller = CarouselSliderController();
@@ -25,6 +33,10 @@ class HomeViewModel with ChangeNotifier {
   bool _creatooView = false;
   bool? isLogout;
   num walletCreatooPoints = 0;
+
+  // Business Dashboard Stats
+  BusinessDashboardStats? businessDashboardStats;
+  bool isDashboardStatsLoading = false;
 
   // Category details
   String? businessCategory;
@@ -60,8 +72,66 @@ class HomeViewModel with ChangeNotifier {
       await getHomeData();
       if (roleId == Constants.businessUser) {
         await checkBusinessSubscription();
+        loadBusinessDashboardStats(); // load async without blocking
       }
     }
+  }
+
+  Future<void> loadBusinessDashboardStats() async {
+    if (roleId != Constants.businessUser) return;
+    isDashboardStatsLoading = true;
+    notifyListeners();
+
+    double dailyBillRevenue = 0;
+    double monthlyBillRevenue = 0;
+    double dailyBookingRevenue = 0;
+    double monthlyBookingRevenue = 0;
+    int todayVisitCount = 0;
+    double walletBalance = 0;
+    List<ManualPayment> recentPayments = [];
+
+    // 1. Payment stats (daily + monthly revenue + recent payments)
+    final statsResult = await _paymentsRepo.getPaymentStats();
+    statsResult.fold(
+      (err) => debugPrint('Payment stats error: ${err.message}'),
+      (r) {
+        dailyBillRevenue = r.data?.dailyTotal ?? 0;
+        monthlyBillRevenue = r.data?.monthlyTotal ?? 0;
+        dailyBookingRevenue = r.data?.dailyBookingTotal ?? 0;
+        monthlyBookingRevenue = r.data?.monthlyBookingTotal ?? 0;
+        recentPayments = r.data?.recentPayments ?? [];
+      },
+    );
+
+    // 2. Today's visit count
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final tomorrowStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${(today.day + 1).toString().padLeft(2, '0')}';
+    final visitsResult = await _visitsRepo.getVisits(from: todayStr, to: tomorrowStr);
+    visitsResult.fold(
+      (err) => debugPrint('Visits error: ${err.message}'),
+      (r) => todayVisitCount = r.total,
+    );
+
+    // 3. Wallet balance (unsettled = payable amount)
+    final walletResult = await _settlementRepo.getWalletSummary();
+    walletResult.fold(
+      (err) => debugPrint('Wallet summary error: ${err.message}'),
+      (r) => walletBalance = r.data?.unsettledAmount ?? 0,
+    );
+
+    businessDashboardStats = BusinessDashboardStats(
+      dailyBillRevenue: dailyBillRevenue,
+      monthlyBillRevenue: monthlyBillRevenue,
+      dailyBookingRevenue: dailyBookingRevenue,
+      monthlyBookingRevenue: monthlyBookingRevenue,
+      todayVisitCount: todayVisitCount,
+      walletBalance: walletBalance,
+      recentPayments: recentPayments,
+    );
+
+    isDashboardStatsLoading = false;
+    notifyListeners();
   }
 
   void launchBannerUrl(String? url) async {
@@ -321,6 +391,36 @@ class HomeViewModel with ChangeNotifier {
           notifyListeners();
         },
       );
-    }
+     }
+   }
+
+
+  Future<void> refreshAfterPayment() async {
+    await getHomeData();
   }
+ }
+
+/// Holds real-time stats for the Business Home Dashboard
+class BusinessDashboardStats {
+  final double dailyBillRevenue;
+  final double monthlyBillRevenue;
+  final double dailyBookingRevenue;
+  final double monthlyBookingRevenue;
+  final int todayVisitCount;
+  final double walletBalance;
+  final List<ManualPayment> recentPayments;
+
+  BusinessDashboardStats({
+    required this.dailyBillRevenue,
+    required this.monthlyBillRevenue,
+    required this.dailyBookingRevenue,
+    required this.monthlyBookingRevenue,
+    required this.todayVisitCount,
+    required this.walletBalance,
+    required this.recentPayments,
+  });
+
+  double get dailyTotalRevenue => dailyBillRevenue + dailyBookingRevenue;
+  double get monthlyTotalRevenue => monthlyBillRevenue + monthlyBookingRevenue;
 }
+

@@ -17,6 +17,7 @@ class _PayTransferViewState extends State<PayTransferView> {
 
     viewModel.showError = false;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await viewModel.fetchBusinessBonusInfo();
       await viewModel.validatePointsApiCall();
 
       // Show the bottom sheet after initial API call
@@ -105,7 +106,38 @@ class _PayTransferViewState extends State<PayTransferView> {
                         style: TextStyle(fontSize: 12),
                       ),
                       SizedBox(height: 15),
-                      // Error message displayed conditionally
+                      Consumer<QrPayViewModel>(
+                        builder: (context, vm, _) {
+                          if (!vm.isFirstVisit || vm.signupBonusPoints == 0) {
+                            return SizedBox.shrink();
+                          }
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                            decoration: BoxDecoration(
+                              color: AppColor.mangoYellow.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColor.mangoYellow.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.card_giftcard, color: AppColor.mangoYellow, size: 16.sp),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  "Signup Bonus: +${vm.signupBonusPoints} points for this business!",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColor.mangoYellow,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 8.h),
                       if (viewModel.validateResponse.status == Status.loading)
                         AppLoadingWidget(
                           isApi: true,
@@ -189,6 +221,23 @@ class _PayTransferViewState extends State<PayTransferView> {
                                 Text(
                                   'Creatoo Balance : ${viewModel.roundToTwoDecimalPlaces(viewModel.creatooBalance?.toDouble() ?? 0.0)}',
                                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                                ),
+                                Consumer<QrPayViewModel>(
+                                  builder: (context, vm, _) {
+                                    if (vm.signupBonusMessage.isEmpty) return SizedBox.shrink();
+                                    return Padding(
+                                      padding: EdgeInsets.only(top: 4.h),
+                                      child: Text(
+                                        vm.signupBonusMessage,
+                                        style: TextStyle(
+                                          fontSize: 11.sp,
+                                          color: AppColor.mangoYellow,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),

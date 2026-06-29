@@ -8,6 +8,9 @@ class ManualPayment {
   final double finalAmount;
   final int? discountPercentage;
   final double? discountAmount;
+  final double platformFee;
+  final double gstPercent;
+  final double gstAmount;
   final String status;
   final String paymentMethod;
   final DateTime? confirmedAt;
@@ -28,6 +31,9 @@ class ManualPayment {
     required this.finalAmount,
     this.discountPercentage,
     this.discountAmount,
+    this.platformFee = 0,
+    this.gstPercent = 0,
+    this.gstAmount = 0,
     required this.status,
     required this.paymentMethod,
     this.confirmedAt,
@@ -62,6 +68,9 @@ class ManualPayment {
       discountAmount: json['discount_amount'] != null
           ? double.tryParse(json['discount_amount'].toString())
           : null,
+      platformFee: double.tryParse(json['platform_fee']?.toString() ?? '0') ?? 0,
+      gstPercent: double.tryParse(json['gst_percent']?.toString() ?? '0') ?? 0,
+      gstAmount: double.tryParse(json['gst_amount']?.toString() ?? '0') ?? 0,
       status: json['status'] ?? 'PENDING',
       paymentMethod: json['payment_method'] ?? 'MANUAL',
       confirmedAt: json['confirmed_at'] != null ? DateTime.parse(json['confirmed_at']) : null,

@@ -6,10 +6,9 @@ import '../../../widgets/app_dialog.dart';
 import '../../creator_wallet/view_model/creator_wallet_view_model.dart';
 import '../../wallet/view/business_wallet_view.dart';
 import '../view_model/home_view_model.dart';
-import '../../business_payments/view_model/business_payments_view_model.dart';
-import '../../business_payments/model/manual_payment_model.dart';
 import '../../search/view_model/search_view_model.dart';
 import '../../booking/view_model/booking_view_model.dart';
+import 'package:intl/intl.dart';
 
 class HomeView extends StatefulWidget {
   HomeView({super.key});
@@ -22,9 +21,6 @@ class _HomeViewState extends State<HomeView> {
   late HomeViewModel viewModel;
   bool hasNewNotification = true;
   int _businessCarouselIndex = 0;
-  final Set<int> _shownPendingPaymentIds = {};
-
-  late BusinessPaymentsViewModel paymentsVM;
 
   @override
   void initState() {
@@ -34,9 +30,6 @@ class _HomeViewState extends State<HomeView> {
       viewModel.init();
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      paymentsVM = Provider.of<BusinessPaymentsViewModel>(context, listen: false);
-      paymentsVM.loadPayments().then((_) => _checkPendingPayments());
-      paymentsVM.loadPaymentStats();
       final searchVM = Provider.of<SearchViewModel>(context, listen: false);
       searchVM.preloadCategory('restaurant');
       searchVM.preloadCategory('salon');
@@ -51,158 +44,6 @@ class _HomeViewState extends State<HomeView> {
     setState(() {
       hasNewNotification = false;
     });
-  }
-
-  void _checkPendingPayments() {
-    if (!mounted) return;
-    for (final p in paymentsVM.pendingPayments) {
-      if (!_shownPendingPaymentIds.contains(p.id)) {
-        _shownPendingPaymentIds.add(p.id);
-        _showPendingPaymentPopup(p);
-        break;
-      }
-    }
-  }
-
-  void _showPendingPaymentPopup(ManualPayment payment) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: EdgeInsets.all(24.w),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColor.mangoYellow.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.payments_rounded, color: AppColor.mangoYellow, size: 28.sp),
-            ),
-            SizedBox(height: 16.h),
-            Text("New Payment Received!",
-              style: GoogleFonts.montserrat(fontSize: 18.sp, fontWeight: FontWeight.w800, color: Colors.white),
-            ),
-            SizedBox(height: 8.h),
-            Text("A customer has submitted a payment",
-              style: GoogleFonts.montserrat(fontSize: 12.sp, color: Colors.white54),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20.h),
-            Divider(color: Colors.white.withOpacity(0.08)),
-            SizedBox(height: 12.h),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: payment.userImage != null ? NetworkImage(payment.userImage!) : null,
-                  child: payment.userImage == null
-                      ? Icon(Icons.person, color: Colors.white38, size: 18.sp)
-                      : null,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    payment.userName ?? "User",
-                    style: GoogleFonts.montserrat(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16.h),
-            _popupRow("Date & Time", _formatDateTime(payment.createdAt.toLocal()), Colors.white70),
-            _popupRow("Bill Amount", "₹${payment.billAmount.toStringAsFixed(0)}", Colors.white70),
-            if (payment.discountPercentage != null && payment.discountPercentage! > 0)
-              _popupRow("Discount (${payment.discountPercentage}%)", "-₹${payment.discountAmount?.toStringAsFixed(0) ?? '0'}", AppColor.premiumAccent),
-            if (payment.pointsRedeemed > 0)
-              _popupRow("Points Used", "-${payment.pointsRedeemed}", AppColor.mangoYellow),
-            _popupRow("Final Amount", "₹${payment.finalAmount.toStringAsFixed(0)}", Colors.white),
-            SizedBox(height: 20.h),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      paymentsVM.cancelPayment(payment.id).then((s) {
-                        if (s && mounted) Utils.toastMessage("Payment rejected");
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
-                      ),
-                      child: Center(
-                        child: Text("Reject",
-                          style: GoogleFonts.montserrat(fontSize: 13.sp, fontWeight: FontWeight.w700, color: Colors.redAccent),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      paymentsVM.confirmPayment(payment.id).then((s) {
-                        if (s && mounted) Utils.toastMessage("Payment confirmed! Points earned.");
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: AppColor.activeGreen.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColor.activeGreen.withOpacity(0.3)),
-                      ),
-                      child: Center(
-                        child: Text("Confirm",
-                          style: GoogleFonts.montserrat(fontSize: 13.sp, fontWeight: FontWeight.w700, color: AppColor.activeGreen),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _popupRow(String label, String value, Color color) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: GoogleFonts.montserrat(fontSize: 13.sp, color: Colors.white54)),
-          Text(value, style: GoogleFonts.montserrat(fontSize: 15.sp, fontWeight: FontWeight.w700, color: color)),
-        ],
-      ),
-    );
-  }
-
-  String _formatDateTime(DateTime dt) {
-    final day = dt.day.toString().padLeft(2, '0');
-    final month = dt.month.toString().padLeft(2, '0');
-    final year = dt.year.toString();
-    int hour = dt.hour;
-    final ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    final hourStr = hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return "$day-$month-$year  $hourStr:$minute $ampm";
   }
 
   Map<String, dynamic> _getBusinessTheme(Business item) {
@@ -319,81 +160,160 @@ class _HomeViewState extends State<HomeView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPremiumHeader(),
-        SizedBox(height: 20.h),
+        SizedBox(height: 16.h),
         _buildBusinessDashboard(),
-        SizedBox(height: 30.h),
-        _buildPaymentsSection(),
         SizedBox(height: 100.h),
       ],
     );
   }
 
   Widget _buildBusinessDashboard() {
-    final paymentsVM = Provider.of<BusinessPaymentsViewModel>(context);
+    final stats = viewModel.businessDashboardStats;
+    final isLoading = viewModel.isDashboardStatsLoading;
+    final pendingBookings = Provider.of<BookingViewModel>(context).pendingBookingsCount;
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 17.w),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Total Amount Card
+          // ─── Today's Total Revenue (Big Hero Card with Gradient) ───
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColor.premiumAccent, AppColor.premiumAccent.withOpacity(0.7)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [Color(0xFF26278D), Color(0xFF1E1F66)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.08)),
               boxShadow: [
                 BoxShadow(
-                  color: AppColor.premiumAccent.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: Offset(0, 10),
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Container(
+                  padding: EdgeInsets.all(9.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.trending_up_rounded, color: Colors.white, size: 20.sp),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "TODAY'S TOTAL REVENUE",
+                        style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white70, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                      ),
+                      SizedBox(height: 2.h),
+                      isLoading
+                          ? Container(height: 18.h, width: 80.w, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(4)))
+                          : Text(
+                              currencyFormat.format(stats?.dailyTotalRevenue ?? 0),
+                              style: GoogleFonts.montserrat(fontSize: 20.sp, color: Color(0xFF4CAF50), fontWeight: FontWeight.w800),
+                            ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "Today's Collection",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
+                      'Total Month',
+                      style: GoogleFonts.montserrat(fontSize: 9.sp, color: Colors.white60),
                     ),
-                    Icon(Icons.account_balance_wallet_outlined, color: Colors.white70),
+                    SizedBox(height: 2.h),
+                    isLoading
+                        ? Container(height: 14.h, width: 60.w, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(4)))
+                        : Text(
+                            currencyFormat.format(stats?.monthlyTotalRevenue ?? 0),
+                            style: GoogleFonts.montserrat(fontSize: 13.sp, color: Colors.white, fontWeight: FontWeight.w700),
+                          ),
                   ],
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  "₹ ${paymentsVM.dailyTotal.toStringAsFixed(2)}",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 32.sp,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  "Monthly: ₹ ${paymentsVM.monthlyTotal.toStringAsFixed(2)}",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13.sp,
-                    color: Colors.white.withOpacity(0.7),
-                    fontWeight: FontWeight.w600,
-                  ),
                 ),
               ],
             ),
           ),
-          
+
           SizedBox(height: 10.h),
 
+          // ─── Today's Breakdown (Unified Card) ───
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            decoration: BoxDecoration(
+              color: AppColor.premiumCardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        label: "Bill Payments",
+                        value: isLoading ? null : currencyFormat.format(stats?.dailyBillRevenue ?? 0),
+                        icon: Icons.receipt_long_rounded,
+                        color: Color(0xFF9759C4),
+                        isLoading: isLoading,
+                      ),
+                    ),
+                    Container(height: 40.h, width: 1, color: Colors.white.withOpacity(0.08)), // Vertical Divider
+                    Expanded(
+                      child: _buildStatItem(
+                        label: "Booking Amount",
+                        value: isLoading ? null : currencyFormat.format(stats?.dailyBookingRevenue ?? 0),
+                        icon: Icons.calendar_today_rounded,
+                        color: Color(0xFFFF9800),
+                        isLoading: isLoading,
+                      ),
+                    ),
+                  ],
+                ),
+                Divider(color: Colors.white.withOpacity(0.08), height: 24.h), // Horizontal Divider
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        label: "Today's Visits",
+                        value: isLoading ? null : '${stats?.todayVisitCount ?? 0}',
+                        icon: Icons.people_alt_rounded,
+                        color: Color(0xFF2196F3),
+                        isLoading: isLoading,
+                      ),
+                    ),
+                    Container(height: 40.h, width: 1, color: Colors.white.withOpacity(0.08)), // Vertical Divider
+                    Expanded(
+                      child: _buildStatItem(
+                        label: 'Pending Bookings',
+                        value: '$pendingBookings',
+                        icon: Icons.pending_actions_rounded,
+                        color: Color(0xFFE91E63),
+                        isLoading: false,
+                        badgeAlert: pendingBookings > 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 14.h),
+
+          // ─── Quick Actions ───
           Row(
             children: [
               _buildBusinessAction(
@@ -401,64 +321,215 @@ class _HomeViewState extends State<HomeView> {
                 icon: Icons.qr_code_2_rounded,
                 color: Color(0xFF9759C4),
                 onTap: () {
-                  if (viewModel.isSubscriptionLocked) {
-                    AppDialog.showSubscriptionRequiredDialog();
-                    return;
-                  }
-                  Navigator.pushNamed(context, RoutesName.businessQrView,
-                      arguments: {
-                        'businessId': userId ?? 0,
-                        'businessName': viewModel.user?.name ?? 'Business',
-                      });
+                  if (viewModel.isSubscriptionLocked) { AppDialog.showSubscriptionRequiredDialog(); return; }
+                  Navigator.pushNamed(context, RoutesName.businessQrView, arguments: {
+                    'businessId': userId ?? 0,
+                    'businessName': viewModel.user?.name ?? 'Business',
+                  });
                 },
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               if (['restaurant', 'salon', 'turf'].contains(viewModel.businessCategory)) ...[
                 _buildBusinessAction(
                   title: "Visits",
                   icon: Icons.history_rounded,
                   color: Color(0xFF2196F3),
                   onTap: () {
-                    if (viewModel.isSubscriptionLocked) {
-                      AppDialog.showSubscriptionRequiredDialog();
-                      return;
-                    }
-                    final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
-                    homeViewModel.changeIndex(1, false);
+                    if (viewModel.isSubscriptionLocked) { AppDialog.showSubscriptionRequiredDialog(); return; }
+                    Provider.of<HomeViewModel>(context, listen: false).changeIndex(1, false);
                   },
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w),
               ],
-              _buildBusinessAction(
-                title: "Payments",
-                icon: Icons.receipt_long_rounded,
-                color: Color(0xFF4CAF50),
-                onTap: () {
-                  if (viewModel.isSubscriptionLocked) {
-                    AppDialog.showSubscriptionRequiredDialog();
-                    return;
-                  }
-                  Navigator.pushNamed(context, RoutesName.businessPaymentsView);
-                },
-              ),
-              SizedBox(width: 12.w),
               _buildBusinessAction(
                 title: "Bookings",
                 icon: Icons.calendar_month_rounded,
                 color: Color(0xFFFF9800),
-                badgeCount: Provider.of<BookingViewModel>(context).pendingBookingsCount,
+                badgeCount: pendingBookings,
                 onTap: () {
-                  if (viewModel.isSubscriptionLocked) {
-                    AppDialog.showSubscriptionRequiredDialog();
-                    return;
-                  }
-                  final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
-                  final bool isRestaurant = true;
-                  homeViewModel.changeIndex(isRestaurant ? 2 : 1, false);
+                  if (viewModel.isSubscriptionLocked) { AppDialog.showSubscriptionRequiredDialog(); return; }
+                  Provider.of<HomeViewModel>(context, listen: false).changeIndex(2, false);
                 },
               ),
             ],
           ),
+
+          SizedBox(height: 16.h),
+
+          // ─── Recent Payments ───
+          if (!isLoading && (stats?.recentPayments.isNotEmpty ?? false)) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Payments',
+                  style: GoogleFonts.montserrat(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppColor.premiumTextPrimary),
+                ),
+                GestureDetector(
+                  onTap: () => Provider.of<HomeViewModel>(context, listen: false).changeIndex(3, true),
+                  child: Text(
+                    'See all',
+                    style: GoogleFonts.montserrat(fontSize: 12.sp, color: AppColor.premiumAccent, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            ...stats!.recentPayments.take(3).map((p) => _buildRecentPaymentTile(p, currencyFormat)),
+          ],
+
+          if (isLoading) ...[
+            Text(
+              'Recent Payments',
+              style: GoogleFonts.montserrat(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppColor.premiumTextPrimary),
+            ),
+            SizedBox(height: 8.h),
+            ...List.generate(3, (_) => _buildPaymentTileShimmer()),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String label,
+    String? value,
+    required IconData icon,
+    required Color color,
+    required bool isLoading,
+    bool badgeAlert = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16.sp),
+              SizedBox(width: 6.w),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.montserrat(fontSize: 11.sp, color: AppColor.premiumTextSecondary, fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          isLoading
+              ? Container(height: 16.h, width: 60.w, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4)))
+              : Text(
+                  value ?? '-',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w800,
+                    color: badgeAlert ? Color(0xFFE91E63) : AppColor.premiumTextPrimary,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentPaymentTile(dynamic p, NumberFormat fmt) {
+    final isConfirmed = p.status == 'CONFIRMED';
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: AppColor.premiumCardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38.w, height: 38.w,
+            decoration: BoxDecoration(
+              color: Color(0xFF26278D).withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                (p.userName?.isNotEmpty == true ? p.userName![0].toUpperCase() : '?'),
+                style: GoogleFonts.montserrat(fontSize: 16.sp, fontWeight: FontWeight.w800, color: Color(0xFF9759C4)),
+              ),
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.userName ?? 'Customer',
+                  style: GoogleFonts.montserrat(fontSize: 13.sp, fontWeight: FontWeight.w600, color: AppColor.premiumTextPrimary),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  p.paymentMethod == 'WALLET' ? 'Wallet Payment' : 'Bill Payment',
+                  style: GoogleFonts.montserrat(fontSize: 11.sp, color: AppColor.premiumTextSecondary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                fmt.format(p.finalAmount),
+                style: GoogleFonts.montserrat(fontSize: 14.sp, fontWeight: FontWeight.w700, color: Color(0xFF4CAF50)),
+              ),
+              SizedBox(height: 3.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: isConfirmed ? Color(0xFF4CAF50).withOpacity(0.12) : Color(0xFFFF9800).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isConfirmed ? 'Paid' : 'Pending',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.w700,
+                    color: isConfirmed ? Color(0xFF4CAF50) : Color(0xFFFF9800),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentTileShimmer() {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: AppColor.premiumCardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(width: 38.w, height: 38.w, decoration: BoxDecoration(color: Colors.white12, shape: BoxShape.circle)),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 12.h, width: 100.w, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4))),
+                SizedBox(height: 6.h),
+                Container(height: 10.h, width: 70.w, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4))),
+              ],
+            ),
+          ),
+          Container(height: 16.h, width: 50.w, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4))),
         ],
       ),
     );
@@ -577,180 +648,6 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentsSection() {
-    final vm = Provider.of<BusinessPaymentsViewModel>(context);
-    final payments = vm.recentPayments;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 17.w),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Recent Payments",
-                style: GoogleFonts.montserrat(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, RoutesName.businessPaymentsView);
-                },
-                child: Text(
-                  "View All",
-                  style: TextStyle(color: AppColor.premiumAccent, fontSize: 13.sp),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (vm.isLoading)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.h),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColor.premiumAccent)),
-          )
-        else if (payments.isEmpty)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.h),
-            child: Center(
-              child: Text("No recent payments", style: TextStyle(color: Colors.white38, fontSize: 13.sp)),
-            ),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: payments.length,
-            padding: EdgeInsets.symmetric(horizontal: 17.w),
-            itemBuilder: (context, index) {
-              return _buildPaymentItem(payments[index], vm);
-            },
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentItem(ManualPayment payment, BusinessPaymentsViewModel vm) {
-    bool isPending = payment.status == 'PENDING';
-    final timeStr = _formatTimeAgo(payment.createdAt);
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: AppColor.premiumCardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundImage: payment.userImage != null
-                ? NetworkImage(payment.userImage!)
-                : null,
-            child: payment.userImage == null
-                ? Icon(Icons.person, color: Colors.white38)
-                : null,
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  payment.userName ?? "User #${payment.userId}",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  timeStr,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12.sp,
-                    color: Colors.white38,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "₹${payment.finalAmount.toStringAsFixed(0)}",
-                style: GoogleFonts.montserrat(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w800,
-                  color: isPending ? Colors.white : Color(0xFF4CAF50),
-                ),
-              ),
-              SizedBox(height: 4.h),
-              if (isPending)
-                Row(
-                  children: [
-                    _buildSmallButton("Reject", Colors.redAccent, () {
-                      vm.cancelPayment(payment.id);
-                    }),
-                    SizedBox(width: 8.w),
-                    _buildSmallButton("Accept", Color(0xFF4CAF50), () {
-                      vm.confirmPayment(payment.id);
-                    }),
-                  ],
-                )
-              else
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF4CAF50).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    payment.status == 'CONFIRMED' ? "Received" : payment.status,
-                    style: TextStyle(color: Color(0xFF4CAF50), fontSize: 10.sp, fontWeight: FontWeight.bold),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTimeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return "Just now";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} min ago";
-    if (diff.inHours < 24) return "${diff.inHours} hr ago";
-    if (diff.inDays < 7) return "${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago";
-    return "${dt.day}/${dt.month}/${dt.year}";
-  }
-
-  Widget _buildSmallButton(String text, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(color: color, fontSize: 10.sp, fontWeight: FontWeight.bold),
         ),
       ),
     );

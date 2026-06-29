@@ -6,7 +6,6 @@ import 'package:creatoo/features/bill_payment/view/payment_success_view.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_cart.dart';
 import 'package:creatoo/features/bill_payment/view/proceed_to_pay.dart';
 import 'package:creatoo/features/business/qr_code/view/business_qr_view.dart';
-import 'package:creatoo/features/business_payments/view/business_payments_screen.dart';
 import 'package:creatoo/features/business_visits/view/business_visits_screen.dart';
 import 'package:creatoo/features/user_payments/view/user_payments_screen.dart';
 import 'package:creatoo/features/user_payments/view/user_payment_submit_screen.dart';
@@ -78,10 +77,12 @@ class Routes {
           final businessId = int.tryParse(businessIdStr);
           if (businessId != null) {
             print(
-                '🟢 [ROUTES] Extracted businessId: $businessId, navigating to BusinessDescriptionView');
+                '🟢 [ROUTES] Extracted businessId: $businessId, navigating to payment screen');
             return _buildRoute(
               settings,
-              BusinessDescriptionView(businessId: businessId),
+              UserPaymentSubmitScreen(
+                businessId: businessId,
+              ),
             );
           }
         }
@@ -343,9 +344,6 @@ class Routes {
       case RoutesName.cardView:
         return _buildRoute(settings, const CardScreen());
 
-      case RoutesName.businessPaymentsView:
-        return _buildRoute(settings, const BusinessPaymentsScreen());
-
       case RoutesName.businessVisitsView:
         return _buildRoute(settings, const BusinessVisitsScreen());
 
@@ -358,7 +356,7 @@ class Routes {
           settings,
           UserPaymentSubmitScreen(
             businessId: args['businessId'] as int,
-            businessName: args['businessName'] as String,
+            businessName: args['businessName'] as String?,
             businessImage: args['businessImage'] as String?,
             prefilledAmount: args['prefilledAmount'] as double?,
           ),
@@ -378,13 +376,6 @@ class Routes {
             businessId: args['businessId'] as int,
             businessName: args['businessName'] as String,
             amount: args['amount'] as double,
-            billAmount: args['billAmount'] as double?,
-            pointsRedeemed: args['pointsRedeemed'] as int?,
-            discountPercentage: args['discountPercentage'] as int?,
-            discountAmount: args['discountAmount'] as double?,
-            transactionRef: args['transactionRef'] as String? ?? '',
-            upiResponse: args['upiResponse'] as Map<String, dynamic>?,
-            upiApp: args['upiApp'] as String?,
           ),
         );
 
@@ -395,7 +386,6 @@ class Routes {
           BusinessQrView(
             businessId: args['businessId'] as int,
             businessName: args['businessName'] as String,
-            upiId: args['upiId'] as String?,
           ),
         );
 

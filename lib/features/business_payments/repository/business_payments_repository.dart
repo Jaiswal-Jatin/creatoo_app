@@ -32,46 +32,6 @@ class BusinessPaymentsRepository {
     }
   }
 
-  Future<Either<AppException, Map<String, dynamic>>> confirmPayment(int paymentId) async {
-    try {
-      Map<String, String> headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${token ?? ""}',
-      };
-      dynamic response = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
-        AppUrl.manualConfirmPayment,
-        headers,
-        (response) => jsonDecode(response) as Map<String, dynamic>,
-        body: {'payment_id': paymentId},
-      );
-      return response;
-    } on AppException catch (e) {
-      return Left(e);
-    } catch (e) {
-      return Left(AppException(0, e.toString()));
-    }
-  }
-
-  Future<Either<AppException, Map<String, dynamic>>> cancelPayment(int paymentId) async {
-    try {
-      Map<String, String> headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${token ?? ""}',
-      };
-      dynamic response = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
-        AppUrl.manualCancelPayment,
-        headers,
-        (response) => jsonDecode(response) as Map<String, dynamic>,
-        body: {'payment_id': paymentId},
-      );
-      return response;
-    } on AppException catch (e) {
-      return Left(e);
-    } catch (e) {
-      return Left(AppException(0, e.toString()));
-    }
-  }
-
   Future<Either<AppException, BusinessPaymentStatsResponse>> getPaymentStats() async {
     try {
       Map<String, String> headers = {

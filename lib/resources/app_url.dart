@@ -5,7 +5,7 @@ class AppUrl {
 
  
   // static const String host = 'http://dev-api.creatoo.co.in';
-  static const String host = 'http://192.168.29.40:3000';
+  static const String host = 'http://192.168.29.180:3000';
   // static const String host = 'https://api.creatoo.co.in';
 
 
@@ -101,9 +101,8 @@ class AppUrl {
 
   // Manual Payment Endpoints
   static const String manualCalculatePayment = '$baseUrl/manual-payment/calculatePayment';
+  static const String manualCreateRazorpayOrder = '$baseUrl/manual-payment/createRazorpayOrder';
   static const String manualSubmitPayment = '$baseUrl/manual-payment/submitPayment';
-  static const String manualConfirmPayment = '$baseUrl/manual-payment/confirmPayment';
-  static const String manualCancelPayment = '$baseUrl/manual-payment/cancelPayment';
   static const String manualBusinessPayments = '$baseUrl/manual-payment/businessPayments';
   static const String manualBusinessPaymentStats = '$baseUrl/manual-payment/businessPaymentStats';
   static const String manualBusinessWalletPayments = '$baseUrl/manual-payment/businessWalletPayments';
@@ -119,6 +118,12 @@ class AppUrl {
       '$baseUrl/points/validateCreatooPoints';
   static const String transferPointsApi =
       '$baseUrl/points/transferCreatooPoints';
+  static const String getBusinessBonusInfoApi =
+      '$baseUrl/points/getBusinessBonusInfo';
+  static const String calculateLoyaltyDiscountApi =
+      '$baseUrl/points/calculateLoyaltyDiscount';
+  static const String getSignupBonusSettingApi =
+      '$baseUrl/setting/signup-bonus';
 
   // Business Settings Endpoints
   static const String businessSetting = '$baseUrl/setting/businessSetting';
@@ -162,6 +167,12 @@ class AppUrl {
   static const String businessWalletTransactions = '$baseUrl/settlement/business/transactions';
   static const String businessSettlementHistory = '$baseUrl/settlement/business/history';
   static const String businessAdvancePayments = '$baseUrl/settlement/business/advance-payments';
+
+  // New Settlement System
+  static const String businessMySettlement = '$baseUrl/settlement/business/my-settlement';
+  static const String businessMySettlementRecords = '$baseUrl/settlement/business/my-settlement-records';
+  static const String businessCombinedSettlement = '$baseUrl/settlement/business/combined-settlement';
+  static const String businessMyAllRecords = '$baseUrl/settlement/business/all-records';
 
   // Booking Endpoints
   static const String createBookingRequest = '$baseUrl/booking/create';

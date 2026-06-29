@@ -329,17 +329,25 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    "Note: You can redeem a maximum of 60% of your total Creatoo points for this payment (Max: ${(viewModel.creatooBalance! * 0.60).floor()} Points).\nYour Total Points: ${viewModel.creatooBalance} Points.",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF26278D),
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.3,
+                                  Expanded(
+                                    child: Builder(
+                                      builder: (context) {
+                                        double billAmount = double.tryParse(viewModel.amountController?.text ?? '0') ?? 0.0;
+                                        double maxRedeemablePoints = (viewModel.creatooBalance ?? 0.0) * 0.60;
+                                        double maxRedeemableBill = billAmount * 0.60;
+                                        int maxRedeemable = maxRedeemablePoints < maxRedeemableBill ? maxRedeemablePoints.floor() : maxRedeemableBill.floor();
+                                        return Text(
+                                          "You can redeem a maximum of $maxRedeemable points.\nThis is calculated as the lower of:\n• 60% of Bill Amount: ${maxRedeemableBill.floor()} Points\n• 60% of Your Points: ${maxRedeemablePoints.floor()} Points\n\nYour Total Points: ${viewModel.creatooBalance} Points",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF26278D),
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.4,
+                                          ),
+                                        );
+                                      }
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                           ),
@@ -389,14 +397,18 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                                     onChanged: (value) {
                                       if (value.isNotEmpty) {
                                         double points = double.tryParse(value) ?? 0.0;
-                                        double maxRedeemable = (viewModel.creatooBalance ?? 0.0) * 0.60;
+                                        double billAmount = double.tryParse(viewModel.amountController?.text ?? '0') ?? 0.0;
+                                        double maxRedeemablePoints = (viewModel.creatooBalance ?? 0.0) * 0.60;
+                                        double maxRedeemableBill = billAmount * 0.60;
+                                        double maxRedeemable = maxRedeemablePoints < maxRedeemableBill ? maxRedeemablePoints : maxRedeemableBill;
+                                        
                                         if (points > maxRedeemable) {
                                           viewModel.percentageAmount = maxRedeemable;
                                           viewModel.pointsController.text = maxRedeemable.floor().toString();
                                           viewModel.pointsController.selection = TextSelection.fromPosition(
                                             TextPosition(offset: viewModel.pointsController.text.length),
                                           );
-                                          Utils.toastMessage("You can redeem a maximum of 60% of your total points.");
+                                          Utils.toastMessage("Max ${maxRedeemable.floor()} points can be redeemed (60% of bill or 60% of your points).");
                                         } else {
                                           viewModel.percentageAmount = points;
                                         }
@@ -430,9 +442,13 @@ class _ScannerPayViewState extends State<ScannerPayView> {
                 viewModel.amountController!.text.isNotEmpty) {
               
               double points = double.tryParse(viewModel.pointsController.text) ?? 0.0;
-              double maxRedeemable = (viewModel.creatooBalance ?? 0.0) * 0.60;
+              double billAmount = double.tryParse(viewModel.amountController?.text ?? '0') ?? 0.0;
+              double maxRedeemablePoints = (viewModel.creatooBalance ?? 0.0) * 0.60;
+              double maxRedeemableBill = billAmount * 0.60;
+              double maxRedeemable = maxRedeemablePoints < maxRedeemableBill ? maxRedeemablePoints : maxRedeemableBill;
+              
               if (points > maxRedeemable) {
-                Utils.toastMessage("You can redeem a maximum of 60% of your total points.");
+                Utils.toastMessage("Max ${maxRedeemable.floor()} points can be redeemed (60% of bill or 60% of your points).");
                 return;
               }
               

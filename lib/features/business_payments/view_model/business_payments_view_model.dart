@@ -96,34 +96,6 @@ class BusinessPaymentsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> confirmPayment(int paymentId) async {
-    final result = await _repo.confirmPayment(paymentId);
-    final success = result.fold((error) {
-      _error = error.message;
-      notifyListeners();
-      return false;
-    }, (response) => true);
-    if (success) {
-      await loadPayments();
-      await loadPaymentStats();
-    }
-    return success;
-  }
-
-  Future<bool> cancelPayment(int paymentId) async {
-    final result = await _repo.cancelPayment(paymentId);
-    final success = result.fold((error) {
-      _error = error.message;
-      notifyListeners();
-      return false;
-    }, (response) => true);
-    if (success) {
-      await loadPayments();
-      await loadPaymentStats();
-    }
-    return success;
-  }
-
   void setFilter(String filter) {
     _selectedFilter = filter;
     notifyListeners();

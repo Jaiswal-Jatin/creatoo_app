@@ -1,28 +1,20 @@
-import 'dart:math';
 import 'dart:ui';
+import 'package:creatoo/data/services/razorpay_service.dart';
 import 'package:creatoo/features/user_payments/repository/user_payments_repository.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:creatoo/core.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:creatoo/core/services/upi_intent_service.dart';
+import '../../home/view_model/home_view_model.dart';
 import '../../user_payments/view_model/user_payments_view_model.dart';
-
-class _UpiApp {
-  final String name;
-  final String url;
-  const _UpiApp(this.name, this.url);
-}
 
 class UserPaymentSubmitScreen extends StatefulWidget {
   final int businessId;
-  final String businessName;
+  final String? businessName;
   final String? businessImage;
   final double? prefilledAmount;
 
   const UserPaymentSubmitScreen({
     super.key,
     required this.businessId,
-    required this.businessName,
+    this.businessName,
     this.businessImage,
     this.prefilledAmount,
   });
@@ -35,8 +27,9 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
   final TextEditingController _amountCtrl = TextEditingController();
   final TextEditingController _pointsCtrl = TextEditingController();
   double _rawFinalAmount = 0;
-  int _availablePoints = 0;
+  num _availablePoints = 0;
   bool _showCalculation = false;
+  RazorpayService? _razorpayService;
 
   @override
   void initState() {
@@ -53,10 +46,19 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
     });
   }
 
+  int _getMaxRedeemable() {
+    final billAmount = double.tryParse(_amountCtrl.text) ?? 0;
+    final maxByBill = (billAmount * 0.60).floor();
+    final maxByPoints = (_availablePoints * 0.60).floor();
+    final max = maxByBill < maxByPoints ? maxByBill : maxByPoints;
+    return max < 0 ? 0 : max;
+  }
+
   @override
   void dispose() {
     _amountCtrl.dispose();
     _pointsCtrl.dispose();
+    _razorpayService?.dispose();
     super.dispose();
   }
 
@@ -75,9 +77,9 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
       return;
     }
     final pts = int.tryParse(_pointsCtrl.text) ?? 0;
-    final maxRedeemable = (_availablePoints * 0.60).floor();
+    final maxRedeemable = _getMaxRedeemable();
     if (pts > maxRedeemable) {
-      Utils.toastMessage("You can only redeem up to 60% of your total points (Max: $maxRedeemable points)");
+      Utils.toastMessage("You can redeem max $maxRedeemable points (60% of bill or 60% of your points)");
       return;
     }
     if (pts > _availablePoints) {
@@ -100,333 +102,89 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
     }
   }
 
-  /// Generate a unique transaction reference for UPI payments.
-  /// Format: CR{timestamp}{random4}  e.g., CR17123456789011234
-  String _generateTransactionRef() {
-    final r = Random().nextInt(9999).toString().padLeft(4, '0');
-    return 'CR${DateTime.now().millisecondsSinceEpoch}$r';
-  }
-
-  /// Build a proper UPI URI string for both QR codes and intents.
-  /// [tr] = Transaction Reference (required by GPay/PhonePe, optional for CRED)
-  /// [tn] = Transaction Note (helps user identify the payment)
-  String _buildUpiString(PaymentCalculation calc, {String? transactionRef}) {
-    final tr = transactionRef ?? _generateTransactionRef();
-    
-    // Manually construct the URI to ensure spaces are encoded as '%20'
-    // Dart's Uri(queryParameters: ...) encodes spaces as '+' which breaks GPay and PhonePe.
-    final String pa = calc.upiId;
-    final String pn = Uri.encodeComponent(widget.businessName);
-    final String am = calc.finalAmount.toStringAsFixed(2);
-    final String tn = Uri.encodeComponent('Payment to ${widget.businessName}');
-    final String cu = 'INR';
-    
-    // Default merchant code '0000' is added because when 'tr' is present,
-    // Google Pay and PhonePe assume it's a P2M transaction and require 'mc'.
-    return 'upi://pay?pa=$pa&pn=$pn&am=$am&tr=$tr&tn=$tn&cu=$cu&mc=0000';
-  }
-
-  Future<void> _payViaUpi() async {
+  Future<void> _payWithRazorpay() async {
     final vm = context.read<UserPaymentsViewModel>();
     final calc = vm.calculation;
-    if (calc == null || calc.upiId.isEmpty) {
-      Utils.toastMessage("UPI ID not configured for this business");
-      return;
-    }
+    if (calc == null) return;
 
-    final tr = _generateTransactionRef();
-
-    if (Platform.isIOS) {
-      await _showUpiAppPicker(calc, transactionRef: tr);
-    } else {
-      final upiString = _buildUpiString(calc, transactionRef: tr);
-      debugPrint('UPI URL: $upiString');
-      
-      final response = await UpiIntentService.launchUpi(upiString);
-      
-      if (!mounted) return;
-      _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: response, upiApp: 'Generic Android Chooser');
-    }
-  }
-
-  /// Show a QR code bottom sheet so user can scan from ANY UPI app.
-  void _showQrCode(PaymentCalculation calc) {
-    final tr = _generateTransactionRef();
-    final upiString = _buildUpiString(calc, transactionRef: tr);
-    debugPrint('UPI QR Data: $upiString');
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 40.h),
-        decoration: BoxDecoration(
-          color: AppColor.premiumCardBg,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              "Scan QR to Pay",
-              style: GoogleFonts.montserrat(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 6.h),
-            Text(
-              "Open any UPI app → Scan QR → Pay",
-              style: GoogleFonts.montserrat(
-                fontSize: 12.sp,
-                color: Colors.white54,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            // QR Code container with white background
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.premiumAccent.withValues(alpha: 0.15),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: QrImageView(
-                data: upiString,
-                version: QrVersions.auto,
-                size: 220.w,
-                eyeStyle: const QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: Color(0xFF1A1A2E),
-                ),
-                dataModuleStyle: const QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: Color(0xFF1A1A2E),
-                ),
-              ),
-            ),
-            SizedBox(height: 16.h),
-            // Amount display
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              decoration: BoxDecoration(
-                color: AppColor.premiumAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColor.premiumAccent.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.currency_rupee_rounded, color: AppColor.premiumAccent, size: 18.sp),
-                  SizedBox(width: 4.w),
-                  Text(
-                    calc.finalAmount.toStringAsFixed(0),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w800,
-                      color: AppColor.premiumAccent,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    "to ${widget.businessName}",
-                    style: GoogleFonts.montserrat(
-                      fontSize: 12.sp,
-                      color: Colors.white60,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 12.h),
-            // Supported apps info
-            Text(
-              "Works with GPay, PhonePe, Paytm, CRED & all UPI apps",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
-                fontSize: 10.sp,
-                color: Colors.white30,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            // Done button — navigate to processing
-            AppButton(
-              onTap: () {
-                Navigator.pop(ctx);
-                _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: {'Status': 'APP_CLOSED_OR_NO_RESPONSE'}, upiApp: 'QR Code Fallback');
-              },
-              text: "I've completed the payment",
-              icon: Icons.check_circle_rounded,
-            ),
-          ],
-        ),
-      ),
+    final orderSuccess = await vm.createRazorpayOrder(
+      businessId: widget.businessId,
+      billAmount: calc.billAmount,
+      pointsRedeemed: calc.pointsRedeemed,
+      pointsValue: calc.pointsRedeemed.toDouble(),
+      finalAmount: calc.finalAmount,
+      discountPercentage: calc.discountPercentage > 0 ? calc.discountPercentage : null,
+      discountAmount: calc.discountAmount > 0 ? calc.discountAmount : null,
+      totalAmount: calc.totalAmount > 0 ? calc.totalAmount : null,
     );
-  }
-
-  Future<void> _showUpiAppPicker(PaymentCalculation calc, {String? transactionRef}) async {
-    final tr = transactionRef ?? _generateTransactionRef();
-    final baseUriString = _buildUpiString(calc, transactionRef: tr);
-    // Extract query directly from the string to preserve '%20' encoding
-    final encodedQuery = baseUriString.contains('?') ? baseUriString.split('?').last : '';
-
-    final upiApps = [
-      _UpiApp("Google Pay", "gpay://upi/pay?$encodedQuery"), // Newer scheme
-      _UpiApp("GPay (Old)", "tez://upi/pay?$encodedQuery"),
-      _UpiApp("PhonePe", "phonepe://pay?$encodedQuery"),
-      _UpiApp("Paytm", "paytmmp://upi/pay?$encodedQuery"),
-      _UpiApp("CRED", "credpay://upi/pay?$encodedQuery"),
-      _UpiApp("BHIM", "bhim://upi/pay?$encodedQuery"),
-      _UpiApp("Amazon Pay", "amazonpay://upi/pay?$encodedQuery"),
-      _UpiApp("MobiKwik", "mobikwik://upi/pay?$encodedQuery"),
-      _UpiApp("Freecharge", "freecharge://upi/pay?$encodedQuery"),
-      _UpiApp("WhatsApp", "whatsapp://upi/pay?$encodedQuery"),
-      _UpiApp("PayZapp", "payzapp://upi/pay?$encodedQuery"),
-      _UpiApp("Navi", "navi://upi/pay?$encodedQuery"),
-      _UpiApp("Kiwi", "kiwi://upi/pay?$encodedQuery"),
-      _UpiApp("Jupiter", "jupiter://upi/pay?$encodedQuery"),
-      _UpiApp("SBI Yono", "sbiyono://upi/pay?$encodedQuery"),
-      _UpiApp("MyJio", "myjio://upi/pay?$encodedQuery"),
-      _UpiApp("BOB UPI", "bobupi://upi/pay?$encodedQuery"),
-      _UpiApp("ICICI ICash", "icici://upi/pay?$encodedQuery"),
-      _UpiApp("Slice", "slice-upi://upi/pay?$encodedQuery"),
-      _UpiApp("OMNI Card", "omnicard://upi/pay?$encodedQuery"),
-      _UpiApp("Shriram One", "shriramone://upi/pay?$encodedQuery"),
-      _UpiApp("Indus Mobile", "indusmobile://upi/pay?$encodedQuery"),
-    ];
-
-    final availableApps = <_UpiApp>[];
-    for (final app in upiApps) {
-      final uri = Uri.parse(app.url);
-      if (await canLaunchUrl(uri)) {
-        availableApps.add(app);
-      }
-    }
 
     if (!mounted) return;
-
-    if (availableApps.isEmpty) {
-      Utils.toastMessage("No UPI app found. Please install GPay/PhonePe.");
-      _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: {'Status': 'APP_CLOSED_OR_NO_RESPONSE'}, upiApp: 'None');
+    if (!orderSuccess || vm.razorpayOrder == null) {
+      Utils.toastMessage(vm.error ?? "Failed to create payment order");
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColor.premiumCardBg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(25),
-          topRight: Radius.circular(25),
-        ),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Text(
-                "Pay via",
-                style: GoogleFonts.montserrat(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            SizedBox(height: 20.h),
-            ...availableApps.map(
-              (app) => GestureDetector(
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final response = await UpiIntentService.launchUpi(app.url);
-                  if (!mounted) return;
-                  _navigateToPaymentProcessing(calc, transactionRef: tr, upiResponse: response, upiApp: app.name);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
-                  margin: EdgeInsets.only(bottom: 8.h),
-                  decoration: BoxDecoration(
-                    color: AppColor.premiumLightCardBg,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40.h,
-                        height: 40.h,
-                        decoration: BoxDecoration(
-                          color: AppColor.premiumAccent.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Center(
-                          child: Text(
-                            app.name[0],
-                            style: GoogleFonts.montserrat(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w700,
-                              color: AppColor.premiumAccent,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        app.name,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Spacer(),
-                      Icon(Icons.chevron_right, color: Colors.white38),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final order = vm.razorpayOrder!;
+
+    _razorpayService = RazorpayService(
+      (successResponse) {
+        _onRazorpaySuccess(successResponse, vm, calc);
+      },
+      (failureResponse) {
+        _onRazorpayFailure(failureResponse);
+      },
+    );
+
+    _razorpayService!.openCheckout(
+      amount: order.amount,
+      orderId: order.razorpayOrderId,
+      keyId: order.keyId,
+      paymentDescription: "Payment to ${(widget.businessName ?? 'Business')}",
     );
   }
 
-  void _navigateToPaymentProcessing(PaymentCalculation calc, {String? transactionRef, Map<String, dynamic>? upiResponse, String? upiApp}) {
-    Navigator.pushReplacementNamed(context, RoutesName.paymentProcessingView, arguments: {
-      'businessId': widget.businessId,
-      'businessName': widget.businessName,
-      'amount': calc.finalAmount,
-      'billAmount': calc.billAmount,
-      'pointsRedeemed': calc.pointsRedeemed,
-      'discountPercentage': calc.discountPercentage,
-      'discountAmount': calc.discountAmount,
-      'transactionRef': transactionRef ?? '',
-      'upiResponse': upiResponse,
-      'upiApp': upiApp,
-    });
+  Future<void> _onRazorpaySuccess(PaymentSuccessResponse response, UserPaymentsViewModel vm, PaymentCalculation calc) async {
+    if (!mounted) return;
+    final success = await vm.submitPayment(
+      businessId: widget.businessId,
+      billAmount: calc.billAmount,
+      pointsRedeemed: calc.pointsRedeemed,
+      pointsValue: calc.pointsRedeemed.toDouble(),
+      finalAmount: calc.finalAmount,
+      discountPercentage: calc.discountPercentage > 0 ? calc.discountPercentage : null,
+      discountAmount: calc.discountAmount > 0 ? calc.discountAmount : null,
+      platformFee: calc.platformFee,
+      gstPercent: calc.gstPercent,
+      gstAmount: calc.gstAmount,
+      razorpayOrderId: response.orderId ?? '',
+      razorpayPaymentId: response.paymentId ?? '',
+      razorpaySignature: response.signature ?? '',
+    );
+
+    if (!mounted) return;
+    if (success) {
+      final pts = vm.lastPointsEarned;
+      if (pts > 0) {
+        Utils.toastMessage("🎉 Payment successful! You earned $pts Creatoo Points");
+      } else {
+        Utils.toastMessage("✅ Payment successful!");
+      }
+      try {
+        context.read<HomeViewModel>().refreshAfterPayment();
+      } catch (_) {}
+      Navigator.pushReplacementNamed(context, RoutesName.feedbackScreen, arguments: {
+        'businessName': (widget.businessName ?? 'Business'),
+        'businessId': widget.businessId,
+        'orderId': '',
+      });
+    } else {
+      Utils.toastMessage(vm.error ?? "Payment verification failed");
+    }
+  }
+
+  void _onRazorpayFailure(PaymentFailureResponse response) {
+    if (!mounted) return;
+    Utils.toastMessage(response.message ?? "Payment cancelled or failed");
   }
 
   @override
@@ -485,7 +243,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
                         ),
                         SizedBox(height: 12.h),
                         Text(
-                          widget.businessName,
+                          (widget.businessName ?? 'Business'),
                           style: GoogleFonts.montserrat(fontSize: 20.sp, fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                         SizedBox(height: 4.h),
@@ -592,7 +350,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
                                   ),
                                 ),
                                 SizedBox(width: 6.w),
-                                Text("at ${widget.businessName}",
+                                Text("at ${(widget.businessName ?? 'Business')}",
                                   style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white54),
                                 ),
                               ],
@@ -758,7 +516,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
                       SizedBox(width: 8.w),
                       Expanded(
                         child: Text(
-                          "Note: You can redeem a maximum of 60% of your total Creatoo points for this payment (Max: ${(_availablePoints * 0.60).floor()} Points).",
+                          "Note: Max ${_getMaxRedeemable()} points redeemable (60% of bill amount or 60% of your points, whichever is lower).",
                           style: GoogleFonts.montserrat(
                             fontSize: 11.sp,
                             color: AppColor.mangoYellow,
@@ -796,18 +554,18 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
                       borderSide: BorderSide(color: AppColor.mangoYellow, width: 1.5),
                     ),
                     contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                    suffixText: "Max ${(_availablePoints * 0.60).floor()}",
+                    suffixText: "Max ${_getMaxRedeemable()}",
                     suffixStyle: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white24),
                   ),
                   onChanged: (val) {
                     final pts = int.tryParse(val) ?? 0;
-                    final maxRedeemable = (_availablePoints * 0.60).floor();
+                    final maxRedeemable = _getMaxRedeemable();
                     if (pts > maxRedeemable) {
                       _pointsCtrl.text = maxRedeemable.toString();
                       _pointsCtrl.selection = TextSelection.fromPosition(
                         TextPosition(offset: _pointsCtrl.text.length),
                       );
-                      Utils.toastMessage("You can redeem a maximum of 60% of your total points.");
+                      Utils.toastMessage("Max $maxRedeemable points can be redeemed (60% of bill or 60% of your points).");
                     }
                     _recalculate();
                   },
@@ -918,75 +676,46 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
                 if (calc.pointsRedeemed > 0)
                   _buildSummaryRow("Points Redeemed", (-calc.pointsRedeemed).toDouble(), AppColor.mangoYellow),
                 Divider(color: Colors.white.withValues(alpha: 0.08), height: 24.h),
-                _buildSummaryRow("You Pay", calc.finalAmount, const Color(0xFF4CAF50)),
-
-                if (calc.upiId.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 12.h),
-                    child: Text("UPI not configured. Contact business.",
-                      style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.redAccent),
-                    ),
-                  ),
+                _buildSummaryRow("Final Amount", calc.finalAmount, Colors.white),
+                if (calc.platformFee > 0) ...[
+                  _buildSummaryRow("Platform Fee", calc.platformFee, Colors.white54),
+                  if (calc.gstAmount > 0)
+                    _buildSummaryRow("GST (${calc.gstPercent.toStringAsFixed(0)}%)", calc.gstAmount, Colors.white54),
+                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 24.h),
+                  _buildSummaryRow("Total", calc.totalAmount, const Color(0xFF4CAF50)),
+                ] else
+                  _buildSummaryRow("You Pay", calc.finalAmount, const Color(0xFF4CAF50)),
               ],
             ),
           ),
         ),
       ),
-      SizedBox(height: 16.h),
+      SizedBox(height: 24.h),
 
-      Text(
-        "Choose how you want to pay",
-        textAlign: TextAlign.center,
-        style: GoogleFonts.montserrat(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.white54),
-      ),
-      SizedBox(height: 16.h),
-
-      // // Primary: QR Code option (works with ALL UPI apps guaranteed)
-      // Consumer<UserPaymentsViewModel>(
-      //   builder: (context, vm, _) => AppButton(
-      //     onTap: (vm.isLoading || calc.upiId.isEmpty) ? null : () => _showQrCode(calc),
-      //     text: "Scan QR to Pay ₹${calc.finalAmount.toStringAsFixed(0)}",
-      //     icon: Icons.qr_code_2_rounded,
-      //     buttonColor: const Color(0xFF4CAF50),
-      //   ),
-      // ),
-      // SizedBox(height: 8.h),
-      // Text(
-      //   "✅ Works with GPay, PhonePe, Paytm & all UPI apps",
-      //   textAlign: TextAlign.center,
-      //   style: GoogleFonts.montserrat(fontSize: 10.sp, color: const Color(0xFF4CAF50).withValues(alpha: 0.7)),
-      // ),
-      // SizedBox(height: 16.h),
-
-      // Divider with "or"
-      // Row(
-      //   children: [
-      //     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
-      //     Padding(
-      //       padding: EdgeInsets.symmetric(horizontal: 12.w),
-      //       child: Text("or", style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white24)),
-      //     ),
-      //     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
-      //   ],
-      // ),
-      // SizedBox(height: 16.h),
-
-      // Secondary: Direct UPI App intent
       Consumer<UserPaymentsViewModel>(
         builder: (context, vm, _) => AppButton(
-          onTap: (vm.isLoading || calc.upiId.isEmpty) ? null : _payViaUpi,
-          text: vm.isLoading ? "Processing..." : "Open UPI App directly",
-          icon: vm.isLoading ? null : Icons.open_in_new_rounded,
-          buttonColor: AppColor.premiumAccent.withValues(alpha: 0.8),
+          onTap: vm.isLoading ? null : _payWithRazorpay,
+          text: vm.isLoading
+              ? "Processing..."
+              : calc.totalAmount > 0
+                  ? "Pay ₹${calc.totalAmount.toStringAsFixed(0)} via Razorpay"
+                  : "Pay ₹${calc.finalAmount.toStringAsFixed(0)} via Razorpay",
+          icon: vm.isLoading ? null : Icons.security_rounded,
+          buttonColor: const Color(0xFF4CAF50),
         ),
       ),
       SizedBox(height: 6.h),
       Text(
-        "May not work on some UPI apps due to security restrictions",
+        "Powered by Razorpay",
         textAlign: TextAlign.center,
         style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white24),
       ),
     ];
+  }
+
+  String _formatAmount(double amount) {
+    final s = amount.toStringAsFixed(2);
+    return s.endsWith('.00') ? s.substring(0, s.length - 3) : s.replaceAll(RegExp(r'\.?0+$'), '');
   }
 
   Widget _buildSummaryRow(String label, double amount, Color color) {
@@ -997,7 +726,7 @@ class _UserPaymentSubmitScreenState extends State<UserPaymentSubmitScreen> {
         children: [
           Text(label, style: GoogleFonts.montserrat(fontSize: 13.sp, color: Colors.white60)),
           Text(
-            amount < 0 ? "-₹${(-amount).toStringAsFixed(0)}" : "₹${amount.toStringAsFixed(0)}",
+            amount < 0 ? "-₹${_formatAmount(-amount)}" : "₹${_formatAmount(amount)}",
             style: GoogleFonts.montserrat(fontSize: 16.sp, fontWeight: FontWeight.w800, color: color),
           ),
         ],

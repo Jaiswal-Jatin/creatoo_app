@@ -41,4 +41,27 @@ class QrPayRepository {
       body: {'upi_id': upiId},
     );
   }
+
+  Future<Either<AppException, Map<String, dynamic>>> getBusinessBonusInfo({
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${token ?? ""}',
+      };
+      final result = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
+        AppUrl.getBusinessBonusInfoApi,
+        headers,
+        (response) => jsonDecode(response) as Map<String, dynamic>,
+        body: body,
+      );
+      return result.fold(
+        (error) => Left(error),
+        (response) => Right(response),
+      );
+    } catch (e) {
+      return Left(AppException(0, "Failed to get bonus info: $e"));
+    }
+  }
 }

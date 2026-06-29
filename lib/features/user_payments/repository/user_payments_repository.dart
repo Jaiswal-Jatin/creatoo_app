@@ -23,7 +23,10 @@ class PaymentCalculation {
   final double billAmount;
   final int pointsRedeemed;
   final double finalAmount;
-  final String upiId;
+  final double platformFee;
+  final double gstPercent;
+  final double gstAmount;
+  final double totalAmount;
   final String? businessName;
 
   PaymentCalculation({
@@ -33,7 +36,10 @@ class PaymentCalculation {
     required this.billAmount,
     required this.pointsRedeemed,
     required this.finalAmount,
-    required this.upiId,
+    this.platformFee = 0,
+    this.gstPercent = 0,
+    this.gstAmount = 0,
+    this.totalAmount = 0,
     this.businessName,
   });
 
@@ -53,8 +59,35 @@ class PaymentCalculation {
       billAmount: parseNum(d['bill_amount'], 0).toDouble(),
       pointsRedeemed: parseNum(d['points_redeemed'], 0).toInt(),
       finalAmount: parseNum(d['final_amount'], 0).toDouble(),
-      upiId: d['upi_id'] ?? '',
+      platformFee: parseNum(d['platform_fee'], 0).toDouble(),
+      gstPercent: parseNum(d['gst_percent'], 0).toDouble(),
+      gstAmount: parseNum(d['gst_amount'], 0).toDouble(),
+      totalAmount: parseNum(d['total_amount'], 0).toDouble(),
       businessName: d['business_name'],
+    );
+  }
+}
+
+class RazorpayOrderResponse {
+  final String razorpayOrderId;
+  final double amount;
+  final int amountInPaise;
+  final String keyId;
+
+  RazorpayOrderResponse({
+    required this.razorpayOrderId,
+    required this.amount,
+    required this.amountInPaise,
+    required this.keyId,
+  });
+
+  factory RazorpayOrderResponse.fromJson(Map<String, dynamic> json) {
+    final d = json['data'] as Map<String, dynamic>;
+    return RazorpayOrderResponse(
+      razorpayOrderId: d['razorpay_order_id'] ?? '',
+      amount: (d['amount'] ?? 0).toDouble(),
+      amountInPaise: d['amount_in_paise'] ?? 0,
+      keyId: d['key_id'] ?? '',
     );
   }
 }
@@ -152,7 +185,7 @@ class UserPaymentsRepository {
     }
   }
 
-  Future<Either<AppException, Map<String, dynamic>>> submitPayment({
+  Future<Either<AppException, RazorpayOrderResponse>> createRazorpayOrder({
     required int businessId,
     required double billAmount,
     int pointsRedeemed = 0,
@@ -160,10 +193,7 @@ class UserPaymentsRepository {
     required double finalAmount,
     int? discountPercentage,
     double? discountAmount,
-    String transactionRef = '',
-    String status = 'PENDING',
-    String? paymentApp,
-    Map<String, dynamic>? upiResponse,
+    double? totalAmount,
   }) async {
     try {
       Map<String, String> headers = {
@@ -179,10 +209,57 @@ class UserPaymentsRepository {
       };
       if (discountPercentage != null) body['discount_percentage'] = discountPercentage;
       if (discountAmount != null) body['discount_amount'] = discountAmount;
-      if (transactionRef.isNotEmpty) body['transaction_ref'] = transactionRef;
-      body['status'] = status;
-      if (paymentApp != null) body['payment_app'] = paymentApp;
-      if (upiResponse != null) body['payment_response'] = upiResponse;
+      if (totalAmount != null) body['total_amount'] = totalAmount;
+
+      dynamic response = await _apiServices.callPostAPI<RazorpayOrderResponse, RazorpayOrderResponse>(
+        AppUrl.manualCreateRazorpayOrder,
+        headers,
+        (response) => RazorpayOrderResponse.fromJson(jsonDecode(response)),
+        body: body,
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+
+  Future<Either<AppException, Map<String, dynamic>>> submitPayment({
+    required int businessId,
+    required double billAmount,
+    int pointsRedeemed = 0,
+    double pointsValue = 0,
+    required double finalAmount,
+    int? discountPercentage,
+    double? discountAmount,
+    double platformFee = 0,
+    double gstPercent = 0,
+    double gstAmount = 0,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+  }) async {
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${token ?? ""}',
+      };
+      final body = <String, dynamic>{
+        'business_id': businessId,
+        'bill_amount': billAmount,
+        'points_redeemed': pointsRedeemed,
+        'points_value': pointsValue,
+        'final_amount': finalAmount,
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+      };
+      if (discountPercentage != null) body['discount_percentage'] = discountPercentage;
+      if (discountAmount != null) body['discount_amount'] = discountAmount;
+      if (platformFee > 0) body['platform_fee'] = platformFee;
+      if (gstPercent > 0) body['gst_percent'] = gstPercent;
+      if (gstAmount > 0) body['gst_amount'] = gstAmount;
 
       dynamic response = await _apiServices.callPostAPI<Map<String, dynamic>, Map<String, dynamic>>(
         AppUrl.manualSubmitPayment,

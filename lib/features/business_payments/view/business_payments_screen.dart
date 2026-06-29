@@ -172,13 +172,13 @@ class _BusinessPaymentsScreenState extends State<BusinessPaymentsScreen> {
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           itemCount: displayList.length,
-          itemBuilder: (context, index) => _buildPaymentCard(displayList[index], vm),
+          itemBuilder: (context, index) => _buildPaymentCard(displayList[index]),
         );
       },
     );
   }
 
-  Widget _buildPaymentCard(payment, BusinessPaymentsViewModel vm) {
+  Widget _buildPaymentCard(payment) {
     final isPending = payment.status == 'PENDING';
     final isConfirmed = payment.status == 'CONFIRMED';
     final isCancelled = payment.status == 'CANCELLED';
@@ -281,55 +281,11 @@ class _BusinessPaymentsScreenState extends State<BusinessPaymentsScreen> {
             ],
           ),
           SizedBox(height: 12.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _formatDate(payment.createdAt),
-                style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white24),
-              ),
-              Row(
-                children: [
-                  _buildToggleBtn(
-                    label: "Received",
-                    active: isConfirmed,
-                    color: AppColor.activeGreen,
-                    onTap: isPending ? () => _showConfirmDialog(payment.id, vm) : null,
-                  ),
-                  SizedBox(width: 8.w),
-                  _buildToggleBtn(
-                    label: "Not Received",
-                    active: isCancelled,
-                    color: Colors.redAccent,
-                    onTap: isPending ? () => _showCancelDialog(payment.id, vm) : null,
-                  ),
-                ],
-              ),
-            ],
+          Text(
+            _formatDate(payment.createdAt),
+            style: GoogleFonts.montserrat(fontSize: 10.sp, color: Colors.white24),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildToggleBtn({required String label, required bool active, required Color color, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        decoration: BoxDecoration(
-          color: active ? color.withOpacity(0.2) : color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: active ? color : color.withOpacity(0.15)),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.montserrat(
-            fontSize: 10.sp,
-            fontWeight: FontWeight.w700,
-            color: active ? color : color.withOpacity(0.4),
-          ),
-        ),
       ),
     );
   }
@@ -349,54 +305,4 @@ class _BusinessPaymentsScreenState extends State<BusinessPaymentsScreen> {
     return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
   }
 
-  void _showConfirmDialog(int paymentId, BusinessPaymentsViewModel vm) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Confirm Payment", style: TextStyle(color: Colors.white)),
-        content: Text("Mark this payment as confirmed? Points will be credited to the user.",
-            style: TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text("Cancel", style: TextStyle(color: Colors.white38))),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              vm.confirmPayment(paymentId).then((success) {
-                if (success && mounted) {
-                  Utils.toastMessage("Payment confirmed! Points earned.");
-                }
-              });
-            },
-            child: Text("Confirm", style: TextStyle(color: AppColor.activeGreen)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCancelDialog(int paymentId, BusinessPaymentsViewModel vm) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Reject Payment", style: TextStyle(color: Colors.white)),
-        content: Text("Reject this payment?", style: TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text("Cancel", style: TextStyle(color: Colors.white38))),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              vm.cancelPayment(paymentId).then((success) {
-                if (success && mounted) Utils.toastMessage("Payment rejected");
-              });
-            },
-            child: Text("Reject", style: TextStyle(color: Colors.redAccent)),
-          ),
-        ],
-      ),
-    );
-  }
 }

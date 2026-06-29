@@ -107,10 +107,10 @@ class DeepLinkService {
             
             if (isInitialLink) {
               // For cold start, use longer delay with retry to wait for app initialization
-              _navigateToProceedToCartWithRetry(parsedBusinessId);
+              _navigateToPaymentScreenWithRetry(parsedBusinessId);
             } else {
               // For warm start, navigate immediately with short delay
-              _navigateToProceedToCart(parsedBusinessId);
+              _navigateToPaymentScreen(parsedBusinessId);
             }
           } else {
             log('Invalid businessId format: $businessId');
@@ -126,17 +126,21 @@ class DeepLinkService {
     }
   }
 
-  /// Navigate to ProceedToCart page with businessId (for warm start)
-  static void _navigateToProceedToCart(int businessId) {
+  /// Navigate to payment screen with businessId (for warm start)
+  static void _navigateToPaymentScreen(int businessId) {
     Future.delayed(const Duration(milliseconds: 300), () {
       final context = navigatorKey.currentContext;
       if (context != null) {
         Navigator.pushNamed(
           context,
-          RoutesName.proceedToCart,
-          arguments: businessId,
+          RoutesName.userPaymentSubmitView,
+          arguments: {
+            'businessId': businessId,
+            'businessName': null,
+            'businessImage': null,
+          },
         );
-        log('Navigation to ProceedToCart completed');
+        log('Navigation to payment screen completed');
       } else {
         log('Navigator context is null, cannot navigate');
       }
@@ -145,7 +149,7 @@ class DeepLinkService {
 
   /// Navigate with retry logic for cold start scenarios
   /// This sets up proper navigation stack with home screen as base
-  static void _navigateToProceedToCartWithRetry(int businessId, [int attempt = 0]) {
+  static void _navigateToPaymentScreenWithRetry(int businessId, [int attempt = 0]) {
     const maxAttempts = 10;
     // First attempt waits longer to let app initialization complete
     // Subsequent attempts use shorter delay
@@ -175,8 +179,7 @@ class DeepLinkService {
         _pendingBusinessId = null;
         
         // For cold start, set up proper navigation stack:
-        // HomePage → BusinessDescriptionView → ProceedToCart
-        // This ensures back button from ProceedToCart goes to BusinessDescriptionView
+        // HomePage → UserPaymentSubmitScreen
         print('🟢 [DEEPLINK] Step 1: Pushing HomePage');
         Navigator.pushNamedAndRemoveUntil(
           context,
@@ -187,39 +190,26 @@ class DeepLinkService {
         // Wait for HomePage to fully load
         await Future.delayed(const Duration(milliseconds: 500));
         
-        // Push BusinessDescriptionView
+        // Push payment screen directly
         final ctx1 = navigatorKey.currentContext;
         print('🟢 [DEEPLINK] Step 2: Context after HomePage: $ctx1');
         if (ctx1 != null) {
-          print('🟢 [DEEPLINK] Step 2: Pushing BusinessDescriptionView with businessId: $businessId');
-          print('🟢 [DEEPLINK] Step 2: Route name: ${RoutesName.businessDescriptionView}');
+          print('🟢 [DEEPLINK] Step 2: Pushing payment screen with businessId: $businessId');
           Navigator.pushNamed(
             ctx1,
-            RoutesName.businessDescriptionView,
-            arguments: businessId,
+            RoutesName.userPaymentSubmitView,
+            arguments: {
+              'businessId': businessId,
+              'businessName': null,
+              'businessImage': null,
+            },
           );
-          
-          // Wait for BusinessDescriptionView to load
-          await Future.delayed(const Duration(milliseconds: 500));
-          
-          // Then push ProceedToCart on top
-          final ctx2 = navigatorKey.currentContext;
-          print('🟢 [DEEPLINK] Step 3: Context after BusinessDescriptionView: $ctx2');
-          if (ctx2 != null) {
-            print('🟢 [DEEPLINK] Step 3: Pushing ProceedToCart with businessId: $businessId');
-            print('🟢 [DEEPLINK] Step 3: Route name: ${RoutesName.proceedToCart}');
-            Navigator.pushNamed(
-              ctx2,
-              RoutesName.proceedToCart,
-              arguments: businessId,
-            );
-          }
         }
         
-        log('Navigation stack created: HomePage → BusinessDescriptionView → ProceedToCart on attempt ${attempt + 1}');
+        log('Navigation stack created: HomePage → PaymentScreen on attempt ${attempt + 1}');
       } else if (attempt < maxAttempts) {
         log('Navigator context is null, retrying... (attempt ${attempt + 1}/$maxAttempts)');
-        _navigateToProceedToCartWithRetry(businessId, attempt + 1);
+        _navigateToPaymentScreenWithRetry(businessId, attempt + 1);
       } else {
         log('Failed to navigate after $maxAttempts attempts. Navigator context still null.');
         _pendingBusinessId = null;
@@ -234,7 +224,7 @@ class DeepLinkService {
       log('Found pending deep link navigation, businessId: $_pendingBusinessId');
       final businessId = _pendingBusinessId!;
       _pendingBusinessId = null;
-      _navigateToProceedToCart(businessId);
+      _navigateToPaymentScreen(businessId);
     }
   }
 

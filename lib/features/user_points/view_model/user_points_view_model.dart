@@ -14,7 +14,7 @@ class UserPointsViewModel extends ChangeNotifier {
   String? get error => _error;
   CreatorCreatooPointTransactionResponse? get response => _response;
 
-  int? get totalPoints => _response?.data?.creatooPoints;
+  num? get totalPoints => _response?.data?.creatooPoints;
   List<BusinessTransaction>? get businessTransactions => _response?.data?.businessTransactions;
   int get totalBusinesses => _response?.data?.businessTransactions?.length ?? 0;
 

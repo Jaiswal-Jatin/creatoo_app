@@ -18,8 +18,8 @@ class UserPaymentsViewModel extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  int _businessPoints = 0;
-  int get businessPoints => _businessPoints;
+  num _businessPoints = 0;
+  num get businessPoints => _businessPoints;
 
   int _todayVisitCount = 0;
   int get todayVisitCount => _todayVisitCount;
@@ -91,8 +91,46 @@ class UserPaymentsViewModel extends ChangeNotifier {
     return success;
   }
 
-  int? _lastPaymentId;
-  int? get lastPaymentId => _lastPaymentId;
+  RazorpayOrderResponse? _razorpayOrder;
+  RazorpayOrderResponse? get razorpayOrder => _razorpayOrder;
+
+  Future<bool> createRazorpayOrder({
+    required int businessId,
+    required double billAmount,
+    int pointsRedeemed = 0,
+    double pointsValue = 0,
+    required double finalAmount,
+    int? discountPercentage,
+    double? discountAmount,
+    double? totalAmount,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    final result = await _repo.createRazorpayOrder(
+      businessId: businessId,
+      billAmount: billAmount,
+      pointsRedeemed: pointsRedeemed,
+      pointsValue: pointsValue,
+      finalAmount: finalAmount,
+      discountPercentage: discountPercentage,
+      discountAmount: discountAmount,
+      totalAmount: totalAmount,
+    );
+    final success = result.fold((error) {
+      _error = error.message;
+      return false;
+    }, (order) {
+      _razorpayOrder = order;
+      return true;
+    });
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  int _lastPointsEarned = 0;
+  int get lastPointsEarned => _lastPointsEarned;
 
   Future<bool> submitPayment({
     required int businessId,
@@ -102,10 +140,12 @@ class UserPaymentsViewModel extends ChangeNotifier {
     required double finalAmount,
     int? discountPercentage,
     double? discountAmount,
-    String transactionRef = '',
-    String status = 'PENDING',
-    String? paymentApp,
-    Map<String, dynamic>? upiResponse,
+    double platformFee = 0,
+    double gstPercent = 0,
+    double gstAmount = 0,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -117,18 +157,18 @@ class UserPaymentsViewModel extends ChangeNotifier {
       finalAmount: finalAmount,
       discountPercentage: discountPercentage,
       discountAmount: discountAmount,
-      transactionRef: transactionRef,
-      status: status,
-      paymentApp: paymentApp,
-      upiResponse: upiResponse,
+      platformFee: platformFee,
+      gstPercent: gstPercent,
+      gstAmount: gstAmount,
+      razorpayOrderId: razorpayOrderId,
+      razorpayPaymentId: razorpayPaymentId,
+      razorpaySignature: razorpaySignature,
     );
     final success = result.fold((error) {
       _error = error.message;
       return false;
     }, (response) {
-      if (response['status'] == true && response['data'] != null) {
-        _lastPaymentId = response['data']['id'] as int?;
-      }
+      _lastPointsEarned = (response['points_earned'] as num?)?.toInt() ?? 0;
       return response['status'] == true;
     });
     _isLoading = false;
@@ -137,18 +177,9 @@ class UserPaymentsViewModel extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> setPaymentPaidAt(int paymentId) async {
-    final result = await _repo.setPaymentPaidAt(paymentId: paymentId);
-    return result.fold((error) {
-      _error = error.message;
-      return false;
-    }, (response) {
-      return response['status'] == true;
-    });
-  }
-
   void clearCalculation() {
     _calculation = null;
+    _razorpayOrder = null;
     notifyListeners();
   }
 }

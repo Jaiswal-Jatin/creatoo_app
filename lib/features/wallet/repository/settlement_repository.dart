@@ -1,5 +1,6 @@
 import 'package:creatoo/core.dart';
 import '../model/settlement_response_model.dart';
+import '../model/business_settlement_model.dart';
 
 class SettlementRepository {
   final BaseApiServices _apiServices = NetworkApiService();
@@ -86,6 +87,88 @@ class SettlementRepository {
           final json = parseJson(r);
           final list = json['data'] as List<dynamic>? ?? [];
           return list.map((e) => WalletTransactionItem.fromJson(e as Map<String, dynamic>)).toList();
+        },
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+  // ─── New Settlement System ───
+
+  Future<Either<AppException, BusinessSettlementData>> getMySettlement(String type) async {
+    try {
+      final url = '${AppUrl.businessMySettlement}?type=$type';
+      final response = await _apiServices.callGetAPI<BusinessSettlementData, BusinessSettlementData>(
+        url,
+        _headers,
+        (r) {
+          final json = parseJson(r);
+          return BusinessSettlementData.fromJson(json['data'] as Map<String, dynamic>? ?? {});
+        },
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+
+  Future<Either<AppException, List<SettlementRecordItem>>> getMySettlementRecords(String type) async {
+    try {
+      final url = '${AppUrl.businessMySettlementRecords}?type=$type';
+      final response = await _apiServices.callGetAPI<List<SettlementRecordItem>, List<SettlementRecordItem>>(
+        url,
+        _headers,
+        (r) {
+          final json = parseJson(r);
+          final list = json['data'] as List<dynamic>? ?? [];
+          return list.map((e) => SettlementRecordItem.fromJson(e as Map<String, dynamic>)).toList();
+        },
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+
+  Future<Either<AppException, CombinedSettlementData>> getCombinedSettlement() async {
+    try {
+      final response = await _apiServices.callGetAPI<CombinedSettlementData, CombinedSettlementData>(
+        AppUrl.businessCombinedSettlement,
+        _headers,
+        (r) {
+          final json = parseJson(r);
+          return CombinedSettlementData.fromJson(json['data'] as Map<String, dynamic>? ?? {});
+        },
+      );
+      return response;
+    } on AppException catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppException(0, e.toString()));
+    }
+  }
+
+  Future<Either<AppException, List<SettlementRecordItem>>> getMyAllRecords({String? fromDate, String? toDate}) async {
+    try {
+      String url = AppUrl.businessMyAllRecords;
+      final params = <String>[];
+      if (fromDate != null) params.add('from_date=$fromDate');
+      if (toDate != null) params.add('to_date=$toDate');
+      if (params.isNotEmpty) url += '?${params.join('&')}';
+      final response = await _apiServices.callGetAPI<List<SettlementRecordItem>, List<SettlementRecordItem>>(
+        url,
+        _headers,
+        (r) {
+          final json = parseJson(r);
+          final list = json['data'] as List<dynamic>? ?? [];
+          return list.map((e) => SettlementRecordItem.fromJson(e as Map<String, dynamic>)).toList();
         },
       );
       return response;

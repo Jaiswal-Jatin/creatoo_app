@@ -122,10 +122,9 @@ class _UserPaymentsScreenState extends State<UserPaymentsScreen> {
   }
 
   Widget _buildPaymentCard(dynamic payment) {
-    final isPending = payment.status == 'PENDING';
-    final isConfirmed = payment.status == 'CONFIRMED';
     final hasDiscount = payment.discountPercentage != null && payment.discountPercentage! > 0;
     final hasPoints = payment.pointsRedeemed > 0;
+    final isPaid = payment.status == 'CONFIRMED' || payment.status == 'SUCCESS';
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -145,11 +144,9 @@ class _UserPaymentsScreenState extends State<UserPaymentsScreen> {
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isPending
-                  ? AppColor.mangoYellow.withValues(alpha: 0.25)
-                  : isConfirmed
-                      ? AppColor.activeGreen.withValues(alpha: 0.2)
-                      : Colors.redAccent.withValues(alpha: 0.2),
+              color: isPaid
+                  ? AppColor.activeGreen.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.08),
               width: 1,
             ),
           ),
@@ -193,31 +190,19 @@ class _UserPaymentsScreenState extends State<UserPaymentsScreen> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                     decoration: BoxDecoration(
-                      color: isPending
-                          ? AppColor.mangoYellow.withValues(alpha: 0.12)
-                          : isConfirmed
-                              ? AppColor.activeGreen.withValues(alpha: 0.12)
-                              : Colors.redAccent.withValues(alpha: 0.12),
+                      color: AppColor.activeGreen.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isPending
-                            ? AppColor.mangoYellow.withValues(alpha: 0.3)
-                            : isConfirmed
-                                ? AppColor.activeGreen.withValues(alpha: 0.3)
-                                : Colors.redAccent.withValues(alpha: 0.3),
+                        color: AppColor.activeGreen.withValues(alpha: 0.3),
                         width: 0.5,
                       ),
                     ),
                     child: Text(
-                      isPending ? "PENDING" : isConfirmed ? "PAID" : "CANCELLED",
+                      "PAID",
                       style: GoogleFonts.montserrat(
                         fontSize: 9.sp,
                         fontWeight: FontWeight.w800,
-                        color: isPending
-                            ? AppColor.mangoYellow
-                            : isConfirmed
-                                ? AppColor.activeGreen
-                                : Colors.redAccent,
+                        color: AppColor.activeGreen,
                         letterSpacing: 0.8,
                       ),
                     ),

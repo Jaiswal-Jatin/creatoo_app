@@ -338,18 +338,44 @@ class _UserPointsScreenState extends State<UserPointsScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColor.premiumAccent.withOpacity(0.1)),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: AppColor.premiumAccent, size: 18.h),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              "Points are business-specific. Earn 10% of your bill as points. "
-              "25% expire after 15 days, 50% after 30 days, 100% after 60 days. "
-              "1 Point = ₹1 discount on future bills at the same business.",
-              style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white54, height: 1.4),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.card_giftcard, color: AppColor.mangoYellow, size: 18.h),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  "Each new business visit gives you 50 signup bonus points!",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 11.sp,
+                    color: AppColor.mangoYellow,
+                    fontWeight: FontWeight.w600,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Divider(color: Colors.white10, height: 1),
+          SizedBox(height: 12.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline, color: AppColor.premiumAccent, size: 18.h),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  "Points are business-specific. Earn 10% of your bill as points. "
+                  "25% expire after 15 days, 50% after 30 days, 100% after 60 days. "
+                  "1 Point = 1 discount on future bills at the same business.",
+                  style: GoogleFonts.montserrat(fontSize: 11.sp, color: Colors.white54, height: 1.4),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:creatoo/core.dart';
 import 'package:creatoo/features/business_payments/model/manual_payment_model.dart';
 import 'package:creatoo/features/business_payments/view_model/business_payments_view_model.dart';
+import 'package:creatoo/features/wallet/view_model/settlement_view_model.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class BusinessWalletPaymentsTab extends StatefulWidget {
@@ -28,6 +29,7 @@ class _BusinessWalletPaymentsTabState extends State<BusinessWalletPaymentsTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<BusinessPaymentsViewModel>();
       vm.loadPayments();
+      context.read<SettlementViewModel>().fetchCombinedSettlement();
     });
   }
 
@@ -419,21 +421,41 @@ class _BusinessWalletPaymentsTabState extends State<BusinessWalletPaymentsTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Text(
+                          //   "Today's Earnings",
+                          //   style: GoogleFonts.montserrat(
+                          //     fontSize: 10.sp,
+                          //     fontWeight: FontWeight.w500,
+                          //     color: Colors.white.withOpacity(0.5),
+                          //   ),
+                          // ),
+                          // SizedBox(height: 2.h),
+                          // Text(
+                          //   "₹ ${dailyAmount.toStringAsFixed(0)}",
+                          //   style: GoogleFonts.montserrat(
+                          //     fontSize: 16.sp,
+                          //     fontWeight: FontWeight.w700,
+                          //     color: AppColor.premiumAccent,
+                          //   ),
+                          // ),
+                          SizedBox(height: 6.h),
                           Text(
-                            "Today's Earnings",
+                            "Unsettled Balance",
                             style: GoogleFonts.montserrat(
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.orangeAccent.withOpacity(0.8),
                             ),
                           ),
                           SizedBox(height: 2.h),
-                          Text(
-                            "₹ ${dailyAmount.toStringAsFixed(0)}",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              color: AppColor.premiumAccent,
+                          Consumer<SettlementViewModel>(
+                            builder: (ctx, svm, _) => Text(
+                              "₹ ${(svm.billSettlement?.pendingAmount ?? 0).toStringAsFixed(0)}",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.orangeAccent,
+                              ),
                             ),
                           ),
                         ],
@@ -454,7 +476,7 @@ class _BusinessWalletPaymentsTabState extends State<BusinessWalletPaymentsTab> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          "UPI Transactions",
+          "Payments",
           style: GoogleFonts.montserrat(
             fontSize: 15.sp,
             fontWeight: FontWeight.w800,
@@ -942,7 +964,7 @@ class _BusinessWalletPaymentsTabState extends State<BusinessWalletPaymentsTab> {
                       if (p.userMobile != null && p.userMobile!.isNotEmpty)
                         _receiptRow('Mobile Number', p.userMobile!),
                       _receiptRow('Payment ID', '#${p.id}', isCopyable: true),
-                      _receiptRow('Payment Method', p.paymentMethod),
+                      _receiptRow('Payment Method', p.paymentMethod == 'MANUAL' ? 'Bill Payment' : (p.paymentMethod == 'WALLET' ? 'Wallet Payment' : p.paymentMethod)),
                       _receiptRow('Date & Time', DateFormat("dd MMM yyyy, hh:mm a").format(p.createdAt)),
                     ],
                   ),
